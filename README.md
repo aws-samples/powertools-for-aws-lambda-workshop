@@ -1,11 +1,10 @@
-## My Project
+## aws-lambda-powertools-typescript-workshop
 
-TODO: Fill this README out!
+## Deploy
 
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
+* While in `backend` run `npm i` and then `cdk deploy`
+* While in `frontend` run `npm i`, then `npm run build`, then `aws s3 sync 
+build/ s3://${BUCKET_NAME}/`
 
 ## Security
 

@@ -1,0 +1,7 @@
+@import url(https://fonts.bunny.net/css?family=inter:400);
+
+body, body::after, body::before {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
