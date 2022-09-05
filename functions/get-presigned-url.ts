@@ -45,10 +45,29 @@ const putFileMetadataInTable = async (
   });
 };
 
+const getObjectKey = (type: string): string => {
+  switch (type) {
+    case "video/mp4":
+    case "video/webm":
+    case "image/jpeg":
+    case "image/png":
+      return type;
+    case "application/json":
+      return `other`;
+    default:
+      return "other";
+  }
+};
+
 const lambdaHandler = async (event: APIGatewayEvent): Promise<string> => {
   const fileId = randomUUID();
-  const objectKey = `uploads/${fileId}`;
   const { type: fileType } = event.queryStringParameters as QueryParams;
+  const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}`;
+
+  logger.debug("[GET presigned-url] Object Key", {
+    details: objectKey,
+  });
+
   const uploadUrl = await getPresignedUrl(objectKey, fileType);
 
   logger.debug("[GET presigned-url] Url", {

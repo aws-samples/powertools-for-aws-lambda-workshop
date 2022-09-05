@@ -1,6 +1,6 @@
-import { Stack, StackProps, CfnOutput, RemovalPolicy } from "aws-cdk-lib";
+import { StackProps, CfnOutput, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { IRole, Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
+import { IRole } from "aws-cdk-lib/aws-iam";
 import {
   AccountRecovery,
   UserPool,
@@ -14,6 +14,7 @@ import {
   UserPoolAuthenticationProvider,
 } from "@aws-cdk/aws-cognito-identitypool-alpha";
 import { Function } from "aws-cdk-lib/aws-lambda";
+import { environment } from "../constants";
 
 interface AuthConstructProps extends StackProps {
   preSignUpCognitoTriggerFn: Function;
@@ -31,6 +32,7 @@ export class AuthConstruct extends Construct {
     const { preSignUpCognitoTriggerFn } = props;
 
     this.userPool = new UserPool(this, "user-pool", {
+      userPoolName: `frontend-auth-${environment}`,
       selfSignUpEnabled: true,
       accountRecovery: AccountRecovery.EMAIL_ONLY,
       userVerification: {

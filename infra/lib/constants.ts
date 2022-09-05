@@ -1,6 +1,9 @@
 export const dynamoFilesTableName = "FilesTable";
 export const dynamoFilesGsiName = "filesIndex";
 
+export const websiteBucketNamePrefix = "website";
+export const landingZoneBucketNamePrefix = "landing-zone";
+
 export const environment =
   process.env.NODE_ENV === "production" ? "prod" : "dev";
 

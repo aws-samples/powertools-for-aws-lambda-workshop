@@ -1,0 +1,32 @@
+{
+  "name": "aws-lambda-powertools-typescript-workshop",
+  "version": "1.0.0",
+  "description": "TBD",
+  "type": "module",
+  "workspaces": [
+    "scripts",
+    "frontend",
+    "infra",
+    "functions"
+  ],
+  "scripts": {
+    "frontend:start": "npm start -w frontend",
+    "frontend:build": "npm run build -w frontend",
+    "frontend:deploy": "npm run deploy -w frontend",
+    "frontend:invalidateCache": "npm run deploy:invalidateCache -w frontend",
+    "infra:deploy": "npm run cdk:deploy -w infra",
+    "infra:deployHot": "npm run cdk:deploy:hotswap -w infra",
+    "utils:createConfig": "npm run createConfig -w scripts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT-0",
+  "bugs": {
+    "url": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop/issues"
+  },
+  "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme"
+}

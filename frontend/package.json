@@ -6,7 +6,11 @@
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:clean": "aws s3 rm s3://$(cat ../infra/cdk.out/params.json | jq -r .InfraStack.BucketName) --exclude uploads --recursive",
+    "deploy:sync": "aws s3 sync build/ s3://$(cat ../infra/cdk.out/params.json | jq -r .InfraStack.BucketName) --exclude uploads",
+    "deploy": "npm run deploy:clean && npm run deploy:sync",
+    "deploy:invalidateCache": "aws cloudfront create-invalidation --paths \"/index.html\" --distribution-id $(cat ../infra/cdk.out/params.json | jq -r '.InfraStack | with_entries(select(.key|match(\".*DistributionId[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]')"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^3.5.0",
@@ -16,10 +20,10 @@
     "react-dropzone": "^14.2.2"
   },
   "devDependencies": {
-    "@types/react": "^18.0.17",
+    "@types/react": "^18.0.18",
     "@types/react-dom": "^18.0.6",
-    "@vitejs/plugin-react": "^2.0.1",
-    "typescript": "^4.6.4",
-    "vite": "^3.0.7"
+    "@vitejs/plugin-react": "^2.1.0",
+    "typescript": "^4.8.2",
+    "vite": "^3.1.0"
   }
 }

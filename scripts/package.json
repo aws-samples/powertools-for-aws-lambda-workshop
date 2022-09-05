@@ -1,0 +1,12 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "MIT-0",
+  "scripts": {
+    "createConfig": "node create-aws-exports.mjs"
+  }
+}

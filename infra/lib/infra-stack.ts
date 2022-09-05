@@ -1,87 +1,43 @@
-import { Stack, StackProps, RemovalPolicy } from "aws-cdk-lib";
+import { Stack, StackProps, CfnOutput } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import {
-  Bucket,
-  BucketAccessControl,
-  BucketEncryption,
-  HttpMethods,
-  EventType,
-} from "aws-cdk-lib/aws-s3";
-import {
-  SnsDestination,
-  LambdaDestination,
-} from "aws-cdk-lib/aws-s3-notifications";
-import { Topic } from "aws-cdk-lib/aws-sns";
-import { AuthConstruct } from "./auth-construct";
-import { ApiConstruct } from "./api-construct";
-import { FunctionsConstruct } from "./functions-construct";
-import { DistributionConstruct } from "./distribution-construct";
-import { StorageConstruct } from "./storage-construct";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { Rule, Match } from "aws-cdk-lib/aws-events";
+import { Frontend } from "./frontend";
+import { ContentHubRepo } from "./content-hub-repository";
 
 export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    const uploadTopic = new Topic(this, "upload-topic");
+    const frontend = new Frontend(this, "frontend", {});
 
-    const bucket = new Bucket(this, "landing-zone", {
-      transferAcceleration: true,
-      accessControl: BucketAccessControl.PRIVATE,
-      encryption: BucketEncryption.S3_MANAGED,
-      removalPolicy: RemovalPolicy.DESTROY,
-      cors: [
-        {
-          allowedMethods: [HttpMethods.POST, HttpMethods.PUT],
-          allowedOrigins: ["*"],
-          allowedHeaders: ["*"],
+    const contentHubRepo = new ContentHubRepo(this, "content-hub-repo", {
+      userPool: frontend.auth.userPool,
+      userPoolClient: frontend.auth.userPoolClient,
+    });
+    frontend.addApiBehavior(contentHubRepo.api.apiEndpoint);
+
+    const rule = new Rule(this, "new-uploads", {
+      eventPattern: {
+        source: Match.anyOf("aws.s3"),
+        detailType: Match.anyOf("Object Created"),
+        detail: {
+          bucket: {
+            name: Match.anyOf(
+              contentHubRepo.storage.landingZoneBucket.bucketName
+            ),
+          },
+          object: { key: Match.prefix("uploads/") },
+          reason: Match.anyOf("PutObject"),
         },
-      ],
+      },
     });
-    /* bucket.addEventNotification(
-      EventType.OBJECT_CREATED_PUT,
-      new SnsDestination(uploadTopic),
-      {
-        prefix: "uploads/*",
-      }
-    ); */
-
-    const {
-      preSignUpCognitoTriggerFn,
-      getPresignedUrlFn,
-      markCompleteUploadFn,
-    } = new FunctionsConstruct(this, "functions-construct", {
-      bucketName: bucket.bucketName,
-    });
-    bucket.grantPut(getPresignedUrlFn);
-    bucket.addEventNotification(
-      EventType.OBJECT_CREATED_PUT,
-      new LambdaDestination(markCompleteUploadFn),
-      {
-        prefix: "uploads/*",
-      }
+    rule.addTarget(
+      new LambdaFunction(contentHubRepo.functions.markCompleteUploadFn)
     );
 
-    const { userPool, userPoolClient } = new AuthConstruct(
-      this,
-      "auth-construct",
-      {
-        preSignUpCognitoTriggerFn,
-      }
-    );
-
-    const { api } = new ApiConstruct(this, "api-construct", {
-      getPresignedUrlFn,
-      userPool,
-      userPoolClient,
-    });
-
-    const { filesTable } = new StorageConstruct(this, "storage-construct", {});
-    filesTable.grantReadWriteData(getPresignedUrlFn);
-    filesTable.grantWriteData(markCompleteUploadFn);
-
-    new DistributionConstruct(this, "distribution-construct", {
-      bucket,
-      domain: api.apiEndpoint,
+    new CfnOutput(this, "AWSRegion", {
+      value: Stack.of(this).region,
     });
   }
 }

@@ -8,15 +8,18 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "cdk:deploy": "cdk deploy --outputs-file cdk.out/params.json",
+    "cdk:deploy:hotswap": "cdk deploy --hotswap --outputs-file cdk.out/params.json"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
-    "@types/node": "^18.7.14",
-    "@types/prettier": "2.6.0",
-    "aws-cdk": "2.37.1",
+    "@types/node": "^18.7.15",
+    "@types/prettier": "^2.6.0",
+    "aws-cdk": "^2.37.1",
+    "esbuild": "^0.15.7",
     "jest": "^27.5.1",
-    "ts-jest": "^27.1.4",
+    "ts-jest": "^27.1.5",
     "ts-node": "^10.9.1",
     "typescript": "~3.9.7"
   },
@@ -25,19 +28,8 @@
     "@aws-cdk/aws-apigatewayv2-authorizers-alpha": "^2.37.1-alpha.0",
     "@aws-cdk/aws-apigatewayv2-integrations-alpha": "^2.37.1-alpha.0",
     "@aws-cdk/aws-cognito-identitypool-alpha": "^2.37.1-alpha.0",
-    "@aws-lambda-powertools/logger": "^1.2.1",
-    "@aws-lambda-powertools/metrics": "^1.2.1",
-    "@aws-lambda-powertools/tracer": "^1.2.1",
-    "@aws-sdk/client-dynamodb": "^3.163.0",
-    "@aws-sdk/client-s3": "^3.163.0",
-    "@aws-sdk/lib-dynamodb": "^3.163.0",
-    "@aws-sdk/s3-request-presigner": "^3.163.0",
-    "@aws-sdk/util-dynamodb": "^3.163.0",
-    "@middy/core": "^3.3.0",
-    "@types/aws-lambda": "^8.10.102",
-    "aws-cdk-lib": "2.37.1",
-    "constructs": "^10.0.0",
-    "esbuild": "^0.15.6",
+    "aws-cdk-lib": "^2.37.1",
+    "constructs": "^10.1.94",
     "source-map-support": "^0.5.21"
   }
 }

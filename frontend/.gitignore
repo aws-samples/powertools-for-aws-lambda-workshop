@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Build
+build
+
+# AWS Config
+src/aws-exports.cjs

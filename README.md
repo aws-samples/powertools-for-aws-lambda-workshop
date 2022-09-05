@@ -1,10 +1,10 @@
 ## aws-lambda-powertools-typescript-workshop
 
+![APN Logo](docs/static/main-diagram.drawio.svg)
+
 ## Deploy
 
-* While in `backend` run `npm i` and then `cdk deploy`
-* While in `frontend` run `npm i`, then `npm run build`, then `aws s3 sync 
-build/ s3://${BUCKET_NAME}/`
+See [CONTRIBUTING](CONTRIBUTING.md#setup) for more information.
 
 ## Security
 

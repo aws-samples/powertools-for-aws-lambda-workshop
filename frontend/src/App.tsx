@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { API } from "aws-amplify";
 import { Flex, Card, Loader } from "@aws-amplify/ui-react";
-import { useDropzone } from "react-dropzone";
+import { FileRejection, useDropzone } from "react-dropzone";
 import axios from "axios";
 
 const fileReader = new FileReader();
@@ -12,7 +12,7 @@ const getFileFromInput = (file: File): Promise<any> => {
     fileReader.onload = function () {
       resolve(fileReader.result);
     };
-    fileReader.readAsBinaryString(file); // here the file can be read in different way Text, DataUrl, ArrayBuffer
+    fileReader.readAsArrayBuffer(file); // here the file can be read in different way Text, DataUrl, ArrayBuffer
   });
 };
 
@@ -59,19 +59,37 @@ function App() {
     setProgress(percentCompleted);
   }, []);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+  const onDropAccepted = useCallback(async (acceptedFiles: File[]) => {
+    if (!acceptedFiles.length) return;
     setProgress(0);
     const url = await getPresignedUrl(acceptedFiles[0]);
     await upload(url, acceptedFiles[0], onUploadProgress);
   }, []);
+  const onDropRejected = useCallback((rejectedFiles: FileRejection[]) => {
+    console.log(rejectedFiles[0]);
+    alert(
+      `${rejectedFiles[0].file.name} is invalid.\n${rejectedFiles[0].errors[0].message}`
+    );
+  }, []);
   const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
-    useDropzone({ onDrop });
+    useDropzone({
+      onDropAccepted,
+      onDropRejected,
+      accept: {
+        "image/jpeg": [],
+        "image/png": [],
+        "application/json": [],
+        "video/mp4": [],
+        "video/webm": [],
+      },
+      multiple: false,
+    });
 
   return (
     <Flex width={"100vw"} height={"100vh"} direction={"column"}>
       {acceptedFiles.map((file: File) => (
         <span key={file.name}>
-          {file.name} - {progress}
+          {file.name} - {progress} {progress !== 100 ? <Loader /> : null}
         </span>
       ))}
       <Card
