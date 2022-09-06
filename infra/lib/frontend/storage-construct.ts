@@ -1,4 +1,4 @@
-import { Stack, RemovalPolicy } from "aws-cdk-lib";
+import { Stack, RemovalPolicy, CfnOutput } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import {
   Bucket,
@@ -23,6 +23,10 @@ export class StorageConstruct extends Construct {
       encryption: BucketEncryption.S3_MANAGED,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+    });
+
+    new CfnOutput(this, "WebsiteBucketName", {
+      value: this.websiteBucket.bucketName,
     });
   }
 }

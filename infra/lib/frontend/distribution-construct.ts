@@ -1,4 +1,4 @@
-import { CfnOutput, Duration, Fn } from "aws-cdk-lib";
+import { CfnOutput, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import {
@@ -78,15 +78,17 @@ export class DistributionConstruct extends Construct {
         defaultTtl: Duration.seconds(0),
         enableAcceptEncodingGzip: true,
         cookieBehavior: CacheCookieBehavior.none(),
-        headerBehavior: CacheHeaderBehavior.allowList("Authorization"),
+        headerBehavior: CacheHeaderBehavior.allowList(
+          "Authorization",
+          "Access-Control-Allow-Origin",
+          "Access-Control-Request-Headers",
+          "Access-Control-Request-Method"
+        ),
       }),
       originRequestPolicy: new OriginRequestPolicy(this, "api-origin-policy", {
         headerBehavior: OriginRequestHeaderBehavior.none(),
         cookieBehavior: OriginRequestCookieBehavior.none(),
-        queryStringBehavior: OriginRequestQueryStringBehavior.allowList(
-          "type",
-          "length"
-        ),
+        queryStringBehavior: OriginRequestQueryStringBehavior.allowList("type"),
       }),
       responseHeadersPolicy:
         ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT_AND_SECURITY_HEADERS,
