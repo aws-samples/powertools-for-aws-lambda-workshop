@@ -41,7 +41,7 @@ export class FunctionsConstruct extends Construct {
     };
 
     this.getPresignedUrlFn = new NodejsFunction(this, "get-presigned-url", {
-      entry: "../functions/get-presigned-url",
+      entry: "../functions/get-presigned-url.ts",
       ...sharedSettings,
       environment: {
         TABLE_NAME_FILES: dynamoFilesTableName,

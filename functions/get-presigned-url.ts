@@ -1,12 +1,14 @@
 import type { APIGatewayEvent } from "aws-lambda";
-import { s3ClientV3, dynamodbClientV3, logger, tracer } from "./common";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { randomUUID } from "node:crypto";
+import { logger, tracer } from "./common/powertools";
+import { dynamodbClientV3 } from "./common/dynamodb-client";
+import { s3ClientV3 } from "./common/s3-client";
 
+import { randomUUID } from "node:crypto";
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";

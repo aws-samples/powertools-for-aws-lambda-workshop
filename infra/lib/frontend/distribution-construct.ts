@@ -68,36 +68,28 @@ export class DistributionConstruct extends Construct {
   }
 
   public addApiBehavior(apiDomain: string) {
-    this.distribution.addBehavior(
-      "/api/*",
-      new HttpOrigin(Fn.select(1, Fn.split("://", apiDomain))),
-      {
-        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
-        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-        cachePolicy: new CachePolicy(this, "api-cache", {
-          minTtl: Duration.seconds(0),
-          maxTtl: Duration.seconds(1),
-          defaultTtl: Duration.seconds(0),
-          enableAcceptEncodingGzip: true,
-          cookieBehavior: CacheCookieBehavior.none(),
-          headerBehavior: CacheHeaderBehavior.allowList("Authorization"),
-        }),
-        originRequestPolicy: new OriginRequestPolicy(
-          this,
-          "api-origin-policy",
-          {
-            headerBehavior: OriginRequestHeaderBehavior.none(),
-            cookieBehavior: OriginRequestCookieBehavior.none(),
-            queryStringBehavior: OriginRequestQueryStringBehavior.allowList(
-              "type",
-              "length"
-            ),
-          }
+    this.distribution.addBehavior("/api/*", new HttpOrigin(apiDomain), {
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+      allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      cachePolicy: new CachePolicy(this, "api-cache", {
+        minTtl: Duration.seconds(0),
+        maxTtl: Duration.seconds(1),
+        defaultTtl: Duration.seconds(0),
+        enableAcceptEncodingGzip: true,
+        cookieBehavior: CacheCookieBehavior.none(),
+        headerBehavior: CacheHeaderBehavior.allowList("Authorization"),
+      }),
+      originRequestPolicy: new OriginRequestPolicy(this, "api-origin-policy", {
+        headerBehavior: OriginRequestHeaderBehavior.none(),
+        cookieBehavior: OriginRequestCookieBehavior.none(),
+        queryStringBehavior: OriginRequestQueryStringBehavior.allowList(
+          "type",
+          "length"
         ),
-        responseHeadersPolicy:
-          ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT_AND_SECURITY_HEADERS,
-      }
-    );
+      }),
+      responseHeadersPolicy:
+        ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT_AND_SECURITY_HEADERS,
+    });
   }
 }

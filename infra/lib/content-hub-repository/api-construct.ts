@@ -7,7 +7,7 @@ import {
 } from "@aws-cdk/aws-apigatewayv2-alpha";
 import { HttpUserPoolAuthorizer } from "@aws-cdk/aws-apigatewayv2-authorizers-alpha";
 import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
-import { CfnOutput, Duration } from "aws-cdk-lib";
+import { CfnOutput, Duration, Fn } from "aws-cdk-lib";
 import { IUserPool, IUserPoolClient } from "aws-cdk-lib/aws-cognito";
 
 class ApiConstructProps {
@@ -18,7 +18,7 @@ class ApiConstructProps {
 
 export class ApiConstruct extends Construct {
   public readonly api: HttpApi;
-  public readonly apiEndpoint: string;
+  public readonly domain: string;
 
   constructor(scope: Construct, id: string, props: ApiConstructProps) {
     super(scope, id);
@@ -50,10 +50,10 @@ export class ApiConstruct extends Construct {
       ),
     });
 
-    this.apiEndpoint = this.api.url!;
+    this.domain = Fn.select(2, Fn.split("/", this.api.url as string));
 
     new CfnOutput(this, "ApiEndpoint", {
-      value: this.apiEndpoint,
+      value: this.domain,
     });
   }
 }
