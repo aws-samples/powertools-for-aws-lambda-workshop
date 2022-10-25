@@ -18,4 +18,13 @@ new InfraStack(app, 'InfraStack', {
   // env: { account: '123456789012', region: 'us-east-1' },
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+    tags: {
+        Service      : "aws-lambda-powertools-workshop",
+        Environment  : "dev",
+        ManagedBy    : "CDK",
+        GithubRepo   : "aws-samples/aws-lambda-powertools-workshop",
+        Owner        : "AWS",
+        AwsRegion    : process.env.CDK_DEFAULT_REGION || 'N/A',
+        AwsAccountId : process.env.CDK_DEFAULT_ACCOUNT || 'N/A',
+    }
 });
