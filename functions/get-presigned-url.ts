@@ -1,8 +1,12 @@
 import type { APIGatewayEvent } from "aws-lambda";
+import { logger, tracer } from "./common/powertools";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
 import { s3ClientV3 } from "./common/s3-client";
 
 import { randomUUID } from "node:crypto";
+import middy from "@middy/core";
+import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -62,13 +66,23 @@ const lambdaHandler = async (event: APIGatewayEvent): Promise<string> => {
   const { type: fileType } = event.queryStringParameters as QueryParams;
   const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}`;
 
+  logger.debug("[GET presigned-url] Object Key", {
+    details: objectKey,
+  });
+
   const uploadUrl = await getPresignedUrl(objectKey, fileType);
+
+  logger.debug("[GET presigned-url] Url", {
+    details: uploadUrl,
+  });
 
   await putFileMetadataInTable(fileId, objectKey, fileType);
 
   return JSON.stringify({ data: uploadUrl });
 };
 
-const handler = lambdaHandler;
+const handler = middy(lambdaHandler)
+  .use(captureLambdaHandler(tracer))
+  .use(injectLambdaContext(logger, { logEvent: true }));
 
 export { handler };
