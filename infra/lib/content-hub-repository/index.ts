@@ -1,5 +1,4 @@
 import { Construct } from "constructs";
-import { Bucket } from "aws-cdk-lib/aws-s3";
 import { IUserPool, IUserPoolClient } from "aws-cdk-lib/aws-cognito";
 import { AuthConstruct } from "../frontend/auth-construct";
 import { ApiConstruct } from "./api-construct";
@@ -34,6 +33,7 @@ export class ContentHubRepo extends Construct {
       getPresignedUrlFn: this.functions.getPresignedUrlFn,
       userPool: props.userPool,
       userPoolClient: props.userPoolClient,
+      table: this.storage.filesTable,
     });
   }
 }
