@@ -5,6 +5,7 @@ import {Rule, Match, Schedule} from "aws-cdk-lib/aws-events";
 import { Frontend } from "./frontend";
 import { ContentHubRepo } from "./content-hub-repository";
 import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
+import * as iam from 'aws-cdk-lib/aws-iam';
 
 export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -40,11 +41,27 @@ export class InfraStack extends Stack {
     const intervalInMinutes = 1;
 
     const loadTestFunction = new NodejsFunction(this, 'traffic-generator-lambda', {
-      entry: "../functions/mark-complete-upload.ts",
-      environment: {
-        INTERVALS_IN_MINUTES: intervalInMinutes.toString(),
+      entry: "../functions/traffic-generator.ts",
+      bundling: {
+        sourceMap: true,
+        minify: true
       },
+      environment: {
+        NODE_OPTIONS: '--enable-source-maps',
+        INTERVALS_IN_MINUTES: intervalInMinutes.toString(),
+        COGNITO_USER_POOL_ID: frontend.auth.userPool.userPoolId,
+        COGNITO_USER_POOL_CLIENT_ID: frontend.auth.userPoolClient.userPoolClientId
+      },
+      timeout: Duration.seconds(900)
     });
+
+    loadTestFunction.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['cognito-idp:AdminInitiateAuth'],
+      resources: [
+        frontend.auth.userPool.userPoolArn
+      ],
+    }))
 
     const cronRule = new Rule(this, 'traffic-generator-cron', {
       schedule: Schedule.expression('cron(0/'+ intervalInMinutes +' * * * ? *)')

@@ -55,6 +55,9 @@ export class AuthConstruct extends Construct {
 
     this.userPoolClient = new UserPoolClient(this, "user-pool-client", {
       userPool: this.userPool,
+      authFlows: {
+        adminUserPassword: true
+      },
     });
 
     const { authenticatedRole, unauthenticatedRole, identityPoolId } =
