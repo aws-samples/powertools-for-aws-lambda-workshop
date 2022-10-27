@@ -15,7 +15,8 @@
     "frontend:deploy": "npm run deploy -w frontend",
     "frontend:invalidateCache": "npm run deploy:invalidateCache -w frontend",
     "infra:deploy": "npm run cdk:deploy -w infra",
-    "infra:deployHot": "npm run cdk:deploy:hotswap -w infra"
+    "infra:deployHot": "npm run cdk:deploy:hotswap -w infra",
+    "utils:createConfig": "npm run createConfig -w scripts"
   },
   "repository": {
     "type": "git",
