@@ -15,6 +15,7 @@ const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
 
 type QueryParams = {
   type: string;
+  ext: string;
 };
 
 const getPresignedUrl = async (key: string, type: string): Promise<string> => {
@@ -34,7 +35,8 @@ const getPresignedUrl = async (key: string, type: string): Promise<string> => {
 const putFileMetadataInTable = async (
   fileId: string,
   key: string,
-  type: string
+  type: string,
+  transformParams: unknown // TODO: better type
 ) => {
   await dynamodbClientV3.put({
     TableName: dynamoDBTableFiles,
@@ -43,6 +45,7 @@ const putFileMetadataInTable = async (
       key,
       uploaded: false,
       type,
+      transformParams,
     },
   });
 };
@@ -61,10 +64,31 @@ const getObjectKey = (type: string): string => {
   }
 };
 
+const getExtension = (type: string, ext: string): string => {
+  switch (type) {
+    case "video/mp4":
+      return "mp4";
+    case "video/webm":
+      return "webm";
+    case "image/jpeg":
+      return "jpg";
+    case "image/png":
+      return "png";
+    case "application/json":
+      return ext;
+    default:
+      return "";
+  }
+};
+
 const lambdaHandler = async (event: APIGatewayEvent): Promise<string> => {
   const fileId = randomUUID();
-  const { type: fileType } = event.queryStringParameters as QueryParams;
-  const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}`;
+  const { type: fileType, ext: fileExtension } =
+    event.queryStringParameters as QueryParams;
+  const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}.${getExtension(
+    fileType,
+    fileExtension
+  )}`;
 
   logger.debug("[GET presigned-url] Object Key", {
     details: objectKey,
@@ -76,7 +100,7 @@ const lambdaHandler = async (event: APIGatewayEvent): Promise<string> => {
     details: uploadUrl,
   });
 
-  await putFileMetadataInTable(fileId, objectKey, fileType);
+  await putFileMetadataInTable(fileId, objectKey, fileType, {});
 
   return JSON.stringify({ data: uploadUrl });
 };

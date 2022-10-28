@@ -14,3 +14,5 @@ export const powertoolsLoggerLogLevel =
 export const powertoolsLoggerSampleRate =
   process.env.NODE_ENV === "production" ? "0.1" : "1";
 export const powertoolsMetricsNamespace = "octank"; // Dummy company name
+
+export const trafficGeneratorIntervalInMinutes = 1;

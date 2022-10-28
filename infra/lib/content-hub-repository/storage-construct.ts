@@ -7,21 +7,21 @@ import {
   BucketEncryption,
   HttpMethods,
 } from "aws-cdk-lib/aws-s3";
-import {
-  dynamoFilesTableName,
-  landingZoneBucketNamePrefix,
-  environment,
-} from "../constants";
+import { dynamoFilesTableName } from "../constants";
 import { IGrantable } from "aws-cdk-lib/aws-iam";
 
-class StorageConstructProps {}
+class StorageConstructProps {
+  landingZoneBucketName: string;
+}
 
 export class StorageConstruct extends Construct {
   public readonly filesTable: Table;
   public readonly landingZoneBucket: Bucket;
 
-  constructor(scope: Construct, id: string, props?: StorageConstructProps) {
+  constructor(scope: Construct, id: string, props: StorageConstructProps) {
     super(scope, id);
+
+    const { landingZoneBucketName } = props;
 
     const commonTableSettings = {
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -35,9 +35,7 @@ export class StorageConstruct extends Construct {
     });
 
     this.landingZoneBucket = new Bucket(this, "landing-zone", {
-      bucketName: `${landingZoneBucketNamePrefix}-${
-        Stack.of(this).account
-      }-${environment}`,
+      bucketName: landingZoneBucketName,
       transferAcceleration: true,
       accessControl: BucketAccessControl.PRIVATE,
       encryption: BucketEncryption.S3_MANAGED,
@@ -64,5 +62,9 @@ export class StorageConstruct extends Construct {
 
   public grantPutOnBucket(grantee: IGrantable) {
     this.landingZoneBucket.grantPut(grantee);
+  }
+
+  public grantReadWrite(grantee: IGrantable) {
+    this.landingZoneBucket.grantReadWrite(grantee);
   }
 }

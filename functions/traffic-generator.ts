@@ -10,7 +10,7 @@ import { createWriteStream, createReadStream, promises } from 'node:fs';
 import { pipeline } from 'node:stream';
 import { promisify } from 'node:util'
 
-const authenticateUser = async (username, password) => {
+const authenticateUser = async (username: string, password: string) => {
     const params = {
         AuthFlow: 'ADMIN_USER_PASSWORD_AUTH',
         ClientId: process.env.COGNITO_USER_POOL_CLIENT_ID,

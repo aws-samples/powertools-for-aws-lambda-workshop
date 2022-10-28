@@ -21,6 +21,7 @@ const getPresignedUrl = async (file: File): Promise<string> => {
     const res = await API.get("main", "/get-presigned-url", {
       queryStringParameters: {
         type: file.type,
+        ext: file.name.split(".").at(-1),
       },
     });
     return res.data;

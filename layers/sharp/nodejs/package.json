@@ -1,0 +1,25 @@
+{
+  "name": "layers-sharp",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT-0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop/issues"
+  },
+  "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme",
+  "description": "",
+  "dependencies": {
+    "sharp": "^0.31.1"
+  },
+  "devDependencies": {
+    "@types/sharp": "^0.31.0"
+  }
+}

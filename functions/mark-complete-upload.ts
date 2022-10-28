@@ -10,7 +10,7 @@ import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 
-const putFileMetadataInTable = async (fileId: string) => {
+const markFileAsUploaded = async (fileId: string) => {
   await dynamodbClientV3.update({
     TableName: dynamoDBTableFiles,
     Key: {
@@ -37,7 +37,7 @@ const lambdaHandler = async (
   const fileId = key.split("/").at(-1) as string;
   logger.debug(fileId);
 
-  await putFileMetadataInTable(fileId);
+  await markFileAsUploaded(fileId);
 
   logger.debug("Marked File as uploaded", {
     details: fileId,
