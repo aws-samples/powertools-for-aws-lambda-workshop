@@ -15,9 +15,9 @@ export class TrafficGenerator extends Construct {
     this.functions = new FunctionsConstruct(this, "functions-construct", {});
 
     const cronRule = new Rule(this, "traffic-generator-cron", {
-      schedule: Schedule.expression(
-        `cron(0/${trafficGeneratorIntervalInMinutes}' * * * ? *)`
-      ),
+      schedule: Schedule.cron({
+        minute: trafficGeneratorIntervalInMinutes.toString(),
+      }),
     });
     cronRule.addTarget(new LambdaFunction(this.functions.trafficGeneratorFn));
   }
