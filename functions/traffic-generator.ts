@@ -96,6 +96,7 @@ const lambdaHandler = async (event: APIGatewayProxyEventBase<any>, context: Cont
     if (!getImageResponse.ok) {
         throw new Error(`unexpected response ${response.statusText}`);
     }
+    // @ts-ignore
     const writeLocally = await streamPipeline(response.body, createWriteStream(`/tmp/${username}.png`));
     logger.info("writeLocally", { data: writeLocally })
 
