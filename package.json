@@ -10,6 +10,7 @@
     "functions"
   ],
   "scripts": {
+    "ts-node": "ts-node",
     "bootstrap": "sh scripts/bootstrap_env.sh",
     "clean": "rm -rf node_modules infra/node_modules infra/cdk.out frontend/node_modules frontend/src/aws-exports.cjs functions/node_modules layers/*/nodejs/node_modules",
     "frontend:start": "npm start -w frontend",
@@ -33,5 +34,8 @@
   "bugs": {
     "url": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop/issues"
   },
-  "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme"
+  "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme",
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
 }
