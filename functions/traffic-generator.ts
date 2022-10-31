@@ -6,9 +6,53 @@ import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
 import { APIGatewayProxyEventBase, Context } from "aws-lambda"
 import { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
 import fetch from "node-fetch";
-import { createWriteStream, createReadStream, promises } from 'node:fs';
-import { pipeline } from 'node:stream';
-import { promisify } from 'node:util'
+import { createReadStream, promises } from 'node:fs';
+import * as imagemagick from 'imagemagick';
+
+const pickOneOf = (array: string[] | number[]) => {
+    return Math.floor(Math.random() * array.length);
+}
+
+const generateDummyImage = (filename: string) => {
+    const values = {
+        background_color: "#FFFFF",
+        file_extension: pickOneOf(['png', 'jpg']),
+        file_location: '/tmp',
+        file_name: filename,
+        gravity: 'center',
+        height: [200, 400, 600],
+        point_size: 30,
+        resolution: 72,
+        size: 512,
+        sampling_factor: 3,
+        text_color: "#000000",
+        text_to_display: 'Test image',
+        width: [200, 400, 600]
+    }
+
+    const params = [
+        "-density", `${values.resolution * values.sampling_factor}`,
+        "-size", `${values.size * values.sampling_factor}x${values.size * values.sampling_factor}`,
+        `canvas:${values.background_color}`,
+        "-fill", values.text_color,
+        "-pointsize", `${values.point_size}`,
+        "-gravity", `${values.gravity}`,
+        "-annotate", "+0+0",
+        `${values.text_to_display}`,
+        "-resample", `${values.resolution}`,
+        `${values.file_location}/${values.file_name}.${values.file_extension}`
+    ];
+
+    return new Promise((resolve, reject) => {
+        imagemagick.convert(
+            params, (err, data) => {
+                if (err) {
+                    reject(err)
+                }
+                resolve(data);
+            });
+    })
+}
 
 const authenticateUser = async (username: string, password: string) => {
     const params = {
@@ -55,8 +99,7 @@ const createUser = async (username: string, email: string, password: string) => 
     }
 }
 
-const lambdaHandler = async (event: APIGatewayProxyEventBase<any>, context: Context): Promise<void> => {
-
+const simulateTrafficOfSingleUser = async () => {
     const username = `sgerion+${Date.now()}`;
     const email = `${username}@amazon.com`;
     const password = 'ABCabc123456789!';
@@ -88,17 +131,8 @@ const lambdaHandler = async (event: APIGatewayProxyEventBase<any>, context: Cont
     const preSignURL = await response.json();
     logger.info('pre-sign url', { data: preSignURL });
 
-
-    const streamPipeline = promisify(pipeline);
-    const getImageResponse = await fetch('https://github.githubassets.com/images/modules/logos_page/Octocat.png');
-    logger.info("getImageResponse status", { data: getImageResponse.status })
-
-    if (!getImageResponse.ok) {
-        throw new Error(`unexpected response ${response.statusText}`);
-    }
-    // @ts-ignore
-    const writeLocally = await streamPipeline(response.body, createWriteStream(`/tmp/${username}.png`));
-    logger.info("writeLocally", { data: writeLocally })
+    const dummyImage = await generateDummyImage(username);
+    logger.info("generateDummyImage results", { data: dummyImage })
 
     const stats = await promises.stat(`/tmp/${username}.png`);
     const fileSizeInBytes = stats.size;
@@ -119,6 +153,10 @@ const lambdaHandler = async (event: APIGatewayProxyEventBase<any>, context: Cont
 
     logger.info("uploadResponse status", { data: uploadResponse })
 
+}
+
+const lambdaHandler = async (event: APIGatewayProxyEventBase<any>, context: Context): Promise<void> => {
+    await simulateTrafficOfSingleUser();
 }
 
 const handler = middy(lambdaHandler)
