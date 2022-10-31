@@ -1,6 +1,5 @@
-import { StackProps, Duration, Stack } from "aws-cdk-lib";
+import { StackProps, Stack } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { Tracing, Runtime } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import {
   dynamoFilesTableName,
@@ -38,19 +37,15 @@ export class FunctionsConstruct extends Construct {
       bundling: { ...commonBundlingSettings },
     });
 
-    this.markCompleteUploadFn = new NodejsFunction(
-      this,
-      "mark-complete-upload",
-      {
-        ...commonFunctionSettings,
-        entry: "../functions/mark-complete-upload.ts",
-        functionName: `mark-complete-upload-${environment}`,
-        environment: {
-          ...localEnvVars,
-          TABLE_NAME_FILES: dynamoFilesTableName,
-        },
-        bundling: { ...commonBundlingSettings },
-      }
-    );
+    this.markCompleteUploadFn = new NodejsFunction(this, "mark-file-queued", {
+      ...commonFunctionSettings,
+      entry: "../functions/mark-file-queued.ts",
+      functionName: `mark-file-queued-${environment}`,
+      environment: {
+        ...localEnvVars,
+        TABLE_NAME_FILES: dynamoFilesTableName,
+      },
+      bundling: { ...commonBundlingSettings },
+    });
   }
 }

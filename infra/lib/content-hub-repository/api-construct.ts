@@ -12,6 +12,11 @@ import {
   GraphqlApi,
   Schema,
   AuthorizationType,
+  ObjectType,
+  GraphqlType,
+  InputType,
+  Directive,
+  ResolvableField,
   // MappingTemplate,
 } from "@aws-cdk/aws-appsync-alpha";
 import { CfnOutput, Duration, Fn } from "aws-cdk-lib";
@@ -67,9 +72,35 @@ export class ApiConstruct extends Construct {
       value: this.domain,
     });
 
-    this.api2 = new GraphqlApi(this, "graphql-api", {
+    /* const schema = new Schema();
+    const fileType = new ObjectType("file", {
+      definition: {
+        id: GraphqlType.id(),
+        updatedAt: GraphqlType.awsDateTime({ isRequired: true }),
+        status: GraphqlType.string({ isRequired: true }),
+      },
+      directives: [Directive.iam(), Directive.cognito()],
+    })
+    schema.addType(fileType);
+    const fileInput = new InputType("fileInput", {
+      definition: {
+        id: GraphqlType.id(),
+        updatedAt: GraphqlType.awsDateTime({ isRequired: true }),
+        status: GraphqlType.string({ isRequired: true }),
+      },
+    })
+    schema.addType(fileInput);
+
+    schema.addMutation('updateFileStatus', new ResolvableField({
+      returnType: fileType.attribute(),
+      args: {
+        input: fileInput.attribute()
+      }
+    })) */
+
+    /* this.api2 = new GraphqlApi(this, "graphql-api", {
       name: `API-${environment}`,
-      schema: Schema.fromAsset("./lib/content-hub-repository/schema.graphql"),
+      schema,
       authorizationConfig: {
         defaultAuthorization: {
           // For development only, will revisit this and remove API_KEY auth
@@ -82,13 +113,24 @@ export class ApiConstruct extends Construct {
           {
             authorizationType: AuthorizationType.IAM,
           },
+          {
+            authorizationType: AuthorizationType.USER_POOL,
+            userPoolConfig: {
+              userPool,
+            },
+          },
         ],
       },
-    });
+    }); */
 
-    const filesTableDS = this.api2.addDynamoDbDataSource("files-table", table);
+    /* const filesTableDS = this.api2.addDynamoDbDataSource("files-table", table);
+    filesTableDS.createResolver({
+      typeName: "Mutation",
+      fieldName: "getPresignedUrl",
 
-    new CfnOutput(this, "ApiUrl", {
+    }); */
+
+    /* new CfnOutput(this, "ApiUrl", {
       value: this.api2.graphqlUrl,
     });
 
@@ -99,5 +141,6 @@ export class ApiConstruct extends Construct {
     new CfnOutput(this, "ApiKey", {
       value: this.api2.apiKey as string,
     });
+    */
   }
 }

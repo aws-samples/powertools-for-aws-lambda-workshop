@@ -43,7 +43,7 @@ const putFileMetadataInTable = async (
     Item: {
       id: fileId,
       key,
-      uploaded: false,
+      status: "created",
       type,
       transformParams,
     },

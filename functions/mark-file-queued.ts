@@ -10,18 +10,18 @@ import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 
-const markFileAsUploaded = async (fileId: string) => {
+const markFileAs = async (fileId: string, status: string) => {
   await dynamodbClientV3.update({
     TableName: dynamoDBTableFiles,
     Key: {
       id: fileId,
     },
-    UpdateExpression: "set #uploaded = :val",
+    UpdateExpression: "set #status = :val",
     ExpressionAttributeNames: {
-      "#uploaded": "uploaded",
+      "#status": "status",
     },
     ExpressionAttributeValues: {
-      ":val": true,
+      ":val": status,
     },
   });
 };
@@ -37,9 +37,9 @@ const lambdaHandler = async (
   const fileId = file.split(".")[0];
   logger.debug(fileId);
 
-  await markFileAsUploaded(fileId);
+  await markFileAs(fileId, "queued");
 
-  logger.debug("Marked File as uploaded", {
+  logger.debug("Marked File as queued", {
     details: fileId,
   });
   metrics.addMetric("filesUploaded", MetricUnits.Count, 1);

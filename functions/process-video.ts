@@ -80,6 +80,22 @@ const processVideo = async (
       .save(`/tmp/${newFileId}.webm`);
   });
 
+const markFileAs = async (fileId: string, status: string) => {
+  await dynamodbClientV3.update({
+    TableName: dynamoDBTableFiles,
+    Key: {
+      id: fileId,
+    },
+    UpdateExpression: "set #status = :val",
+    ExpressionAttributeNames: {
+      "#status": "status",
+    },
+    ExpressionAttributeValues: {
+      ":val": status,
+    },
+  });
+};
+
 export const handler = middy(async (event: SQSEvent, context: unknown) => {
   const mainSubsegment = tracer.getSegment();
   await Promise.all(
@@ -93,6 +109,7 @@ export const handler = middy(async (event: SQSEvent, context: unknown) => {
       logger.info(key);
       const file = key.split("/").at(-1);
       const fileId = file.split(".")[0];
+      await markFileAs(fileId, "in-progress");
       const presignedUrlOriginalVideo = await getPresignedUrl(
         key,
         s3BucketFiles
@@ -133,6 +150,7 @@ export const handler = middy(async (event: SQSEvent, context: unknown) => {
         `/tmp/${newFileId}.webm`
       );
       metrics.addMetric("processedVideos", MetricUnits.Count, 1);
+      await markFileAs(fileId, "completed");
     })
   );
 })
