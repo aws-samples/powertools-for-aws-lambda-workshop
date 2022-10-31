@@ -1,31 +1,39 @@
-import { StackProps, Duration, Stack } from "aws-cdk-lib";
+import { Stack, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { Runtime, Function, Code } from "aws-cdk-lib/aws-lambda";
-import { environment } from "../constants";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import {
+  commonFunctionSettings,
+  commonBundlingSettings,
+  commonEnvVars,
+  environment,
+} from "../constants";
 
 interface FunctionsConstructProps extends StackProps {}
 
 export class FunctionsConstruct extends Construct {
-  public readonly preSignUpCognitoTriggerFn: Function;
+  public readonly preSignUpCognitoTriggerFn: NodejsFunction;
 
   constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
     super(scope, id);
 
-    const sharedSettings = {
-      runtime: Runtime.NODEJS_16_X,
-      timeout: Duration.seconds(5),
-      memorySize: 128,
+    const localEnvVars = {
+      ...commonEnvVars,
+      AWS_ACCOUNT_ID: Stack.of(this).account,
     };
-    this.preSignUpCognitoTriggerFn = new Function(
+
+    this.preSignUpCognitoTriggerFn = new NodejsFunction(
       this,
       "pre-signup-cognito-trigger",
       {
-        ...sharedSettings,
-        functionName: `preSignUpCognitoTriggerFn-${environment}`,
-        code: Code.fromInline(
-          `exports.handler = (event, _context, callback) => {event.response.autoConfirmUser=true;event.response.autoVerifyEmail=true;callback(null, event);};`
-        ),
-        handler: "index.handler",
+        ...commonFunctionSettings,
+        functionName: `pre-signup-cognito-trigger-${environment}`,
+        entry: "../functions/pre-signup-cognito-trigger.ts",
+        environment: {
+          ...localEnvVars,
+        },
+        bundling: {
+          ...commonBundlingSettings,
+        },
       }
     );
   }

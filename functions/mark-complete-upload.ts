@@ -33,8 +33,8 @@ const lambdaHandler = async (
     object: { key },
   } = event.detail;
   logger.debug(key);
-  if (!key.includes("/")) return;
-  const fileId = key.split("/").at(-1) as string;
+  const file = key.split("/").at(-1)!;
+  const fileId = file.split(".")[0];
   logger.debug(fileId);
 
   await markFileAsUploaded(fileId);

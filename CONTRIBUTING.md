@@ -83,17 +83,17 @@ graph LR
 
 First, [fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository, and then run the following commands to clone and initialize the repository locally.
 
-```console
+```sh
 git clone https://github.com/{your-account}/aws-lambda-powertools-typescript-workshop.git
 cd aws-lambda-powertools-typescript-workshop
-npm i
+npm run bootstrap
 ```
 
 ### Deploy Backend
 
 The backend resources for this project are deployed via AWS CDK. To deploy the backend run the command below after having installed all the dependencies in the project root.
 
-```console
+```sh
 npm run infra:deploy
 ```
 
@@ -105,7 +105,7 @@ In order for the Frontend application to be able to connect to your AWS environm
 
 After having deployed the backend, while in the project's root, run the command below:
 
-```console
+```sh
 npm run utils:createConfig
 ```
 
@@ -145,7 +145,7 @@ While developing and making changes to the frontend you can run the application 
 
 To run the frontend locally, execute the command below while in the project's root:
 
-```console
+```sh
 npm run frontend:start
 ```
 
@@ -157,19 +157,19 @@ Once you are ready to deploy you need to bundle the frontend application, deploy
 
 While in the project's root, run the command below to build the app:
 
-```console
+```sh
 npm run frontend:build
 ```
 
 Then, while still in the project's root, you can deploy the changes to the S3 bucket linked to the CloudFront distribution by running:
 
-```console
+```sh
 npm run frontend:deploy
 ```
 
 Finally, if you don't want to wait for the changes to be gradually replicated across CloudFront's global network, you can force a cache invalidation by running:
 
-```console
+```sh
 npm run frontend:invalidateCache
 ```
 

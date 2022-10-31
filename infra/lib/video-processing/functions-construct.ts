@@ -1,4 +1,4 @@
-import { StackProps, Stack, RemovalPolicy } from "aws-cdk-lib";
+import { StackProps, Duration, Stack, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Code, LayerVersion } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -12,39 +12,45 @@ import {
 
 interface FunctionsConstructProps extends StackProps {
   landingZoneBucketName: string;
+  videoProcessingTimeout: Duration;
 }
 
 export class FunctionsConstruct extends Construct {
-  public readonly resizeImageFn: NodejsFunction;
+  public readonly resizeVideoFn: NodejsFunction;
 
   constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
     super(scope, id);
+
+    const { videoProcessingTimeout } = props;
 
     const localEnvVars = {
       ...commonEnvVars,
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    const sharpLayer = new LayerVersion(this, "sharp-layer", {
+    const ffmpegLayer = new LayerVersion(this, "ffmpeg-layer", {
       compatibleRuntimes: [commonFunctionSettings.runtime!],
-      code: Code.fromAsset("../layers/sharp"),
-      description: "Bundles Sharp lib for image processing",
+      code: Code.fromAsset("../layers/ffmpeg"),
+      description: "Bundles ffmpeg lib for video processing",
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    this.resizeImageFn = new NodejsFunction(this, "process-image", {
+    this.resizeVideoFn = new NodejsFunction(this, "process-video", {
       ...commonFunctionSettings,
-      entry: "../functions/process-image.ts",
-      functionName: `process-image-${environment}`,
+      entry: "../functions/process-video.ts",
+      functionName: `process-video-${environment}`,
+      memorySize: 2048,
+      timeout: videoProcessingTimeout,
       environment: {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
         BUCKET_NAME_FILES: props.landingZoneBucketName,
+        FFMPEG_PATH: "/opt/bin/ffmpeg",
       },
-      layers: [sharpLayer],
+      layers: [ffmpegLayer],
       bundling: {
         ...commonBundlingSettings,
-        externalModules: ["sharp"],
+        externalModules: ["fluent-ffmpeg"],
       },
     });
   }

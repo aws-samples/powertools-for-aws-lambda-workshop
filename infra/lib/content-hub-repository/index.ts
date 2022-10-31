@@ -40,6 +40,7 @@ export class ContentHubRepo extends Construct {
       getPresignedUrlFn: this.functions.getPresignedUrlFn,
       userPool: props.userPool,
       userPoolClient: props.userPoolClient,
+      table: this.storage.filesTable,
     });
 
     const uploadedRule = new Rule(this, "new-uploads", {

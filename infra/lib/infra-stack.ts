@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { Frontend } from "./frontend";
 import { ContentHubRepo } from "./content-hub-repository";
 import { ImageProcessing } from "./image-processing";
+import { VideoProcessing } from "./video-processing";
 import { TrafficGenerator } from "./traffic-generator";
 import { landingZoneBucketNamePrefix, environment } from "./constants";
 
@@ -33,11 +34,26 @@ export class InfraStack extends Stack {
       imageProcessing.functions.resizeImageFn
     );
 
+    const videoProcessing = new VideoProcessing(this, "video-processing", {
+      landingZoneBucketName,
+    });
+    contentHubRepo.storage.grantReadWrite(
+      videoProcessing.functions.resizeVideoFn
+    );
+    contentHubRepo.storage.grantReadWriteDataOnTable(
+      videoProcessing.functions.resizeVideoFn
+    );
+
     const trafficGenerator = new TrafficGenerator(
       this,
       "traffic-generator",
       {}
     );
+    trafficGenerator.functions.usersGeneratorFn.addEnvironment(
+      "COGNITO_USER_POOL_CLIENT_ID",
+      frontend.auth.userPoolClient.userPoolClientId
+    );
+
     trafficGenerator.functions.trafficGeneratorFn.addEnvironment(
       "COGNITO_USER_POOL_ID",
       frontend.auth.userPool.userPoolId
@@ -46,18 +62,14 @@ export class InfraStack extends Stack {
       "COGNITO_USER_POOL_CLIENT_ID",
       frontend.auth.userPoolClient.userPoolClientId
     );
+    trafficGenerator.functions.trafficGeneratorFn.addEnvironment(
+      "API_URL",
+      `https://${frontend.cdn.distribution.distributionDomainName}/api`
+    );
     frontend.auth.userPool.grant(
       trafficGenerator.functions.trafficGeneratorFn,
       "cognito-idp:AdminInitiateAuth"
     );
-
-    /* loadTestFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ["cognito-idp:AdminInitiateAuth"],
-        resources: [frontend.auth.userPool.userPoolArn],
-      })
-    ); */
 
     new CfnOutput(this, "AWSRegion", {
       value: Stack.of(this).region,
