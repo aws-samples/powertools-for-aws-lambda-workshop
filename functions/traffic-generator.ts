@@ -1,128 +1,140 @@
+import type { EventBridgeEvent } from "aws-lambda";
+import type {
+  Detail,
+  DetailType,
+} from "./common/types/EventBridgeScheduledEvent";
 import { logger, tracer } from "./common/powertools";
+import { cognitoClientV3 } from "./common/cognito-client";
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+import { AdminInitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
+import { default as request } from "phin";
 
-import { APIGatewayProxyEventBase, Context } from "aws-lambda"
-import { CognitoIdentityProviderClient, SignUpCommand, AdminInitiateAuthCommand } from "@aws-sdk/client-cognito-identity-provider";
-import fetch from "node-fetch";
-import { createWriteStream, createReadStream, promises } from 'node:fs';
-import { pipeline } from 'node:stream';
-import { promisify } from 'node:util'
+const cognitoUserPoolID = process.env.COGNITO_USER_POOL_ID || "";
+const cognitoUserPoolClientID = process.env.COGNITO_USER_POOL_CLIENT_ID || "";
+const dummyPassword = process.env.DUMMY_PASSWORD || "";
+const apiUrl = process.env.API_URL || "";
 
-const authenticateUser = async (username: string, password: string) => {
-    const params = {
-        AuthFlow: 'ADMIN_USER_PASSWORD_AUTH',
-        ClientId: process.env.COGNITO_USER_POOL_CLIENT_ID,
-        UserPoolId: process.env.COGNITO_USER_POOL_ID,
+const getAccessTokenForUser = async (
+  username: string,
+  password: string,
+  cognitoUserPoolID: string,
+  cognitoUserPoolClientID: string
+): Promise<string> => {
+  try {
+    const res = await cognitoClientV3.send(
+      new AdminInitiateAuthCommand({
+        AuthFlow: "ADMIN_USER_PASSWORD_AUTH",
+        ClientId: cognitoUserPoolClientID,
+        UserPoolId: cognitoUserPoolID,
         AuthParameters: {
-            USERNAME: username,
-            PASSWORD: password
-        }
-    }
+          USERNAME: username,
+          PASSWORD: password,
+        },
+      })
+    );
 
-    const cognitoClient = new CognitoIdentityProviderClient({
-        region: process.env.AWS_REGION
-    })
+    if (!res.AuthenticationResult || !res.AuthenticationResult?.AccessToken)
+      throw new Error("Unable to find access token in authenticated user");
 
-    try {
-        return await cognitoClient.send(new AdminInitiateAuthCommand(params))
-    } catch(err: unknown) {
-        logger.error('Unexpected error', err as Error)
-    }
+    return res.AuthenticationResult.AccessToken;
+  } catch (err) {
+    logger.error("Error while authenticating the user", err as Error);
+    throw err;
+  }
 };
 
-const createUser = async (username: string, email: string, password: string) => {
-    const cognitoClient = new CognitoIdentityProviderClient({region: process.env.AWS_REGION});
-
-    const params = {
-        ClientId: process.env.COGNITO_USER_POOL_CLIENT_ID,
-        Password: password,
-        Username: username,
-        UserAttributes: [
-            {
-                Name: 'email',
-                Value: email
-            }
-        ]
-    }
-
-    try {
-        return await cognitoClient.send(new SignUpCommand(params))
-    } catch (err) {
-        logger.error('error', err as Error);
-        throw err;
-    }
-}
-
-const lambdaHandler = async (event: APIGatewayProxyEventBase<any>, context: Context): Promise<void> => {
-
-    const username = `sgerion+${Date.now()}`;
-    const email = `${username}@amazon.com`;
-    const password = 'ABCabc123456789!';
-
-    try {
-        await createUser(username, email, password);
-    } catch (err) {
-        logger.error('Error while creating the user', err as Error);
-        return;
-    }
-
-    let authenticatedUser;
-    try {
-        authenticatedUser = await authenticateUser(username, password);
-    } catch (error: unknown) {
-        logger.error('Error while authenticating the user', error as Error);
-        return;
-    }
-
-    logger.info('Authenticated user', { data: authenticatedUser });
-
-    const response = await fetch("https://di82qpttzbiua.cloudfront.net/api/get-presigned-url?type=image%2Fpng", {
-        headers: {
-            accept: "application/json",
-            authorization: authenticatedUser.AuthenticationResult.AccessToken,
-        },
-        method: "GET"
-    });
-    const preSignURL = await response.json();
-    logger.info('pre-sign url', { data: preSignURL });
-
-
-    const streamPipeline = promisify(pipeline);
-    const getImageResponse = await fetch('https://github.githubassets.com/images/modules/logos_page/Octocat.png');
-    logger.info("getImageResponse status", { data: getImageResponse.status })
-
-    if (!getImageResponse.ok) {
-        throw new Error(`unexpected response ${response.statusText}`);
-    }
-    // @ts-ignore
-    const writeLocally = await streamPipeline(response.body, createWriteStream(`/tmp/${username}.png`));
-    logger.info("writeLocally", { data: writeLocally })
-
-    const stats = await promises.stat(`/tmp/${username}.png`);
-    const fileSizeInBytes = stats.size;
-    logger.info("is file", { data: stats.isFile() })
-    logger.info("is file", { data: stats.size })
-    logger.info("is directory", { data: stats.isDirectory() })
-
-    let readStream = createReadStream(`/tmp/${username}.png`);
-    // @ts-ignore
-    const uploadResponse = await fetch(preSignURL.data, {
-        method: 'PUT',
-        headers: {
-            "content-length": fileSizeInBytes.toString(),
-            "content-type": "image/png",
-        },
-        body: readStream
+const getPresignedUrl = async (accessToken: string): Promise<string> => {
+  let presignedURL: string;
+  try {
+    const res = await request<{ data: string }>({
+      url: `${apiUrl}/get-presigned-url?type=image%2Fpng`,
+      headers: {
+        accept: "application/json",
+        authorization: accessToken,
+      },
+      method: "GET",
+      timeout: 5000,
+      parse: "json",
     });
 
-    logger.info("uploadResponse status", { data: uploadResponse })
+    presignedURL = res.body.data;
+    logger.info("pre-sign url", { data: res.body.data });
 
-}
+    return res.body.data;
+  } catch (err) {
+    logger.error("Error while obtaining presigned url", err as Error);
+    throw err;
+  }
+};
 
-const handler = middy(lambdaHandler)
-    .use(captureLambdaHandler(tracer))
-    .use(injectLambdaContext(logger, { logEvent: true }));
+const getOriginalAsset = async (): Promise<Buffer> => {
+  const assets = [
+    "https://github.githubassets.com/images/modules/logos_page/Octocat.png",
+  ];
+  const assetUrl = assets[Math.floor(Math.random() * assets.length)]; // Get a random asset
 
-export { handler };
+  try {
+    const res = await request(assetUrl);
+    logger.info("getOriginalAsset request status", {
+      data: res.statusCode,
+    });
+
+    if (res.errored) {
+      throw new Error(`Unexpected response ${res.statusMessage}`);
+    }
+
+    if (!res.body) throw new Error(`No body returned ${res.statusMessage}`);
+
+    return res.body;
+  } catch (err) {
+    logger.error("Error while obtaining image", err as Error);
+    throw err;
+  }
+};
+
+const uploadAsset = async (
+  presignedURL: string,
+  assetBuffer: Buffer
+): Promise<void> => {
+  try {
+    const res = await request({
+      url: presignedURL,
+      headers: {
+        "content-type": "image/png",
+      },
+      method: "PUT",
+      data: assetBuffer,
+    });
+    logger.info("uploadResponse status", { data: res.statusCode });
+    if (res.errored) {
+      throw new Error(`unexpected response ${res.statusMessage}`);
+    }
+
+    return;
+  } catch (err) {
+    logger.error("Error while uploading image", err as Error);
+    throw err;
+  }
+};
+
+export const handler = middy(
+  async (event: EventBridgeEvent<DetailType, Detail>): Promise<void> => {
+    const email = `dummyuser+${Math.floor(
+      Math.random() * (50 - 1 + 1) + 1
+    )}@example.com`; // Pseudo-randomly uses one of the 50 users in the pool
+
+    const accessToken = await getAccessTokenForUser(
+      email,
+      dummyPassword,
+      cognitoUserPoolID,
+      cognitoUserPoolClientID
+    );
+    const presignedURL = await getPresignedUrl(accessToken);
+    const assetBuffer = await getOriginalAsset();
+    await uploadAsset(presignedURL, assetBuffer);
+  }
+)
+  .use(captureLambdaHandler(tracer))
+  .use(injectLambdaContext(logger, { logEvent: true }));

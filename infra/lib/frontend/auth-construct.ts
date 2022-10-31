@@ -47,6 +47,10 @@ export class AuthConstruct extends Construct {
           mutable: true,
         },
       },
+      signInAliases: {
+        email: true,
+        username: false,
+      },
       removalPolicy: RemovalPolicy.DESTROY,
       lambdaTriggers: {
         preSignUp: preSignUpCognitoTriggerFn,
@@ -56,7 +60,8 @@ export class AuthConstruct extends Construct {
     this.userPoolClient = new UserPoolClient(this, "user-pool-client", {
       userPool: this.userPool,
       authFlows: {
-        adminUserPassword: true
+        adminUserPassword: true,
+        userSrp: true,
       },
     });
 

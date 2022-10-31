@@ -1,3 +1,6 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
 #!/bin/bash
 
 # Specify the desired volume size in GiB as a command line argument. If not specified, default to 20 GiB.

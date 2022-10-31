@@ -2,7 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import { Metrics } from "@aws-lambda-powertools/metrics";
 import { Tracer } from "@aws-lambda-powertools/tracer";
 
-const awsLambdaPowertoolsVersion = "1.2.1";
+const awsLambdaPowertoolsVersion = "1.4.0";
 
 const defaultValues = {
   awsAccountId: process.env.AWS_ACCOUNT_ID || "N/A",

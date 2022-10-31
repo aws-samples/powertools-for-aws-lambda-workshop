@@ -4,10 +4,9 @@ import { Tracing, Runtime } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import {
   dynamoFilesTableName,
-  powertoolsServiceName,
-  powertoolsLoggerLogLevel,
-  powertoolsLoggerSampleRate,
-  powertoolsMetricsNamespace,
+  commonFunctionSettings,
+  commonBundlingSettings,
+  commonEnvVars,
   environment,
 } from "../constants";
 
@@ -22,44 +21,35 @@ export class FunctionsConstruct extends Construct {
   constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
     super(scope, id);
 
-    const sharedSettings = {
-      runtime: Runtime.NODEJS_16_X,
-      tracing: Tracing.ACTIVE,
-      timeout: Duration.seconds(300),
-      handler: "handler",
-      memorySize: 256,
-    };
-
-    const commonEnvVars = {
-      ENVIRONMENT: environment,
+    const localEnvVars = {
+      ...commonEnvVars,
       AWS_ACCOUNT_ID: Stack.of(this).account,
-      // Powertools environment variables
-      POWERTOOLS_SERVICE_NAME: powertoolsServiceName,
-      POWERTOOLS_LOGGER_LOG_LEVEL: powertoolsLoggerLogLevel,
-      POWERTOOLS_LOGGER_SAMPLE_RATE: powertoolsLoggerSampleRate,
-      POWERTOOLS_METRICS_NAMESPACE: powertoolsMetricsNamespace,
     };
 
     this.getPresignedUrlFn = new NodejsFunction(this, "get-presigned-url", {
+      ...commonFunctionSettings,
       entry: "../functions/get-presigned-url.ts",
-      ...sharedSettings,
+      functionName: `get-presigned-url-${environment}`,
       environment: {
+        ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
         BUCKET_NAME_FILES: props.landingZoneBucketName,
-        ...commonEnvVars,
       },
+      bundling: { ...commonBundlingSettings },
     });
 
     this.markCompleteUploadFn = new NodejsFunction(
       this,
       "mark-complete-upload",
       {
+        ...commonFunctionSettings,
         entry: "../functions/mark-complete-upload.ts",
-        ...sharedSettings,
+        functionName: `mark-complete-upload-${environment}`,
         environment: {
+          ...localEnvVars,
           TABLE_NAME_FILES: dynamoFilesTableName,
-          ...commonEnvVars,
         },
+        bundling: { ...commonBundlingSettings },
       }
     );
   }
