@@ -120,7 +120,7 @@ const uploadAsset = async (
 };
 
 export const handler = middy(
-  async (event: EventBridgeEvent<DetailType, Detail>): Promise<void> => {
+  async (_event: EventBridgeEvent<DetailType, Detail>): Promise<void> => {
     const email = `dummyuser+${Math.floor(
       Math.random() * (50 - 1 + 1) + 1
     )}@example.com`; // Pseudo-randomly uses one of the 50 users in the pool
