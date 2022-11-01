@@ -7,14 +7,6 @@ import { Authenticator } from "@aws-amplify/ui-react";
 import { Amplify, Auth } from "aws-amplify";
 import awsmobile from "./aws-exports.cjs";
 
-const customHeader = async () => ({
-  Authorization: `${(await Auth.currentSession())
-    .getAccessToken()
-    .getJwtToken()}`,
-});
-
-// @ts-ignore
-// awsmobile.API.endpoints[0].custom_header = customHeader;
 Amplify.configure(awsmobile);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

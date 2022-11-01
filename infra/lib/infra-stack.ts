@@ -82,7 +82,7 @@ export class InfraStack extends Stack {
     );
     trafficGenerator.functions.trafficGeneratorFn.addEnvironment(
       "API_URL",
-      `https://${frontend.cdn.distribution.distributionDomainName}/graphql`
+      `https://${contentHubRepo.api.domain}/graphql`
     );
     frontend.auth.userPool.grant(
       trafficGenerator.functions.trafficGeneratorFn,

@@ -5,6 +5,7 @@ import type {
 } from "./common/types/EventBridgeScheduledEvent";
 import { logger, tracer } from "./common/powertools";
 import { cognitoClientV3 } from "./common/cognito-client";
+import { GetPresignedUrlMutation } from './common/appsync-queries';
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
@@ -58,20 +59,29 @@ const getAccessTokenForUser = async (
 
 const getPresignedUrl = async (accessToken: string): Promise<string> => {
   try {
-    const res = await request<{ data: string }>({
-      url: `${apiUrl}/get-presigned-url?type=image%2Fpng`,
+    const graphQLOperation = {
+      query: GetPresignedUrlMutation,
+      variables: {
+        input: {
+          type: "image/png",
+        },
+      },
+    };
+    const res = await request<{ data: { generatePresignedUrl: { url: string } }}>({
+      url: apiUrl,
       headers: {
         accept: "application/json",
         authorization: accessToken,
       },
-      method: "GET",
+      method: "POST",
       timeout: 5000,
       parse: "json",
-    });
+      data: JSON.stringify(graphQLOperation)
+    })
 
-    logger.info("pre-sign url", { data: res.body.data });
+    logger.info("pre-sign url", { data: res.body.data.generatePresignedUrl.url });
 
-    return res.body.data;
+    return res.body.data.generatePresignedUrl.url;
   } catch (err) {
     logger.error("Error while obtaining presigned url", { data: accessToken, error: err as Error });
     throw err;
@@ -134,11 +144,11 @@ const simulateTrafficOfUser = async (accessToken: string, assetBuffer: Buffer) =
 }
 
 const getAccessTokens = async (): Promise<string[]> => {
-  const accessTokens = [];
+  const accessTokens: Promise<string>[] = [];
   for(let i: number = 1; i <= 50; i++) {
     const email = `dummyuser+${i}@example.com`;
 
-    const accessToken =  getAccessTokenForUser(
+    const accessToken = getAccessTokenForUser(
         email,
         dummyPassword,
         cognitoUserPoolID,

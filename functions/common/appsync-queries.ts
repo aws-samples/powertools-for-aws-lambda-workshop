@@ -4,3 +4,9 @@ export const UpdateFileStatusMutation = `mutation UpdateFileStatus($input: FileS
     status
   }
 }`;
+
+export const GetPresignedUrlMutation = `mutation GeneratePresignedUrl($input: PresignedUrlInput!) {
+  generatePresignedUrl(input: $input) {
+    url
+  }
+}`;
