@@ -68,10 +68,10 @@ export class DistributionConstruct extends Construct {
   }
 
   public addApiBehavior(apiDomain: string) {
-    this.distribution.addBehavior("/api/*", new HttpOrigin(apiDomain), {
+    this.distribution.addBehavior("/graphql", new HttpOrigin(apiDomain), {
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
-      allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+      allowedMethods: AllowedMethods.ALLOW_ALL,
       cachePolicy: new CachePolicy(this, "api-cache", {
         minTtl: Duration.seconds(0),
         maxTtl: Duration.seconds(1),
@@ -88,7 +88,7 @@ export class DistributionConstruct extends Construct {
       originRequestPolicy: new OriginRequestPolicy(this, "api-origin-policy", {
         headerBehavior: OriginRequestHeaderBehavior.none(),
         cookieBehavior: OriginRequestCookieBehavior.none(),
-        queryStringBehavior: OriginRequestQueryStringBehavior.allowList("type"),
+        queryStringBehavior: OriginRequestQueryStringBehavior.none(),
       }),
       responseHeadersPolicy:
         ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS_WITH_PREFLIGHT_AND_SECURITY_HEADERS,

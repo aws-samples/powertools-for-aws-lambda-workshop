@@ -8,5 +8,8 @@
   "license": "MIT-0",
   "scripts": {
     "createConfig": "node create-aws-exports.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.200.0"
   }
 }

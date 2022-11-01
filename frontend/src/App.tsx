@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { API } from "aws-amplify";
-import { Flex, Card, Loader } from "@aws-amplify/ui-react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { API, graphqlOperation, GraphQLResult } from "@aws-amplify/api";
+import { Flex, Card, Loader, Button } from "@aws-amplify/ui-react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import axios from "axios";
 
@@ -18,13 +18,26 @@ const getFileFromInput = (file: File): Promise<any> => {
 
 const getPresignedUrl = async (file: File): Promise<string> => {
   try {
-    const res = await API.get("main", "/get-presigned-url", {
-      queryStringParameters: {
-        type: file.type,
-        ext: file.name.split(".").at(-1),
-      },
-    });
-    return res.data;
+    const res = (await API.graphql(
+      graphqlOperation(
+        `mutation GeneratePresignedUrl($input: PresignedUrlInput!) {
+      generatePresignedUrl(input: $input) {
+        url
+      }
+    }`,
+        {
+          input: {
+            type: file.type,
+          },
+        }
+      )
+    )) as GraphQLResult<{ generatePresignedUrl: { url: string } }>;
+    console.log(res.data?.generatePresignedUrl.url);
+
+    if (!res.data || !res.data.generatePresignedUrl)
+      throw new Error("Unable to get presigned url");
+
+    return res.data?.generatePresignedUrl.url;
   } catch (err) {
     console.error(err);
     throw err;
@@ -52,6 +65,39 @@ const upload = async (
 
 function App() {
   const [progress, setProgress] = useState(0);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const subscriptionRef = useRef();
+
+  const unsubscribeMutation = () => {
+    // @ts-ignore
+    subscriptionRef.current?.unsubscribe();
+    console.info("Unsubscribed from onUpdatePosition AppSync mutation");
+    setIsSubscribed(false);
+  };
+
+  const subscribeMutation = () => {
+    subscriptionRef.current = API.graphql(
+      graphqlOperation(`
+      subscription OnUpdateFileStatus {
+        onUpdateFileStatus {
+          id
+          status
+        }
+      }
+      `)
+      // @ts-ignore
+    ).subscribe({
+      // @ts-ignore
+      next: ({ value: { data } }) => {
+        const { onUpdateFileStatus } = data;
+        console.debug("Status updated", onUpdateFileStatus);
+        if (onUpdateFileStatus.status === "completed") unsubscribeMutation();
+      },
+      error: (err: Error) => console.error(err),
+    });
+    console.info("Subscribed to onUpdateFileStatus AppSync mutation");
+    setIsSubscribed(true);
+  };
 
   const onUploadProgress = useCallback((progressEvent: any): void => {
     var percentCompleted = Math.round(
@@ -64,6 +110,7 @@ function App() {
     if (!acceptedFiles.length) return;
     setProgress(0);
     const url = await getPresignedUrl(acceptedFiles[0]);
+    subscribeMutation();
     await upload(url, acceptedFiles[0], onUploadProgress);
   }, []);
   const onDropRejected = useCallback((rejectedFiles: FileRejection[]) => {

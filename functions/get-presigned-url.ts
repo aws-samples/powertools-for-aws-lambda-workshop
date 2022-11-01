@@ -1,4 +1,4 @@
-import type { APIGatewayEvent } from "aws-lambda";
+import type { AppSyncResolverEvent } from "aws-lambda";
 import { logger, tracer } from "./common/powertools";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
 import { s3ClientV3 } from "./common/s3-client";
@@ -64,49 +64,35 @@ const getObjectKey = (type: string): string => {
   }
 };
 
-const getExtension = (type: string, ext: string): string => {
-  switch (type) {
-    case "video/mp4":
-      return "mp4";
-    case "video/webm":
-      return "webm";
-    case "image/jpeg":
-      return "jpg";
-    case "image/png":
-      return "png";
-    case "application/json":
-      return ext;
-    default:
-      return "";
+export const handler = middy(
+  async (
+    event: AppSyncResolverEvent<{ input: { type: string } }>
+  ): Promise<{ url: string }> => {
+    try {
+      const fileId = randomUUID();
+      const { type: fileType } = event.arguments.input;
+      const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}.${
+        fileType.split("/")[1]
+      }`;
+
+      logger.debug("[GET presigned-url] Object Key", {
+        details: objectKey,
+      });
+
+      const uploadUrl = await getPresignedUrl(objectKey, fileType);
+
+      logger.debug("[GET presigned-url] Url", {
+        details: uploadUrl,
+      });
+
+      await putFileMetadataInTable(fileId, objectKey, fileType, {});
+
+      return { url: uploadUrl };
+    } catch (err) {
+      logger.error("Unable to generate presigned url", err);
+      throw err;
+    }
   }
-};
-
-const lambdaHandler = async (event: APIGatewayEvent): Promise<string> => {
-  const fileId = randomUUID();
-  const { type: fileType, ext: fileExtension } =
-    event.queryStringParameters as QueryParams;
-  const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}.${getExtension(
-    fileType,
-    fileExtension
-  )}`;
-
-  logger.debug("[GET presigned-url] Object Key", {
-    details: objectKey,
-  });
-
-  const uploadUrl = await getPresignedUrl(objectKey, fileType);
-
-  logger.debug("[GET presigned-url] Url", {
-    details: uploadUrl,
-  });
-
-  await putFileMetadataInTable(fileId, objectKey, fileType, {});
-
-  return JSON.stringify({ data: uploadUrl });
-};
-
-const handler = middy(lambdaHandler)
+)
   .use(captureLambdaHandler(tracer))
   .use(injectLambdaContext(logger, { logEvent: true }));
-
-export { handler };

@@ -1,4 +1,75 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 import { writeFile, readFile } from "node:fs/promises";
+import {
+  CloudFormationClient,
+  ListStacksCommand,
+  DescribeStacksCommand,
+} from "@aws-sdk/client-cloudformation";
+
+const cfnClient = new CloudFormationClient({});
+
+/**
+ *
+ * @param {string} name
+ * @returns
+ */
+const getStackName = async (name) => {
+  try {
+    const res = await cfnClient.send(
+      new ListStacksCommand({
+        StackStatusFilter: [
+          "CREATE_COMPLETE",
+          "UPDATE_COMPLETE",
+          "ROLLBACK_COMPLETE",
+        ],
+      })
+    );
+    const stack = res.StackSummaries.find((stack) =>
+      stack.StackName.toUpperCase().includes(name.toUpperCase())
+    );
+    if (!stack) {
+      throw new Error("Unable to find stack among loaded ones");
+    }
+    return stack;
+  } catch (err) {
+    console.error(err);
+    console.error("Unable to load CloudFormation stacks.");
+    throw err;
+  }
+};
+
+/**
+ *
+ * @param {string} stackName
+ */
+const getStackOutputs = async (stackName) => {
+  try {
+    const res = await cfnClient.send(
+      new DescribeStacksCommand({
+        StackName: stackName,
+      })
+    );
+    if (res.Stacks.length === 0) {
+      throw new Error("Stack not found");
+    }
+    const keys = [];
+    const outputs = {};
+    res.Stacks?.[0].Outputs.forEach(({ OutputKey, OutputValue }) => {
+      outputs[OutputKey] = OutputValue;
+      keys.push(OutputKey);
+    });
+    return {
+      keys,
+      vals: outputs,
+    };
+  } catch (err) {
+    console.error(err);
+    console.error("Unable to load CloudFormation Stack outputs.");
+    throw err;
+  }
+};
 
 /**
  *
@@ -12,8 +83,6 @@ const getParams = async (path) => {
     const paramsValues = paramsObject.InfraStack;
     return { keys: paramsKeys, vals: paramsValues };
   } catch (err) {
-    console.error(err);
-    console.error("Did you run `npm run infra:deploy` in the project root?");
     throw err;
   }
 };
@@ -41,12 +110,30 @@ const getValueFromNamePart = (namePart, values) =>
   values.find((el) => el.includes(namePart));
 
 const main = async () => {
-  const { keys, vals } = await getParams("../infra/cdk.out/params.json");
+  let keys;
+  let vals;
+  try {
+    console.info("Trying to find output file locally.");
+    const params = await getParams("../infra/cdk.out/params.json");
+    keys = params.keys;
+    vals = params.vals;
+  } catch (err) {
+    console.info("Unable to find output file locally, trying remotely.");
+    try {
+      const stackName = "InfraStack";
+      console.info(`Trying to find stack with ${stackName}`);
+      const stack = await getStackName(stackName);
+      const params = await getStackOutputs(stack.StackName);
+      keys = params.keys;
+      vals = params.vals;
+      console.info("Stack found remotely, getting parameters there.");
+    } catch (err) {
+      console.error("Did you run `npm run infra:deploy` in the project root?");
+      throw new Error("Unable to find parameters locally or remotely.");
+    }
+  }
   const template = {
     Auth: {},
-    API: {
-      endpoints: [{ name: "main" }],
-    },
   };
 
   const region = vals[getValueFromNamePart(`AWSRegion`, keys)];
@@ -56,10 +143,11 @@ const main = async () => {
   template.Auth.userPoolId = vals[getValueFromNamePart(`UserPoolId`, keys)];
   template.Auth.userPoolWebClientId =
     vals[getValueFromNamePart(`UserPoolClientId`, keys)];
-  template.API.endpoints[0].region = region;
-  const cloudfrontDistribution =
-    vals[getValueFromNamePart(`DistributionDomainName`, keys)];
-  template.API.endpoints[0].endpoint = `https://${cloudfrontDistribution}/api`;
+  const apiEndpointDomain = vals[getValueFromNamePart(`ApiEndpoint`, keys)];
+  template.aws_appsync_authenticationType = "AMAZON_COGNITO_USER_POOLS";
+  template.aws_appsync_graphqlEndpoint = `https://${apiEndpointDomain}/graphql`;
+
+  console.info("Creating config file at frontend/src/aws-exports.cjs");
 
   saveTemplate(template, "../frontend/src/aws-exports.cjs");
 };

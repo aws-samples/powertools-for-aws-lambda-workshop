@@ -1,6 +1,9 @@
 import type { SQSEvent } from "aws-lambda";
+import type { FileStatus } from "./common/types/File";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
 import { s3ClientV3 } from "./common/s3-client";
+import { appSyncIamClient } from "./common/appsync-iam-client";
+import { UpdateFileStatusMutation } from "./common/appsync-queries";
 import sharp from "sharp";
 
 import { randomUUID } from "node:crypto";
@@ -75,20 +78,18 @@ const processImage = async (
   return resizedImg;
 };
 
-const markFileAs = async (fileId: string, status: string) => {
-  await dynamodbClientV3.update({
-    TableName: dynamoDBTableFiles,
-    Key: {
-      id: fileId,
+const markFileAs = async (fileId: string, status: FileStatus) => {
+  const graphQLOperation = {
+    query: UpdateFileStatusMutation,
+    operationName: "UpdateFileStatus",
+    variables: {
+      input: {
+        id: fileId,
+        status,
+      },
     },
-    UpdateExpression: "set #status = :val",
-    ExpressionAttributeNames: {
-      "#status": "status",
-    },
-    ExpressionAttributeValues: {
-      ":val": status,
-    },
-  });
+  };
+  await appSyncIamClient.send(graphQLOperation);
 };
 
 export const handler = middy(async (event: SQSEvent, context: unknown) => {

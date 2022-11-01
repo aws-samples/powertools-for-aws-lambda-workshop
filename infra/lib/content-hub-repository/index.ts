@@ -9,7 +9,6 @@ import { StorageConstruct } from "./storage-construct";
 
 class ContentHubRepoProps {
   userPool: IUserPool;
-  userPoolClient: IUserPoolClient;
   landingZoneBucketName: string;
 }
 
@@ -22,7 +21,7 @@ export class ContentHubRepo extends Construct {
   constructor(scope: Construct, id: string, props: ContentHubRepoProps) {
     super(scope, id);
 
-    const { landingZoneBucketName } = props;
+    const { landingZoneBucketName, userPool } = props;
 
     this.storage = new StorageConstruct(this, "storage-construct", {
       landingZoneBucketName,
@@ -34,14 +33,20 @@ export class ContentHubRepo extends Construct {
 
     this.storage.grantReadWriteDataOnTable(this.functions.getPresignedUrlFn);
     this.storage.grantPutOnBucket(this.functions.getPresignedUrlFn);
-    this.storage.grantWriteDataOnTable(this.functions.markCompleteUploadFn);
 
     this.api = new ApiConstruct(this, "api-construct", {
       getPresignedUrlFn: this.functions.getPresignedUrlFn,
-      userPool: props.userPool,
-      userPoolClient: props.userPoolClient,
+      userPool: userPool,
       table: this.storage.filesTable,
     });
+    this.api.api.grantMutation(
+      this.functions.markCompleteUploadFn,
+      "updateFileStatus"
+    );
+    this.functions.markCompleteUploadFn.addEnvironment(
+      "APPSYNC_ENDPOINT",
+      `https://${this.api.domain}/graphql`
+    );
 
     const uploadedRule = new Rule(this, "new-uploads", {
       eventPattern: {
