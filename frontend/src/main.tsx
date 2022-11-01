@@ -14,7 +14,7 @@ const customHeader = async () => ({
 });
 
 // @ts-ignore
-awsmobile.API.endpoints[0].custom_header = customHeader;
+// awsmobile.API.endpoints[0].custom_header = customHeader;
 Amplify.configure(awsmobile);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

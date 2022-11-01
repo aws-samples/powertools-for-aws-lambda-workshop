@@ -1,0 +1,28 @@
+type File @aws_iam @aws_cognito_user_pools {
+  id: ID
+  status: String!
+}
+
+type PresignedUrl {
+  url: String!
+}
+
+input FileStatusUpdateInput {
+  id: ID
+  status: String!
+}
+
+input PresignedUrlInput {
+  type: String!
+}
+
+type Query {}
+
+type Mutation {
+  generatePresignedUrl(input: PresignedUrlInput): PresignedUrl @aws_cognito_user_pools
+  updateFileStatus(input: FileStatusUpdateInput): File @aws_iam
+}
+
+type Subscription {
+  onUpdateFileStatus: File @aws_subscribe(mutations: ["updateFileStatus"]) @aws_cognito_user_pools
+}

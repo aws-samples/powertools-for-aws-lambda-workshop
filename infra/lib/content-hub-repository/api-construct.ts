@@ -17,130 +17,97 @@ import {
   InputType,
   Directive,
   ResolvableField,
-  // MappingTemplate,
+  MappingTemplate,
+  PrimaryKey,
+  Values,
 } from "@aws-cdk/aws-appsync-alpha";
 import { CfnOutput, Duration, Fn } from "aws-cdk-lib";
 import { IUserPool, IUserPoolClient } from "aws-cdk-lib/aws-cognito";
 import { environment } from "../constants";
 import { Table } from "aws-cdk-lib/aws-dynamodb";
+import { RetentionDays } from "aws-cdk-lib/aws-logs";
 
 class ApiConstructProps {
   getPresignedUrlFn: Function;
   userPool: IUserPool;
-  userPoolClient: IUserPoolClient;
   table: Table;
 }
 
 export class ApiConstruct extends Construct {
-  public readonly api: HttpApi;
+  public readonly api: GraphqlApi;
   public readonly domain: string;
-  public readonly api2: GraphqlApi; // This variable name is temporary
 
   constructor(scope: Construct, id: string, props: ApiConstructProps) {
     super(scope, id);
 
-    const { getPresignedUrlFn, userPool, userPoolClient, table } = props;
+    const { getPresignedUrlFn, userPool, table } = props;
 
-    const authorizer = new HttpUserPoolAuthorizer("userpool-auth", userPool, {
-      userPoolClients: [userPoolClient],
-    });
-
-    this.api = new HttpApi(this, "http-api", {
-      defaultAuthorizer: authorizer,
-      createDefaultStage: true,
-      corsPreflight: {
-        allowHeaders: ["Authorization"],
-        allowMethods: [CorsHttpMethod.GET, CorsHttpMethod.OPTIONS],
-        allowOrigins: ["*"],
-        exposeHeaders: ["Date", "x-api-id"],
-        maxAge: Duration.days(10),
-      },
-    });
-
-    this.api.addRoutes({
-      path: "/api/get-presigned-url",
-      methods: [HttpMethod.GET],
-      integration: new HttpLambdaIntegration(
-        "get-presigned-url",
-        getPresignedUrlFn
-      ),
-    });
-
-    this.domain = Fn.select(2, Fn.split("/", this.api.url as string));
-
-    new CfnOutput(this, "ApiEndpoint", {
-      value: this.domain,
-    });
-
-    /* const schema = new Schema();
-    const fileType = new ObjectType("file", {
-      definition: {
-        id: GraphqlType.id(),
-        updatedAt: GraphqlType.awsDateTime({ isRequired: true }),
-        status: GraphqlType.string({ isRequired: true }),
-      },
-      directives: [Directive.iam(), Directive.cognito()],
-    })
-    schema.addType(fileType);
-    const fileInput = new InputType("fileInput", {
-      definition: {
-        id: GraphqlType.id(),
-        updatedAt: GraphqlType.awsDateTime({ isRequired: true }),
-        status: GraphqlType.string({ isRequired: true }),
-      },
-    })
-    schema.addType(fileInput);
-
-    schema.addMutation('updateFileStatus', new ResolvableField({
-      returnType: fileType.attribute(),
-      args: {
-        input: fileInput.attribute()
-      }
-    })) */
-
-    /* this.api2 = new GraphqlApi(this, "graphql-api", {
+    this.api = new GraphqlApi(this, "graphql-api", {
       name: `API-${environment}`,
-      schema,
+      schema: Schema.fromAsset("./lib/content-hub-repository/schema.graphql"),
       authorizationConfig: {
         defaultAuthorization: {
-          // For development only, will revisit this and remove API_KEY auth
-          authorizationType: AuthorizationType.API_KEY,
-          apiKeyConfig: {
-            expires: Expiration.after(Duration.days(365)),
+          authorizationType: AuthorizationType.USER_POOL,
+          userPoolConfig: {
+            userPool,
           },
         },
         additionalAuthorizationModes: [
           {
             authorizationType: AuthorizationType.IAM,
           },
-          {
-            authorizationType: AuthorizationType.USER_POOL,
-            userPoolConfig: {
-              userPool,
-            },
-          },
         ],
       },
-    }); */
+      logConfig: {
+        retention: RetentionDays.FIVE_DAYS,
+      },
+    });
+    this.domain = Fn.select(2, Fn.split("/", this.api.graphqlUrl as string));
+    const filesTableDS = this.api.addDynamoDbDataSource("files-table", table);
+    const lambdaDS = this.api.addLambdaDataSource(
+      "lambda-get-presigned-url",
+      getPresignedUrlFn
+    );
 
-    /* const filesTableDS = this.api2.addDynamoDbDataSource("files-table", table);
     filesTableDS.createResolver({
       typeName: "Mutation",
-      fieldName: "getPresignedUrl",
+      fieldName: "updateFileStatus",
+      requestMappingTemplate: MappingTemplate.fromString(`{
+        "version": "2018-05-29",
+        "operation" : "UpdateItem",
+        "key": {
+          "id": $util.dynamodb.toDynamoDBJson($ctx.args.input.id)
+        },
+        "update": {
+          "expression": "set #status = :val",
+          "expressionNames": {
+            "#status": "status",
+          },
+          "expressionValues": {
+            ":val": $util.dynamodb.toDynamoDBJson($ctx.args.input.status)
+          }
+        }
+      }`),
+      responseMappingTemplate: MappingTemplate.dynamoDbResultItem(),
+    });
 
-    }); */
+    lambdaDS.createResolver({
+      typeName: "Mutation",
+      fieldName: "generatePresignedUrl",
+      requestMappingTemplate: MappingTemplate.lambdaRequest(),
+      responseMappingTemplate: MappingTemplate.lambdaResult(),
+    });
 
-    /* new CfnOutput(this, "ApiUrl", {
-      value: this.api2.graphqlUrl,
+    new CfnOutput(this, "ApiEndpoint", {
+      value: this.domain,
+    });
+
+    new CfnOutput(this, "ApiUrl", {
+      value: this.api.graphqlUrl,
     });
 
     new CfnOutput(this, "ApiId", {
-      value: this.api2.apiId,
+      value: this.api.apiId,
     });
-
-    new CfnOutput(this, "ApiKey", {
-      value: this.api2.apiKey as string,
-    });
-    */
   }
 }

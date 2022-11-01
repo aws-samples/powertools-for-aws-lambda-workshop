@@ -1,29 +1,27 @@
 import type { EventBridgeEvent } from "aws-lambda";
 import type { Detail, DetailType } from "./common/types/FileUploadEvent";
-import { dynamodbClientV3 } from "./common/dynamodb-client";
+import type { FileStatus } from "./common/types/File";
 import { logger, tracer, metrics } from "./common/powertools";
+import { appSyncIamClient } from "./common/appsync-iam-client";
+import { UpdateFileStatusMutation } from "./common/appsync-queries";
 
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
 import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
-const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
-
-const markFileAs = async (fileId: string, status: string) => {
-  await dynamodbClientV3.update({
-    TableName: dynamoDBTableFiles,
-    Key: {
-      id: fileId,
+const markFileAs = async (fileId: string, status: FileStatus) => {
+  const graphQLOperation = {
+    query: UpdateFileStatusMutation,
+    operationName: "UpdateFileStatus",
+    variables: {
+      input: {
+        id: fileId,
+        status,
+      },
     },
-    UpdateExpression: "set #status = :val",
-    ExpressionAttributeNames: {
-      "#status": "status",
-    },
-    ExpressionAttributeValues: {
-      ":val": status,
-    },
-  });
+  };
+  await appSyncIamClient.send(graphQLOperation);
 };
 
 const lambdaHandler = async (
