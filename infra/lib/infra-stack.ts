@@ -1,5 +1,6 @@
 import { Stack, StackProps, CfnOutput } from "aws-cdk-lib";
 import { Construct } from "constructs";
+import { CfnGroup } from "aws-cdk-lib/aws-resourcegroups";
 import { Frontend } from "./frontend";
 import { ContentHubRepo } from "./content-hub-repository";
 import { ImageProcessing } from "./image-processing";
@@ -10,6 +11,22 @@ import { landingZoneBucketNamePrefix, environment } from "./constants";
 export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    new CfnGroup(this, "resource-group", {
+      name: "lambda-powertools-workshop",
+      description: "Resource Group for aws-lambda-powertools-workshop service",
+      resourceQuery: {
+        query: {
+          tagFilters: [
+            {
+              key: "Service",
+              values: ["aws-lambda-powertools-workshop"],
+            },
+          ],
+        },
+        type: "TAG_FILTERS_1_0",
+      },
+    });
 
     const landingZoneBucketName = `${landingZoneBucketNamePrefix}-${
       Stack.of(this).account
