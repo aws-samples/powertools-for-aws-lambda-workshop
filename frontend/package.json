@@ -14,10 +14,12 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^3.5.0",
-    "aws-amplify": "^4.3.34",
+    "aws-amplify": "^4.3.42",
+    "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-dropzone": "^14.2.2"
+    "react-dropzone": "^14.2.2",
+    "react-router-dom": "^6.4.3"
   },
   "devDependencies": {
     "@types/react": "^18.0.18",

@@ -1,7 +1,22 @@
-@import url(https://fonts.bunny.net/css?family=inter:400);
+@import url(https://fonts.bunny.net/css?family=inter:300,400,500);
 
-body, body::after, body::before {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+[data-amplify-authenticator] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--amplify-colors-neutral-20);
+  padding: 0 5px;
+}
+
+@media not all and (min-resolution:.001dpcm) {
+  @supports (-webkit-appearance:none) and (stroke-color:transparent) {
+    body {
+      min-height: -webkit-fill-available;
+    }
+
+    [data-amplify-authenticator] {
+      min-height: -webkit-fill-available;
+    }
+  }
 }

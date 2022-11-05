@@ -5,7 +5,9 @@ import type {
 } from "./common/types/EventBridgeScheduledEvent";
 import { logger, tracer } from "./common/powertools";
 import { cognitoClientV3 } from "./common/cognito-client";
-import { GetPresignedUrlMutation } from './common/appsync-queries';
+import { ImageSizes } from './common/types/TransformSizes';
+import { generatePresignedUrl } from './common/graphql/mutations';
+import type { GeneratePresignedUrlMutation} from './common/types/API';
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
@@ -60,14 +62,15 @@ const getAccessTokenForUser = async (
 const getPresignedUrl = async (accessToken: string): Promise<string> => {
   try {
     const graphQLOperation = {
-      query: GetPresignedUrlMutation,
+      query: generatePresignedUrl,
       variables: {
         input: {
           type: "image/png",
+          transformParams: ImageSizes.SMALL
         },
       },
     };
-    const res = await request<{ data: { generatePresignedUrl: { url: string } }}>({
+    const res = await request<GeneratePresignedUrlMutation>({
       url: apiUrl,
       headers: {
         accept: "application/json",
@@ -79,9 +82,10 @@ const getPresignedUrl = async (accessToken: string): Promise<string> => {
       data: JSON.stringify(graphQLOperation)
     })
 
-    logger.info("pre-sign url", { data: res.body.data.generatePresignedUrl.url });
+    if (!res.body.generatePresignedUrl) throw new Error('Request returned empty');
+    logger.info("pre-sign url", { data: res.body.generatePresignedUrl.url });
 
-    return res.body.data.generatePresignedUrl.url;
+    return res.body.generatePresignedUrl.url;
   } catch (err) {
     logger.error("Error while obtaining presigned url", { data: accessToken, error: err as Error });
     throw err;

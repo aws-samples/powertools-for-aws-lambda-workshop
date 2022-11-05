@@ -1,13 +1,18 @@
 import { Stack, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { Table, AttributeType, BillingMode } from "aws-cdk-lib/aws-dynamodb";
+import {
+  Table,
+  AttributeType,
+  BillingMode,
+  ProjectionType,
+} from "aws-cdk-lib/aws-dynamodb";
 import {
   Bucket,
   BucketAccessControl,
   BucketEncryption,
   HttpMethods,
 } from "aws-cdk-lib/aws-s3";
-import { dynamoFilesTableName } from "../constants";
+import { dynamoFilesTableName, dynamoFilesByUserGsiName } from "../constants";
 import { IGrantable } from "aws-cdk-lib/aws-iam";
 
 class StorageConstructProps {
@@ -32,6 +37,13 @@ export class StorageConstruct extends Construct {
     this.filesTable = new Table(this, "files-table", {
       tableName: dynamoFilesTableName,
       ...commonTableSettings,
+    });
+
+    this.filesTable.addGlobalSecondaryIndex({
+      indexName: dynamoFilesByUserGsiName,
+      partitionKey: { name: "id", type: AttributeType.STRING },
+      sortKey: { name: "userId", type: AttributeType.STRING },
+      projectionType: ProjectionType.ALL,
     });
 
     this.landingZoneBucket = new Bucket(this, "landing-zone", {

@@ -4,6 +4,7 @@ type File @aws_iam @aws_cognito_user_pools {
 }
 
 type PresignedUrl {
+  id: String!
   url: String!
 }
 
@@ -14,15 +15,45 @@ input FileStatusUpdateInput {
 
 input PresignedUrlInput {
   type: String!
+  transformParams: String
 }
 
-type Query {}
+type Query {
+  getDownloadPresignedUrl(id: String!): PresignedUrl @aws_cognito_user_pools
+}
 
 type Mutation {
-  generatePresignedUrl(input: PresignedUrlInput): PresignedUrl @aws_cognito_user_pools
-  updateFileStatus(input: FileStatusUpdateInput): File @aws_iam
+  generatePresignedUrl(input: PresignedUrlInput): PresignedUrl
+    @aws_cognito_user_pools
+  updateFileStatus(input: FileStatusUpdateInput): File
+    @aws_iam
+    @aws_cognito_user_pools
+}
+
+input onUpdateFileStatusStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  in: [String]
+  notIn: [String]
+}
+
+input onUpdateFileStatusFilterInput {
+  id: onUpdateFileStatusStringInput
+  status: onUpdateFileStatusStringInput
+  and: [onUpdateFileStatusFilterInput]
+  or: [onUpdateFileStatusFilterInput]
 }
 
 type Subscription {
-  onUpdateFileStatus: File @aws_subscribe(mutations: ["updateFileStatus"]) @aws_cognito_user_pools
+  onUpdateFileStatus(filter: onUpdateFileStatusFilterInput): File
+    @aws_subscribe(mutations: ["updateFileStatus"])
+    @aws_cognito_user_pools
 }

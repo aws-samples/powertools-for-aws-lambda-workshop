@@ -1,4 +1,4 @@
-type FileStatus = "queued" | "in-progress" | "completed";
+type FileStatus = "queued" | "in-progress" | "completed" | "failed";
 
 type FileType = "video/mp4" | "video/webm" | "image/jpeg" | "image/png";
 

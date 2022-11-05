@@ -4,10 +4,13 @@ import { HttpRequest } from "@aws-sdk/protocol-http";
 import { SignatureV4 } from "@aws-sdk/signature-v4";
 import { URL } from "url";
 import { default as request } from "phin";
-import type {
-  GraphQLOperation,
-  UpdateFileStatusMutationInputs,
-} from "./types/GraphQLOperations";
+import type { UpdateFileStatusMutationVariables } from "./types/API";
+
+type GraphQLOperation<T> = {
+  query: string;
+  operationName?: string;
+  variables: T;
+};
 
 type AppSyncIamClientProps = {
   url: string;
@@ -33,7 +36,9 @@ class AppSyncIamClient {
     });
   }
 
-  public async send(query: GraphQLOperation<UpdateFileStatusMutationInputs>) {
+  public async send(
+    query: GraphQLOperation<UpdateFileStatusMutationVariables>
+  ) {
     const httpRequest = this.buildHttpRequest(query);
     const signedHttpRequest = await this.signRequest(httpRequest);
     try {
@@ -58,7 +63,7 @@ class AppSyncIamClient {
   }
 
   private buildHttpRequest(
-    query: GraphQLOperation<UpdateFileStatusMutationInputs>
+    query: GraphQLOperation<UpdateFileStatusMutationVariables>
   ) {
     const url = new URL(this.apiUrl);
     return new HttpRequest({

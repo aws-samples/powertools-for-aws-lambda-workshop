@@ -18,7 +18,7 @@ export class VideoProcessing extends Construct {
     super(scope, id);
 
     const { landingZoneBucketName } = props;
-    const videoProcessingTimeout = Duration.seconds(60);
+    const videoProcessingTimeout = Duration.seconds(120);
 
     this.functions = new FunctionsConstruct(this, "functions-construct", {
       landingZoneBucketName,

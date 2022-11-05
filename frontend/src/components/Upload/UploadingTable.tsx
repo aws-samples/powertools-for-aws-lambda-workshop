@@ -1,0 +1,85 @@
+import React, { useEffect, useState } from "react";
+import {
+  Button,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from "@aws-amplify/ui-react";
+
+import { FileWithUrlMap } from "./Upload.helpers";
+import FileUpload from "./FileUpload";
+
+type UploadingTableProps = {
+  children?: React.ReactNode;
+  files: FileWithUrlMap;
+  setFileStatus: (id: string, status: string) => void;
+  goBack: () => void;
+  onDone: () => void;
+};
+
+const UploadingTable: React.FC<UploadingTableProps> = ({
+  files,
+  setFileStatus,
+  onDone,
+  goBack,
+}) => {
+  const [isMoreButtonEnabled, setIsMoreButtonEnabled] = useState(false);
+
+  useEffect(() => {
+    if (files.size === 0) return;
+
+    let allFileProcessed = true;
+    for (const file of files.values()) {
+      if (!["completed", "failed"].includes(file.status))
+        allFileProcessed = false;
+    }
+    if (allFileProcessed) {
+      console.info(
+        "All files are completed, unsubscribing from onUpdatePosition AppSync mutation"
+      );
+      onDone();
+      setIsMoreButtonEnabled(true);
+    }
+  }, [files]);
+
+  const fileUploadComponents = [];
+  for (const file of files.values()) {
+    fileUploadComponents.push(
+      <FileUpload key={file.id} {...file} setFileStatus={setFileStatus} />
+    );
+  }
+
+  if (fileUploadComponents.length === 0) return null;
+  return (
+    <>
+      <Table caption="" highlightOnHover={true}>
+        <TableHead>
+          <TableRow>
+            <TableCell width={"50%"} as="th">
+              File
+            </TableCell>
+            <TableCell width={"50%"} as="th">
+              Status
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>{fileUploadComponents}</TableBody>
+      </Table>
+      {isMoreButtonEnabled ? (
+        <Button
+          variation="primary"
+          size="small"
+          width={"40%"}
+          margin={"auto"}
+          onClick={goBack}
+        >
+          Process more files
+        </Button>
+      ) : null}
+    </>
+  );
+};
+
+export default UploadingTable;

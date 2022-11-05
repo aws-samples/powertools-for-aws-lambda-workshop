@@ -1,12 +1,12 @@
-import type { CloudFormationCustomResourceEvent } from "aws-lambda";
 import { SignUpCommand } from "@aws-sdk/client-cognito-identity-provider";
+import type { CloudFormationCustomResourceEvent } from "aws-lambda";
 import { setTimeout } from "timers/promises";
 
-import { logger, tracer } from "./common/powertools";
-import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+import middy from "@middy/core";
 import { cognitoClientV3 } from "./common/cognito-client";
+import { logger, tracer } from "./common/powertools";
 
 const cognitoUserPoolClientID = process.env.COGNITO_USER_POOL_CLIENT_ID || "";
 const dummyPassword = process.env.DUMMY_PASSWORD || "";

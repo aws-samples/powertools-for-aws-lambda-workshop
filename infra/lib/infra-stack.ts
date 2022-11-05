@@ -6,21 +6,25 @@ import { ContentHubRepo } from "./content-hub-repository";
 import { ImageProcessing } from "./image-processing";
 import { VideoProcessing } from "./video-processing";
 import { TrafficGenerator } from "./traffic-generator";
-import { landingZoneBucketNamePrefix, environment } from "./constants";
+import {
+  landingZoneBucketNamePrefix,
+  powertoolsServiceName,
+  environment,
+} from "./constants";
 
 export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     new CfnGroup(this, "resource-group", {
-      name: "lambda-powertools-workshop",
+      name: `lambda-powertools-workshop-${environment}`,
       description: "Resource Group for aws-lambda-powertools-workshop service",
       resourceQuery: {
         query: {
           tagFilters: [
             {
               key: "Service",
-              values: ["aws-lambda-powertools-workshop"],
+              values: [powertoolsServiceName],
             },
           ],
         },

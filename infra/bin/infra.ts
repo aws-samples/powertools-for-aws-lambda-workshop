@@ -2,6 +2,7 @@
 import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import { InfraStack } from "../lib/infra-stack";
+import { powertoolsServiceName, environment } from "../lib/constants";
 
 const app = new cdk.App();
 new InfraStack(app, "InfraStack", {
@@ -19,8 +20,8 @@ new InfraStack(app, "InfraStack", {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
   tags: {
-    Service: "aws-lambda-powertools-workshop",
-    Environment: "dev",
+    Service: powertoolsServiceName,
+    Environment: environment,
     ManagedBy: "CDK",
     GithubRepo: "aws-samples/aws-lambda-powertools-workshop",
     Owner: "AWS",

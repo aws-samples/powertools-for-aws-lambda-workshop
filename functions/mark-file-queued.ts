@@ -1,18 +1,18 @@
 import type { EventBridgeEvent } from "aws-lambda";
-import type { Detail, DetailType } from "./common/types/FileUploadEvent";
-import type { FileStatus } from "./common/types/File";
-import { logger, tracer, metrics } from "./common/powertools";
 import { appSyncIamClient } from "./common/appsync-iam-client";
-import { UpdateFileStatusMutation } from "./common/appsync-queries";
+import { generatePresignedUrl } from "./common/graphql/mutations";
+import { logger, metrics, tracer } from "./common/powertools";
+import type { FileStatus } from "./common/types/File";
+import type { Detail, DetailType } from "./common/types/FileUploadEvent";
 
-import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
 import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+import middy from "@middy/core";
 
 const markFileAs = async (fileId: string, status: FileStatus) => {
   const graphQLOperation = {
-    query: UpdateFileStatusMutation,
+    query: generatePresignedUrl,
     operationName: "UpdateFileStatus",
     variables: {
       input: {

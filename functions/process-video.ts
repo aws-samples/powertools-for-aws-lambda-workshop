@@ -1,21 +1,21 @@
-import type { SQSEvent } from "aws-lambda";
+import type { Callback, SQSEvent } from "aws-lambda";
+import { appSyncIamClient } from "./common/appsync-iam-client";
+import { updateFileStatus } from "./common/graphql/mutations";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
 import { s3ClientV3 } from "./common/s3-client";
-import { appSyncIamClient } from "./common/appsync-iam-client";
 import type { FileStatus } from "./common/types/File";
-import { UpdateFileStatusMutation } from "./common/appsync-queries";
 
-import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
-import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { logger, metrics, tracer } from "./common/powertools";
 import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import middy, { MiddyfiedHandler } from "@middy/core";
 import type { Subsegment } from "aws-xray-sdk-core";
 import ffmpeg from "fluent-ffmpeg";
+import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { logger, metrics, tracer } from "./common/powertools";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
@@ -56,7 +56,7 @@ type TransformParams = {
   height?: number;
 };
 
-const getTransformParams = async (fileId: string) => {
+const getTransformParams = async (fileId: string): Promise<TransformParams> => {
   const res = await dynamodbClientV3.get({
     TableName: dynamoDBTableFiles,
     Key: {
@@ -64,17 +64,29 @@ const getTransformParams = async (fileId: string) => {
     },
     ProjectionExpression: "transformParams",
   });
-  return res.Item;
+
+  if (!res.Item) throw new Error(`Unable to find item with id ${fileId}`);
+
+  switch (res.Item.transformParams) {
+    case "480p":
+      return { width: 720, height: 480 };
+    case "720p":
+      return { width: 1280, height: 720 };
+    case "1080p":
+      return { width: 1920, height: 1080 };
+    default:
+      return { width: 720, height: 480 };
+  }
 };
 
 const processVideo = async (
   presignedUrlOriginalVideo: string,
-  { width }: TransformParams,
+  { width, height }: TransformParams,
   newFileId: string
 ): Promise<void> =>
   new Promise((resolve, reject) => {
     ffmpeg(presignedUrlOriginalVideo)
-      .size(`${width}x?`)
+      .size(`${width}x${height}`)
       .on("error", (err) => reject(err))
       .on("end", () => {
         logger.info("Processing finished !");
@@ -85,7 +97,7 @@ const processVideo = async (
 
 const markFileAs = async (fileId: string, status: FileStatus) => {
   const graphQLOperation = {
-    query: UpdateFileStatusMutation,
+    query: updateFileStatus,
     operationName: "UpdateFileStatus",
     variables: {
       input: {
@@ -96,8 +108,7 @@ const markFileAs = async (fileId: string, status: FileStatus) => {
   };
   await appSyncIamClient.send(graphQLOperation);
 };
-
-export const handler = middy(async (event: SQSEvent, context: unknown) => {
+export const handler = middy(async (event: SQSEvent) => {
   const mainSubsegment = tracer.getSegment();
   await Promise.all(
     event.Records.map(async (record) => {
@@ -124,11 +135,9 @@ export const handler = middy(async (event: SQSEvent, context: unknown) => {
           try {
             await processVideo(
               presignedUrlOriginalVideo,
-              {
-                width: 480,
-              },
+              transformParams,
               newFileId
-            ); // TODO: use transformParams
+            );
           } catch (err) {
             subsegment?.addErrorFlag();
             subsegment?.addError(err, false);

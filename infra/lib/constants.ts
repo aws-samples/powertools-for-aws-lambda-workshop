@@ -4,7 +4,7 @@ import { Runtime, Tracing, FunctionProps } from "aws-cdk-lib/aws-lambda";
 import { BundlingOptions } from "aws-cdk-lib/aws-lambda-nodejs";
 
 export const dynamoFilesTableName = "FilesTable";
-export const dynamoFilesGsiName = "filesIndex";
+export const dynamoFilesByUserGsiName = "filesByUserIndex";
 
 export const websiteBucketNamePrefix = "website";
 export const landingZoneBucketNamePrefix = "landing-zone";

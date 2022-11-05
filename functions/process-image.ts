@@ -1,19 +1,19 @@
 import type { SQSEvent } from "aws-lambda";
-import type { FileStatus } from "./common/types/File";
+import { appSyncIamClient } from "./common/appsync-iam-client";
+import { updateFileStatus } from "./common/graphql/mutations";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
 import { s3ClientV3 } from "./common/s3-client";
-import { appSyncIamClient } from "./common/appsync-iam-client";
-import { UpdateFileStatusMutation } from "./common/appsync-queries";
-import sharp from "sharp";
+import type { FileStatus } from "./common/types/File";
 
+import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
+import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import middy from "@middy/core";
 import { randomUUID } from "node:crypto";
 import { Readable } from "node:stream";
-import middy from "@middy/core";
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
-import { PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import sharp from "sharp";
 import { logger, metrics, tracer } from "./common/powertools";
-import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
@@ -64,7 +64,19 @@ const getTransformParams = async (fileId: string) => {
     },
     ProjectionExpression: "transformParams",
   });
-  return res.Item;
+
+  if (!res.Item) throw new Error(`Unable to find item with id ${fileId}`);
+
+  switch (res.Item.transformParams) {
+    case "small":
+      return { width: 720, height: 480 };
+    case "medium":
+      return { width: 1280, height: 720 };
+    case "large":
+      return { width: 1920, height: 1080 };
+    default:
+      return { width: 720, height: 480 };
+  }
 };
 
 const processImage = async (
@@ -80,7 +92,7 @@ const processImage = async (
 
 const markFileAs = async (fileId: string, status: FileStatus) => {
   const graphQLOperation = {
-    query: UpdateFileStatusMutation,
+    query: updateFileStatus,
     operationName: "UpdateFileStatus",
     variables: {
       input: {
@@ -107,12 +119,8 @@ export const handler = middy(async (event: SQSEvent, context: unknown) => {
       await markFileAs(fileId, "in-progress");
       const originalImage = await getOriginalObject(key, s3BucketFiles);
       const transformParams = await getTransformParams(fileId);
-      const processedImage = await processImage(originalImage, {
-        width: 120,
-        height: 180,
-      }); // TODO: use transformParams
-      const newFileId = randomUUID();
-      const newFileKey = `transformed/image/webp/${newFileId}.webp`;
+      const processedImage = await processImage(originalImage, transformParams);
+      const newFileKey = `transformed/image/webp/${fileId}.webp`;
       await saveProcessedObject(newFileKey, s3BucketFiles, processedImage);
       metrics.addMetric("processedImages", MetricUnits.Count, 1);
       await markFileAs(fileId, "completed");

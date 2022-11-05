@@ -1,18 +1,53 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import App from "./components/App";
+import "normalize.css";
 import "@aws-amplify/ui-react/styles.css";
 import "./index.css";
-import { Authenticator } from "@aws-amplify/ui-react";
-import { Amplify, Auth } from "aws-amplify";
+import { ThemeProvider, Authenticator } from "@aws-amplify/ui-react";
+import { Amplify } from "aws-amplify";
 import awsmobile from "./aws-exports.cjs";
+
+import Upload from "./components/Upload";
+import MyFiles from "./components/MyFiles";
+import Settings from "./components/Settings";
+import ErrorPage from "./components/App/ErrorPage";
 
 Amplify.configure(awsmobile);
 
+const theme = {
+  name: "workshop-theme",
+};
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        index: true,
+        element: <Upload />,
+      },
+      {
+        path: "my-uploads",
+        element: <MyFiles />,
+      },
+      {
+        path: "settings",
+        element: <Settings />,
+      },
+    ],
+  },
+]);
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <Authenticator loginMechanisms={["email"]}>
-      <App />
-    </Authenticator>
+    <ThemeProvider theme={theme}>
+      <Authenticator loginMechanisms={["email"]}>
+        <RouterProvider router={router} />
+      </Authenticator>
+    </ThemeProvider>
   </React.StrictMode>
 );

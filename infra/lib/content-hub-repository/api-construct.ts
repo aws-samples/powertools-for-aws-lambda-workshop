@@ -68,6 +68,7 @@ export class ApiConstruct extends Construct {
       "lambda-get-presigned-url",
       getPresignedUrlFn
     );
+    const noneDS = this.api.addNoneDataSource("local-none");
 
     filesTableDS.createResolver({
       typeName: "Mutation",
@@ -96,6 +97,25 @@ export class ApiConstruct extends Construct {
       fieldName: "generatePresignedUrl",
       requestMappingTemplate: MappingTemplate.lambdaRequest(),
       responseMappingTemplate: MappingTemplate.lambdaResult(),
+    });
+
+    noneDS.createResolver({
+      typeName: "Subscription",
+      fieldName: "onUpdateFileStatus",
+      requestMappingTemplate:
+        MappingTemplate.fromString(`## [Start] Subscription Request template. **
+        $util.toJson({
+          "version": "2018-05-29",
+          "payload": {}
+        })
+        ## [End] Subscription Request template. **`),
+      responseMappingTemplate:
+        MappingTemplate.fromString(`## [Start] Subscription Response template. **
+        #if( !$util.isNullOrEmpty($ctx.args.filter) )
+        $extensions.setSubscriptionFilter($util.transform.toSubscriptionFilter($ctx.args.filter))
+        #end
+        $util.toJson(null)
+        ## [End] Subscription Response template. **`),
     });
 
     new CfnOutput(this, "ApiEndpoint", {

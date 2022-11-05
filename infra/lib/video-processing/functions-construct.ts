@@ -39,7 +39,7 @@ export class FunctionsConstruct extends Construct {
       ...commonFunctionSettings,
       entry: "../functions/process-video.ts",
       functionName: `process-video-${environment}`,
-      memorySize: 2048,
+      memorySize: 4096,
       timeout: videoProcessingTimeout,
       environment: {
         ...localEnvVars,
