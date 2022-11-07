@@ -57,11 +57,14 @@ const UploadingTable: React.FC<UploadingTableProps> = ({
       <Table caption="" highlightOnHover={true}>
         <TableHead>
           <TableRow>
-            <TableCell width={"50%"} as="th">
+            <TableCell width={"40%"} as="th">
               File
             </TableCell>
-            <TableCell width={"50%"} as="th">
+            <TableCell width={"40%"} as="th">
               Status
+            </TableCell>
+            <TableCell width={"20%"} as="th">
+              Action
             </TableCell>
           </TableRow>
         </TableHead>

@@ -1,8 +1,4 @@
-import type {
-  AppSyncIdentityCognito,
-  AppSyncResolverEvent,
-  AppSyncResolverHandler,
-} from "aws-lambda";
+import type { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
 import { logger, tracer } from "./common/powertools";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
 import { s3ClientV3 } from "./common/s3-client";
@@ -14,17 +10,12 @@ import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
-  GeneratePresignedUrlMutationVariables,
+  GeneratePresignedUploadUrlMutationVariables,
   PresignedUrl,
 } from "./common/types/API";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
-
-type QueryParams = {
-  type: string;
-  ext: string;
-};
 
 const getPresignedUrl = async (key: string, type: string): Promise<string> => {
   return await getSignedUrl(
@@ -76,7 +67,7 @@ const getObjectKey = (type: string): string => {
 
 export const handler = middy(
   async (
-    event: AppSyncResolverEvent<GeneratePresignedUrlMutationVariables>
+    event: AppSyncResolverEvent<GeneratePresignedUploadUrlMutationVariables>
   ): Promise<Partial<PresignedUrl>> => {
     try {
       const fileId = randomUUID();

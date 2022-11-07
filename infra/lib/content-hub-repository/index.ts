@@ -31,11 +31,16 @@ export class ContentHubRepo extends Construct {
       landingZoneBucketName: this.storage.landingZoneBucket.bucketName,
     });
 
-    this.storage.grantReadWriteDataOnTable(this.functions.getPresignedUrlFn);
-    this.storage.grantPutOnBucket(this.functions.getPresignedUrlFn);
+    this.storage.grantReadWriteDataOnTable(
+      this.functions.getPresignedUploadUrlFn
+    );
+    this.storage.grantPutOnBucket(this.functions.getPresignedUploadUrlFn);
+    this.storage.grantReadDataOnTable(this.functions.getPresignedDownloadUrlFn);
+    this.storage.grantGetOnBucket(this.functions.getPresignedDownloadUrlFn);
 
     this.api = new ApiConstruct(this, "api-construct", {
-      getPresignedUrlFn: this.functions.getPresignedUrlFn,
+      getPresignedUploadUrlFn: this.functions.getPresignedUploadUrlFn,
+      getPresignedDownloadUrlFn: this.functions.getPresignedDownloadUrlFn,
       userPool: userPool,
       table: this.storage.filesTable,
     });

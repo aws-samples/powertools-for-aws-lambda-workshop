@@ -13,17 +13,18 @@ input FileStatusUpdateInput {
   status: String!
 }
 
-input PresignedUrlInput {
+input PresignedUploadUrlInput {
   type: String!
   transformParams: String
 }
 
 type Query {
-  getDownloadPresignedUrl(id: String!): PresignedUrl @aws_cognito_user_pools
+  generatePresignedDownloadUrl(id: String!): PresignedUrl
+    @aws_cognito_user_pools
 }
 
 type Mutation {
-  generatePresignedUrl(input: PresignedUrlInput): PresignedUrl
+  generatePresignedUploadUrl(input: PresignedUploadUrlInput): PresignedUrl
     @aws_cognito_user_pools
   updateFileStatus(input: FileStatusUpdateInput): File
     @aws_iam

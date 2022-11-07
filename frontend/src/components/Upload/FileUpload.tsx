@@ -3,10 +3,12 @@ import {
   TableRow,
   TableCell,
   Loader,
+  Button,
   Badge,
   BadgeVariations,
 } from "@aws-amplify/ui-react";
 import { getStatusColor, upload } from "./Upload.helpers";
+import { getDownloadUrl } from "../../helpers/API";
 
 type FileUploadProps = {
   children?: React.ReactNode;
@@ -20,6 +22,7 @@ type FileUploadProps = {
 const FileUpload: React.FC<FileUploadProps> = memo(
   ({ id, file, status, url, setFileStatus }) => {
     const [progress, setProgress] = useState(0);
+    const [isDownloadLoading, setDownloadLoading] = useState(false);
     const hasStartedRef = useRef(false);
 
     if (!url) return null;
@@ -43,10 +46,21 @@ const FileUpload: React.FC<FileUploadProps> = memo(
       if (percentCompleted === 100) setFileStatus(id, "uploaded");
     }, []);
 
+    const handleDownload = useCallback(async () => {
+      setDownloadLoading(true);
+      try {
+        const downloadUrl = await getDownloadUrl(id);
+        console.log(downloadUrl);
+        window.open(downloadUrl);
+      } finally {
+        setDownloadLoading(false);
+      }
+    }, [id]);
+
     return (
       <TableRow>
-        <TableCell width={"50%"}>{file.name}</TableCell>
-        <TableCell width={"50%"}>
+        <TableCell width={"40%"}>{file.name}</TableCell>
+        <TableCell width={"40%"}>
           {status === "uploading" && progress !== 100 ? (
             <>
               {status} {progress}% <Loader />
@@ -56,6 +70,19 @@ const FileUpload: React.FC<FileUploadProps> = memo(
               {status}
             </Badge>
           )}
+        </TableCell>
+        <TableCell width={"20%"}>
+          {status === "completed" ? (
+            <Button
+              variation="primary"
+              size="small"
+              onClick={handleDownload}
+              loadingText="loading"
+              isLoading={isDownloadLoading}
+            >
+              Download
+            </Button>
+          ) : null}
         </TableCell>
       </TableRow>
     );

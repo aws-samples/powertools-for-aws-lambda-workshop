@@ -127,7 +127,6 @@ export const handler = middy(async (event: SQSEvent) => {
         s3BucketFiles
       );
       const transformParams = await getTransformParams(fileId);
-      const newFileId = randomUUID();
       await tracer.provider.captureAsyncFunc(
         "### process video",
         async (subsegment?: Subsegment) => {
@@ -136,7 +135,7 @@ export const handler = middy(async (event: SQSEvent) => {
             await processVideo(
               presignedUrlOriginalVideo,
               transformParams,
-              newFileId
+              fileId
             );
           } catch (err) {
             subsegment?.addErrorFlag();
@@ -153,14 +152,15 @@ export const handler = middy(async (event: SQSEvent) => {
         },
         mainSubsegment
       );
-      const newFileKey = `transformed/video/webm/${newFileId}.webm`;
+      const newFileKey = `transformed/video/webm/${fileId}.webm`;
       await saveProcessedObject(
         newFileKey,
         s3BucketFiles,
-        `/tmp/${newFileId}.webm`
+        `/tmp/${fileId}.webm`
       );
       metrics.addMetric("processedVideos", MetricUnits.Count, 1);
       await markFileAs(fileId, "completed");
+      logger.info("Saved video on S3", { details: newFileKey });
     })
   );
 })

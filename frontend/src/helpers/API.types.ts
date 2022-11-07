@@ -2,7 +2,7 @@
 /* eslint-disable */
 //  This file was automatically generated and should not be edited.
 
-export type PresignedUrlInput = {
+export type PresignedUploadUrlInput = {
   type: string,
   transformParams?: string | null,
 };
@@ -46,12 +46,12 @@ export type onUpdateFileStatusStringInput = {
   notIn?: Array< string | null > | null,
 };
 
-export type GeneratePresignedUrlMutationVariables = {
-  input?: PresignedUrlInput | null,
+export type GeneratePresignedUploadUrlMutationVariables = {
+  input?: PresignedUploadUrlInput | null,
 };
 
-export type GeneratePresignedUrlMutation = {
-  generatePresignedUrl?:  {
+export type GeneratePresignedUploadUrlMutation = {
+  generatePresignedUploadUrl?:  {
     __typename: "PresignedUrl",
     id: string,
     url: string,
@@ -70,12 +70,12 @@ export type UpdateFileStatusMutation = {
   } | null,
 };
 
-export type GetDownloadPresignedUrlQueryVariables = {
+export type GeneratePresignedDownloadUrlQueryVariables = {
   id: string,
 };
 
-export type GetDownloadPresignedUrlQuery = {
-  getDownloadPresignedUrl?:  {
+export type GeneratePresignedDownloadUrlQuery = {
+  generatePresignedDownloadUrl?:  {
     __typename: "PresignedUrl",
     id: string,
     url: string,

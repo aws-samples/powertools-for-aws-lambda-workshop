@@ -1,18 +1,22 @@
 import { Observable, ZenObservable } from "zen-observable-ts";
 import { API, graphqlOperation, GraphQLResult } from "@aws-amplify/api";
 
-import { generatePresignedUrl } from "../graphql/mutations";
+import { generatePresignedUploadUrl } from "../graphql/mutations";
+import { generatePresignedDownloadUrl } from "../graphql/queries";
 import { onUpdateFileStatus } from "../graphql/subscriptions";
 import {
-  GeneratePresignedUrlMutation,
+  GeneratePresignedUploadUrlMutation,
   OnUpdateFileStatusSubscription,
   onUpdateFileStatusFilterInput,
+  GeneratePresignedDownloadUrlQuery,
 } from "./API.types";
-import cache from "./Cache";
+import cache from "./cache";
 
 export const getPresignedUrl = async (
   file: File
-): Promise<GeneratePresignedUrlMutation["generatePresignedUrl"]> => {
+): Promise<
+  GeneratePresignedUploadUrlMutation["generatePresignedUploadUrl"]
+> => {
   let transformParams;
   if (file.type.startsWith("image")) {
     transformParams = cache.getItem("images-settings", {
@@ -32,18 +36,18 @@ export const getPresignedUrl = async (
 
   try {
     const res = (await API.graphql(
-      graphqlOperation(generatePresignedUrl, {
+      graphqlOperation(generatePresignedUploadUrl, {
         input: {
           type: file.type,
           transformParams,
         },
       })
-    )) as GraphQLResult<GeneratePresignedUrlMutation>;
+    )) as GraphQLResult<GeneratePresignedUploadUrlMutation>;
 
-    if (!res.data || !res.data.generatePresignedUrl)
+    if (!res.data || !res.data.generatePresignedUploadUrl)
       throw new Error("Unable to get presigned url");
 
-    return res.data?.generatePresignedUrl!;
+    return res.data?.generatePresignedUploadUrl!;
   } catch (err) {
     console.error(err);
     throw err;
@@ -67,4 +71,22 @@ export const subscribeToFileUpdates = (
     next: onNextHandler,
     error: onErrorHandler,
   });
+};
+
+export const getDownloadUrl = async (id: string) => {
+  try {
+    const res = (await API.graphql(
+      graphqlOperation(generatePresignedDownloadUrl, {
+        id,
+      })
+    )) as GraphQLResult<GeneratePresignedDownloadUrlQuery>;
+
+    if (!res.data || !res.data.generatePresignedDownloadUrl)
+      throw new Error("Unable to get presigned url");
+
+    return res.data?.generatePresignedDownloadUrl.url;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 };

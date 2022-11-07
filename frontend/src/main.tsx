@@ -10,7 +10,6 @@ import { Amplify } from "aws-amplify";
 import awsmobile from "./aws-exports.cjs";
 
 import Upload from "./components/Upload";
-import MyFiles from "./components/MyFiles";
 import Settings from "./components/Settings";
 import ErrorPage from "./components/App/ErrorPage";
 
@@ -29,10 +28,6 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <Upload />,
-      },
-      {
-        path: "my-uploads",
-        element: <MyFiles />,
       },
       {
         path: "settings",

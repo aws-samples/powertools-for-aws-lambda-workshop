@@ -17,10 +17,6 @@ const ITEMS = [
     label: "Upload",
   },
   {
-    to: "/my-uploads",
-    label: "My Uploads",
-  },
-  {
     to: "/settings",
     label: "Settings",
   },

@@ -1,6 +1,6 @@
 import type { EventBridgeEvent } from "aws-lambda";
 import { appSyncIamClient } from "./common/appsync-iam-client";
-import { generatePresignedUrl } from "./common/graphql/mutations";
+import { updateFileStatus } from "./common/graphql/mutations";
 import { logger, metrics, tracer } from "./common/powertools";
 import type { FileStatus } from "./common/types/File";
 import type { Detail, DetailType } from "./common/types/FileUploadEvent";
@@ -12,7 +12,7 @@ import middy from "@middy/core";
 
 const markFileAs = async (fileId: string, status: FileStatus) => {
   const graphQLOperation = {
-    query: generatePresignedUrl,
+    query: updateFileStatus,
     operationName: "UpdateFileStatus",
     variables: {
       input: {

@@ -64,6 +64,10 @@ export class StorageConstruct extends Construct {
     });
   }
 
+  public grantReadDataOnTable(grantee: IGrantable) {
+    this.filesTable.grantReadData(grantee);
+  }
+
   public grantReadWriteDataOnTable(grantee: IGrantable) {
     this.filesTable.grantReadWriteData(grantee);
   }
@@ -72,11 +76,15 @@ export class StorageConstruct extends Construct {
     this.filesTable.grantWriteData(grantee);
   }
 
+  public grantReadWrite(grantee: IGrantable) {
+    this.landingZoneBucket.grantReadWrite(grantee);
+  }
+
   public grantPutOnBucket(grantee: IGrantable) {
     this.landingZoneBucket.grantPut(grantee);
   }
 
-  public grantReadWrite(grantee: IGrantable) {
-    this.landingZoneBucket.grantReadWrite(grantee);
+  public grantGetOnBucket(grantee: IGrantable) {
+    this.landingZoneBucket.grantRead(grantee);
   }
 }

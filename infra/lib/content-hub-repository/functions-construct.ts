@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import {
   dynamoFilesTableName,
+  dynamoFilesByUserGsiName,
   commonFunctionSettings,
   commonBundlingSettings,
   commonEnvVars,
@@ -14,7 +15,8 @@ interface FunctionsConstructProps extends StackProps {
 }
 
 export class FunctionsConstruct extends Construct {
-  public readonly getPresignedUrlFn: NodejsFunction;
+  public readonly getPresignedUploadUrlFn: NodejsFunction;
+  public readonly getPresignedDownloadUrlFn: NodejsFunction;
   public readonly markCompleteUploadFn: NodejsFunction;
 
   constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
@@ -25,17 +27,38 @@ export class FunctionsConstruct extends Construct {
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    this.getPresignedUrlFn = new NodejsFunction(this, "get-presigned-url", {
-      ...commonFunctionSettings,
-      entry: "../functions/get-presigned-url.ts",
-      functionName: `get-presigned-url-${environment}`,
-      environment: {
-        ...localEnvVars,
-        TABLE_NAME_FILES: dynamoFilesTableName,
-        BUCKET_NAME_FILES: props.landingZoneBucketName,
-      },
-      bundling: { ...commonBundlingSettings },
-    });
+    this.getPresignedUploadUrlFn = new NodejsFunction(
+      this,
+      "get-presigned-upload-url",
+      {
+        ...commonFunctionSettings,
+        entry: "../functions/get-presigned-upload-url.ts",
+        functionName: `get-presigned-upload-url-${environment}`,
+        environment: {
+          ...localEnvVars,
+          TABLE_NAME_FILES: dynamoFilesTableName,
+          BUCKET_NAME_FILES: props.landingZoneBucketName,
+        },
+        bundling: { ...commonBundlingSettings },
+      }
+    );
+
+    this.getPresignedDownloadUrlFn = new NodejsFunction(
+      this,
+      "get-presigned-download-url",
+      {
+        ...commonFunctionSettings,
+        entry: "../functions/get-presigned-download-url.ts",
+        functionName: `get-presigned-download-url-${environment}`,
+        environment: {
+          ...localEnvVars,
+          TABLE_NAME_FILES: dynamoFilesTableName,
+          INDEX_NAME_FILES_BY_USER: dynamoFilesByUserGsiName,
+          BUCKET_NAME_FILES: props.landingZoneBucketName,
+        },
+        bundling: { ...commonBundlingSettings },
+      }
+    );
 
     this.markCompleteUploadFn = new NodejsFunction(this, "mark-file-queued", {
       ...commonFunctionSettings,

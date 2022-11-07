@@ -2,9 +2,9 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const generatePresignedUrl = /* GraphQL */ `
-  mutation GeneratePresignedUrl($input: PresignedUrlInput) {
-    generatePresignedUrl(input: $input) {
+export const generatePresignedUploadUrl = /* GraphQL */ `
+  mutation GeneratePresignedUploadUrl($input: PresignedUploadUrlInput) {
+    generatePresignedUploadUrl(input: $input) {
       id
       url
     }
