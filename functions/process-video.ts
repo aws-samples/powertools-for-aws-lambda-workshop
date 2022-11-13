@@ -1,168 +1,165 @@
-import type { Callback, SQSEvent } from "aws-lambda";
-import { appSyncIamClient } from "./common/appsync-iam-client";
-import { updateFileStatus } from "./common/graphql/mutations";
-import { dynamodbClientV3 } from "./common/dynamodb-client";
-import { s3ClientV3 } from "./common/s3-client";
-import type { FileStatus } from "./common/types/File";
-
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { logMetrics, MetricUnits } from "@aws-lambda-powertools/metrics";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
-import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import middy, { MiddyfiedHandler } from "@middy/core";
+import middy from "@middy/core";
+import type { Context, SQSEvent, SQSRecord } from "aws-lambda";
 import type { Subsegment } from "aws-xray-sdk-core";
 import ffmpeg from "fluent-ffmpeg";
-import { randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+
 import { logger, metrics, tracer } from "./common/powertools";
+import { getPresignedDownloadUrl } from "./common/presigned-url-utils";
+import type { TransformParams } from "./common/processing-utils";
+import {
+  getFileId,
+  getObjectKey,
+  getVideoTransformParams,
+  ItemsListKeeper,
+  timedOutAsyncOperation,
+  TimeoutErr,
+} from "./common/processing-utils";
+import { saveAssetToS3 } from "./common/s3-utils";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
-
-const getPresignedUrl = async (
-  key: string,
-  bucketName: string
-): Promise<string> => {
-  return await getSignedUrl(
-    s3ClientV3,
-    new GetObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    }),
-    {
-      expiresIn: 3600,
-    }
-  );
-};
-
-const saveProcessedObject = async (
-  key: string,
-  bucketName: string,
-  pathToFile: string
-) => {
-  const fileBody = await readFile(pathToFile);
-  await s3ClientV3.send(
-    new PutObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-      Body: fileBody,
-    })
-  );
-};
-
-type TransformParams = {
-  width: number;
-  height?: number;
-};
-
-const getTransformParams = async (fileId: string): Promise<TransformParams> => {
-  const res = await dynamodbClientV3.get({
-    TableName: dynamoDBTableFiles,
-    Key: {
-      id: fileId,
-    },
-    ProjectionExpression: "transformParams",
-  });
-
-  if (!res.Item) throw new Error(`Unable to find item with id ${fileId}`);
-
-  switch (res.Item.transformParams) {
-    case "480p":
-      return { width: 720, height: 480 };
-    case "720p":
-      return { width: 1280, height: 720 };
-    case "1080p":
-      return { width: 1920, height: 1080 };
-    default:
-      return { width: 720, height: 480 };
-  }
-};
+let itemsProcessorHelper: ItemsListKeeper;
 
 const processVideo = async (
   presignedUrlOriginalVideo: string,
   { width, height }: TransformParams,
-  newFileId: string
-): Promise<void> =>
-  new Promise((resolve, reject) => {
-    ffmpeg(presignedUrlOriginalVideo)
-      .size(`${width}x${height}`)
-      .on("error", (err) => reject(err))
-      .on("end", () => {
-        logger.info("Processing finished !");
-        resolve();
-      })
-      .save(`/tmp/${newFileId}.webm`);
+  fileId: string,
+  tmpFilePath: string,
+  mainSubSegment: Subsegment
+): Promise<void> => {
+  await tracer.provider.captureAsyncFunc(
+    "### process video",
+    async (subsegment?: Subsegment) => {
+      subsegment?.addAnnotation("fileId", fileId);
+      try {
+        return new Promise<void>((resolve, reject) => {
+          ffmpeg(presignedUrlOriginalVideo)
+            .size(`${width}x${height}`)
+            .on("error", (err) => reject(err))
+            .on("end", () => {
+              resolve();
+            })
+            .save(tmpFilePath);
+        });
+      } catch (err) {
+        subsegment?.addErrorFlag();
+        subsegment?.addError(err, false);
+        logger.error(`Error processing video`, {
+          details: fileId,
+          error: err,
+        });
+        throw err;
+      } finally {
+        subsegment?.close();
+        subsegment?.flush();
+      }
+    },
+    mainSubSegment
+  );
+};
+
+const processOne = async (
+  fileId: string,
+  objectKey: string,
+  mainSubSegment: Subsegment
+) => {
+  const newFileKey = `transformed/video/webm/${fileId}.webm`;
+  const tmpFilePath = `/tmp/${fileId}.webm`;
+
+  const presignedUrlOriginalVideo = await getPresignedDownloadUrl(
+    objectKey,
+    s3BucketFiles
+  );
+
+  const transformParams = await getVideoTransformParams({
+    id: fileId,
+    tableName: dynamoDBTableFiles,
   });
 
-const markFileAs = async (fileId: string, status: FileStatus) => {
-  const graphQLOperation = {
-    query: updateFileStatus,
-    operationName: "UpdateFileStatus",
-    variables: {
-      input: {
-        id: fileId,
-        status,
-      },
-    },
-  };
-  await appSyncIamClient.send(graphQLOperation);
+  await processVideo(
+    presignedUrlOriginalVideo,
+    transformParams,
+    fileId,
+    tmpFilePath,
+    mainSubSegment
+  );
+
+  await saveAssetToS3({
+    key: newFileKey,
+    bucketName: s3BucketFiles,
+    pathToFile: `/tmp/${fileId}.webm`,
+  });
+  logger.info("Saved video on S3", { details: newFileKey });
+
+  metrics.addMetric("processedVideos", MetricUnits.Count, 1);
 };
-export const handler = middy(async (event: SQSEvent) => {
-  const mainSubsegment = tracer.getSegment();
-  await Promise.all(
-    event.Records.map(async (record) => {
-      const { body } = record;
-      const {
-        detail: {
-          object: { key },
-        },
-      } = JSON.parse(body);
-      logger.info(key);
-      const file = key.split("/").at(-1);
-      const fileId = file.split(".")[0];
-      await markFileAs(fileId, "in-progress");
-      const presignedUrlOriginalVideo = await getPresignedUrl(
-        key,
-        s3BucketFiles
-      );
-      const transformParams = await getTransformParams(fileId);
-      await tracer.provider.captureAsyncFunc(
-        "### process video",
-        async (subsegment?: Subsegment) => {
-          subsegment?.addAnnotation("fileId", fileId);
-          try {
-            await processVideo(
-              presignedUrlOriginalVideo,
-              transformParams,
-              fileId
-            );
-          } catch (err) {
-            subsegment?.addErrorFlag();
-            subsegment?.addError(err, false);
-            logger.error(`Error processing video`, {
-              details: fileId,
-              error: err,
-            });
-            throw err;
-          } finally {
-            subsegment?.close();
-            subsegment?.flush();
-          }
-        },
-        mainSubsegment
-      );
-      const newFileKey = `transformed/video/webm/${fileId}.webm`;
-      await saveProcessedObject(
-        newFileKey,
-        s3BucketFiles,
-        `/tmp/${fileId}.webm`
-      );
-      metrics.addMetric("processedVideos", MetricUnits.Count, 1);
-      await markFileAs(fileId, "completed");
-      logger.info("Saved video on S3", { details: newFileKey });
+
+export const handler = middy(async (event: SQSEvent, context: Context) => {
+  itemsProcessorHelper = new ItemsListKeeper();
+  const mainSubsegment = tracer.getSegment() as Subsegment;
+
+  const messageProcesses = Promise.all(
+    event.Records.map(async (record: SQSRecord) => {
+      const { body, messageId } = record;
+      const objectKey = getObjectKey(body);
+      const fileId = getFileId(objectKey);
+
+      try {
+        await itemsProcessorHelper.markStarted({
+          id: fileId,
+          msgId: messageId,
+        });
+        await processOne(fileId, objectKey, mainSubsegment);
+        await itemsProcessorHelper.markProcessed(fileId);
+      } catch (err) {
+        await itemsProcessorHelper.markFailed(fileId);
+      }
     })
   );
+
+  try {
+    await timedOutAsyncOperation(
+      messageProcesses,
+      context.getRemainingTimeInMillis() - 5000
+    );
+  } catch (err) {
+    if (err !== TimeoutErr) {
+      logger.error("An un expected error occurred", err);
+    }
+    logger.error("Function will timeout in", {
+      details: context.getRemainingTimeInMillis(),
+    });
+  } finally {
+    const batchItemFailures: { itemIdentifier: string }[] = [];
+
+    // Get all items that were failed & add them to the `batchItemFailures`
+    const failed = itemsProcessorHelper.getFailed();
+    for (const [_, msgId] of failed) {
+      batchItemFailures.push({ itemIdentifier: msgId });
+    }
+
+    // Get items still left to process
+    const unprocessed = itemsProcessorHelper.getUnprocessed();
+
+    // Mark each one as failed & add it to `batchItemFailures` so they are sent back to the queue/DLQ
+    for await (const [id, msgId] of unprocessed) {
+      await itemsProcessorHelper.markFailed(id);
+      batchItemFailures.push({ itemIdentifier: msgId });
+    }
+
+    if (batchItemFailures.length) {
+      logger.info("Items to be sent back to queue/DLQ", {
+        details: batchItemFailures,
+      });
+      return batchItemFailures;
+    } else {
+      logger.info("All items processed successfully");
+    }
+    return;
+  }
 })
   .use(captureLambdaHandler(tracer))
   .use(injectLambdaContext(logger, { logEvent: true }))

@@ -1,35 +1,19 @@
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
 import { logger, tracer } from "./common/powertools";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
-import { s3ClientV3 } from "./common/s3-client";
 
 import { randomUUID } from "node:crypto";
 import middy from "@middy/core";
 import { injectLambdaContext } from "@aws-lambda-powertools/logger";
 import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   GeneratePresignedUploadUrlMutationVariables,
   PresignedUrl,
 } from "./common/types/API";
+import { getPresignedUploadUrl } from "./common/presigned-url-utils";
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
-
-const getPresignedUrl = async (key: string, type: string): Promise<string> => {
-  return await getSignedUrl(
-    s3ClientV3,
-    new PutObjectCommand({
-      Bucket: s3BucketFiles,
-      Key: key,
-      ContentType: type,
-    }),
-    {
-      expiresIn: 3600,
-    }
-  );
-};
 
 const putFileMetadataInTable = async (
   fileId: string,
@@ -83,7 +67,11 @@ export const handler = middy(
         details: objectKey,
       });
 
-      const uploadUrl = await getPresignedUrl(objectKey, fileType);
+      const uploadUrl = await getPresignedUploadUrl(
+        objectKey,
+        s3BucketFiles,
+        fileType
+      );
 
       logger.debug("[GET presigned-url] File", {
         details: { url: uploadUrl, id: fileId },

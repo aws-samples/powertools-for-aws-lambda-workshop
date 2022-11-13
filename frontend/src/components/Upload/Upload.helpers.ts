@@ -107,6 +107,8 @@ export const getStatusColor = (status: string) => {
       return "warning";
     case "in-progress":
       return "info";
+    case "failed":
+      return "error";
     default:
       return "";
   }

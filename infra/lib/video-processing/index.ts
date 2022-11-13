@@ -33,6 +33,7 @@ export class VideoProcessing extends Construct {
       new SqsEventSource(this.queues.processingQueue, {
         batchSize: 1,
         enabled: true,
+        reportBatchItemFailures: true,
       })
     );
 
