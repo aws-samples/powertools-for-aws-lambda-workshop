@@ -1,4 +1,4 @@
-import { Stack, StackProps, CfnOutput } from "aws-cdk-lib";
+import { Stack, StackProps, CfnOutput, aws_ssm as ssm, aws_iam as iam } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { CfnGroup } from "aws-cdk-lib/aws-resourcegroups";
 import { Frontend } from "./frontend";
@@ -38,6 +38,11 @@ export class InfraStack extends Stack {
 
     const frontend = new Frontend(this, "frontend", {});
 
+    const failureLambdaParameter = new ssm.StringParameter(this, "failureLambdaParameter", {
+          stringValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}',
+        }
+    );
+
     // Content Hub Repository
     const contentHubRepo = new ContentHubRepo(this, "content-hub-repo", {
       userPool: frontend.auth.userPool,
@@ -63,6 +68,11 @@ export class InfraStack extends Stack {
       "APPSYNC_ENDPOINT",
       `https://${contentHubRepo.api.domain}/graphql`
     );
+    imageProcessing.functions.resizeImageFn.addEnvironment(
+        "FAILURE_INJECTION_PARAM",
+        failureLambdaParameter.parameterName
+    );
+    failureLambdaParameter.grantRead(imageProcessing.functions.resizeImageFn);
 
     // Video Processing Module
     const videoProcessing = new VideoProcessing(this, "video-processing", {
@@ -78,10 +88,21 @@ export class InfraStack extends Stack {
       videoProcessing.functions.resizeVideoFn,
       "updateFileStatus"
     );
+    contentHubRepo.functions.getPresignedUploadUrlFn.addEnvironment(
+        "FAILURE_INJECTION_PARAM",
+        failureLambdaParameter.parameterName
+    );
+    failureLambdaParameter.grantRead(contentHubRepo.functions.getPresignedUploadUrlFn);
+
     videoProcessing.functions.resizeVideoFn.addEnvironment(
       "APPSYNC_ENDPOINT",
       `https://${contentHubRepo.api.domain}/graphql`
     );
+    videoProcessing.functions.resizeVideoFn.addEnvironment(
+        "FAILURE_INJECTION_PARAM",
+        failureLambdaParameter.parameterName
+    );
+    failureLambdaParameter.grantRead(videoProcessing.functions.resizeVideoFn);
 
     // Traffic Generator Component
     const trafficGenerator = new TrafficGenerator(

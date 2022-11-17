@@ -43,4 +43,5 @@ export const commonEnvVars = {
   POWERTOOLS_LOGGER_LOG_LEVEL: powertoolsLoggerLogLevel,
   POWERTOOLS_LOGGER_SAMPLE_RATE: powertoolsLoggerSampleRate,
   POWERTOOLS_METRICS_NAMESPACE: powertoolsMetricsNamespace,
+  NODE_OPTIONS: '--enable-source-maps'
 };

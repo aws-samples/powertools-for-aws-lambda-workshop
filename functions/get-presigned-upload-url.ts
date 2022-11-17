@@ -1,11 +1,15 @@
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from "aws-lambda";
 import { logger, tracer } from "./common/powertools";
 import { dynamodbClientV3 } from "./common/dynamodb-client";
+const failureLambda = require('failure-lambda');
+import { LambdaInterface } from '@aws-lambda-powertools/commons';
+
 
 import { randomUUID } from "node:crypto";
-import middy from "@middy/core";
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+// import middy from "@middy/core";
+// import { injectLambdaContext } from "@aws-lambda-powertools/logger";
+// import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
+// import { injectChaos } from "./common/middy-middleware";
 import {
   GeneratePresignedUploadUrlMutationVariables,
   PresignedUrl,
@@ -49,10 +53,10 @@ const getObjectKey = (type: string): string => {
   }
 };
 
-export const handler = middy(
-  async (
-    event: AppSyncResolverEvent<GeneratePresignedUploadUrlMutationVariables>
-  ): Promise<Partial<PresignedUrl>> => {
+class Lambda implements LambdaInterface {
+  // Decorate your handler class method
+  @logger.injectLambdaContext()
+  public async handler(event: AppSyncResolverEvent<GeneratePresignedUploadUrlMutationVariables>): Promise<Partial<PresignedUrl>> {
     try {
       const fileId = randomUUID();
       const { type: fileType, transformParams } = event.arguments.input!;
@@ -60,7 +64,7 @@ export const handler = middy(
         throw new Error("File type or transformParams not provided.");
       const { username: userId } = event.identity as AppSyncIdentityCognito;
       const objectKey = `uploads/${getObjectKey(fileType)}/${fileId}.${
-        fileType.split("/")[1]
+          fileType.split("/")[1]
       }`;
 
       logger.debug("[GET presigned-url] Object Key", {
@@ -68,9 +72,9 @@ export const handler = middy(
       });
 
       const uploadUrl = await getPresignedUploadUrl(
-        objectKey,
-        s3BucketFiles,
-        fileType
+          objectKey,
+          s3BucketFiles,
+          fileType
       );
 
       logger.debug("[GET presigned-url] File", {
@@ -78,11 +82,11 @@ export const handler = middy(
       });
 
       await putFileMetadataInTable(
-        fileId,
-        objectKey,
-        fileType,
-        userId,
-        transformParams
+          fileId,
+          objectKey,
+          fileType,
+          userId,
+          transformParams
       );
 
       return { url: uploadUrl, id: fileId };
@@ -91,6 +95,8 @@ export const handler = middy(
       throw err;
     }
   }
-)
-  .use(captureLambdaHandler(tracer))
-  .use(injectLambdaContext(logger, { logEvent: true }));
+
+}
+
+const handlerClass = new Lambda();
+export const handler = failureLambda(handlerClass.handler.bind(handlerClass));

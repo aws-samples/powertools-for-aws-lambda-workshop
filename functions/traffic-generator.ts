@@ -82,12 +82,13 @@ const getPresignedUrl = async (accessToken: string): Promise<string> => {
       data: JSON.stringify(graphQLOperation)
     })
 
-    if (!res.body.generatePresignedUploadUrl) throw new Error('Request returned empty');
-    logger.info("pre-sign url", { data: res.body.generatePresignedUploadUrl.url });
+    logger.info("pre-sign url - response body", { data: res.body });
 
-    return res.body.generatePresignedUploadUrl.url;
+    if (!res.body.data.generatePresignedUploadUrl) throw new Error('Missing generatePresignedUploadUrl key in response body');
+
+    return res.body.data.generatePresignedUploadUrl.url;
   } catch (err) {
-    logger.error("Error while obtaining presigned url", { data: accessToken, error: err as Error });
+    logger.error("Error while obtaining presigned url", { data: { accessToken }, error: err as Error });
     throw err;
   }
 };
