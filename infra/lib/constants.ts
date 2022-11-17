@@ -34,6 +34,7 @@ export const commonFunctionSettings: Partial<FunctionProps> = {
 export const commonBundlingSettings: Partial<BundlingOptions> = {
   minify: true,
   sourceMap: true,
+  externalModules: ["aws-sdk"]
 };
 
 export const commonEnvVars = {
@@ -42,6 +43,7 @@ export const commonEnvVars = {
   POWERTOOLS_SERVICE_NAME: powertoolsServiceName,
   POWERTOOLS_LOGGER_LOG_LEVEL: powertoolsLoggerLogLevel,
   POWERTOOLS_LOGGER_SAMPLE_RATE: powertoolsLoggerSampleRate,
+  POWERTOOLS_LOGGER_LOG_EVENT: "TRUE",
   POWERTOOLS_METRICS_NAMESPACE: powertoolsMetricsNamespace,
-  NODE_OPTIONS: '--enable-source-maps'
+  NODE_OPTIONS: "--enable-source-maps"
 };

@@ -89,7 +89,6 @@ const getPresignedUrl = async (accessToken: string): Promise<string> => {
     return res.body.data.generatePresignedUploadUrl.url;
   } catch (err) {
     logger.error("Error while obtaining presigned url", { data: { accessToken }, error: err as Error });
-    throw err;
   }
 };
 
@@ -143,8 +142,10 @@ const uploadAsset = async (presignedURL: string, assetBuffer: Buffer): Promise<v
 const simulateTrafficOfUser = async (accessToken: string, assetBuffer: Buffer) => {
   for (let i = 1; i <= getRandomNumberInRange(1, 20); i++) {
     const presignedURL = await getPresignedUrl(accessToken);
-    await uploadAsset(presignedURL, assetBuffer);
-    await delay(getRandomNumberInRange(1, 5));
+    if (presignedURL) {
+      await uploadAsset(presignedURL, assetBuffer);
+      await delay(getRandomNumberInRange(1, 5));
+    }
   }
 }
 
