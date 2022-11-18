@@ -22,7 +22,8 @@
     "infra:deployHot": "npm run cdk:deploy:hotswap -w infra",
     "utils:createConfig": "npm run createConfig -w scripts",
     "utils:resizeC9EBS": "sh scripts/resize.sh",
-    "utils:downloadFfmpegToLayer": "sh scripts/download-ffmpeg-to-layer.sh"
+    "utils:downloadFfmpegToLayer": "sh scripts/download-ffmpeg-to-layer.sh",
+    "utils:convertCDKtoCfn": "npm run convertCDKtoCfn -w scripts"
   },
   "repository": {
     "type": "git",

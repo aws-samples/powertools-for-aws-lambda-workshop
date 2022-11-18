@@ -3,14 +3,14 @@ import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import { Runtime, Tracing, FunctionProps } from "aws-cdk-lib/aws-lambda";
 import { BundlingOptions } from "aws-cdk-lib/aws-lambda-nodejs";
 
-export const dynamoFilesTableName = "FilesTable";
+export const environment =
+  process.env.NODE_ENV === "production" ? "prod" : "dev";
+
+export const dynamoFilesTableName = `FilesTable-${environment}`;
 export const dynamoFilesByUserGsiName = "filesByUserIndex";
 
 export const websiteBucketNamePrefix = "website";
 export const landingZoneBucketNamePrefix = "landing-zone";
-
-export const environment =
-  process.env.NODE_ENV === "production" ? "prod" : "dev";
 
 export const powertoolsServiceName =
   "aws-lambda-powertools-typescript-workshop";
@@ -34,7 +34,7 @@ export const commonFunctionSettings: Partial<FunctionProps> = {
 export const commonBundlingSettings: Partial<BundlingOptions> = {
   minify: true,
   sourceMap: true,
-  externalModules: ["aws-sdk"]
+  externalModules: ["aws-sdk"],
 };
 
 export const commonEnvVars = {
@@ -45,5 +45,5 @@ export const commonEnvVars = {
   POWERTOOLS_LOGGER_SAMPLE_RATE: powertoolsLoggerSampleRate,
   POWERTOOLS_LOGGER_LOG_EVENT: "TRUE",
   POWERTOOLS_METRICS_NAMESPACE: powertoolsMetricsNamespace,
-  NODE_OPTIONS: "--enable-source-maps"
+  NODE_OPTIONS: "--enable-source-maps",
 };
