@@ -37,7 +37,7 @@ export class FunctionsConstruct extends Construct {
     });
 
     const failureLambdaParameter = new ssm.StringParameter(this, `/failure-lambda/${environment}/process-video`, {
-          stringValue: '{"isEnabled": true, "failureMode": "denylist", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com"]}',
+          stringValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com"]}',
         }
     );
 

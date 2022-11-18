@@ -28,7 +28,7 @@ export class FunctionsConstruct extends Construct {
     };
 
     const failureLambdaParameter = new ssm.StringParameter(this, `/failure-lambda/${environment}/get-presigned-upload-url`, {
-            stringValue: '{"isEnabled": true, "failureMode": "denylist", "rate": 0.1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["dynamodb.*.amazonaws.com"]}',
+            stringValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 0.1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["dynamodb.*.amazonaws.com"]}',
         }
     );
 

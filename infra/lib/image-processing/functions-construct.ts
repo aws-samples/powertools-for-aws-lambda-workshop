@@ -34,7 +34,7 @@ export class FunctionsConstruct extends Construct {
     });
 
     const failureLambdaParameter = new ssm.StringParameter(this, `/failure-lambda/${environment}/process-image`, {
-          stringValue: '{"isEnabled": true, "failureMode": "latency", "rate": 1, "minLatency": 300, "maxLatency": 1000, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}',
+          stringValue: '{"isEnabled": false, "failureMode": "latency", "rate": 1, "minLatency": 300, "maxLatency": 1000, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}',
         }
     );
 
