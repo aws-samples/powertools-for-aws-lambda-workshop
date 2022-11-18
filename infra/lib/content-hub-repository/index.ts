@@ -1,12 +1,12 @@
-import { Construct } from "constructs";
-import { IUserPool, IUserPoolClient } from "aws-cdk-lib/aws-cognito";
-import { Rule, Match } from "aws-cdk-lib/aws-events";
-import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
-import { AuthConstruct } from "../frontend/auth-construct";
-import { ApiConstruct } from "./api-construct";
-import { FunctionsConstruct } from "./functions-construct";
-import { StorageConstruct } from "./storage-construct";
-import { SSMParameterStoreConstruct } from "../shared/ssm/ssm-parameter-store-construct";
+import { Construct } from 'constructs';
+import { IUserPool, IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { Rule, Match } from 'aws-cdk-lib/aws-events';
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
+import { AuthConstruct } from '../frontend/auth-construct';
+import { ApiConstruct } from './api-construct';
+import { FunctionsConstruct } from './functions-construct';
+import { StorageConstruct } from './storage-construct';
+import { SSMParameterStoreConstruct } from '../shared/ssm/ssm-parameter-store-construct';
 
 class ContentHubRepoProps {
   userPool: IUserPool;
@@ -25,11 +25,11 @@ export class ContentHubRepo extends Construct {
 
     const { landingZoneBucketName, userPool } = props;
 
-    this.storage = new StorageConstruct(this, "storage-construct", {
+    this.storage = new StorageConstruct(this, 'storage-construct', {
       landingZoneBucketName,
     });
 
-    this.functions = new FunctionsConstruct(this, "functions-construct", {
+    this.functions = new FunctionsConstruct(this, 'functions-construct', {
       landingZoneBucketName: this.storage.landingZoneBucket.bucketName,
     });
 
@@ -40,7 +40,7 @@ export class ContentHubRepo extends Construct {
     this.storage.grantReadDataOnTable(this.functions.getPresignedDownloadUrlFn);
     this.storage.grantGetOnBucket(this.functions.getPresignedDownloadUrlFn);
 
-    this.api = new ApiConstruct(this, "api-construct", {
+    this.api = new ApiConstruct(this, 'api-construct', {
       getPresignedUploadUrlFn: this.functions.getPresignedUploadUrlFn,
       getPresignedDownloadUrlFn: this.functions.getPresignedDownloadUrlFn,
       userPool: userPool,
@@ -48,23 +48,23 @@ export class ContentHubRepo extends Construct {
     });
     this.api.api.grantMutation(
       this.functions.markCompleteUploadFn,
-      "updateFileStatus"
+      'updateFileStatus'
     );
     this.functions.markCompleteUploadFn.addEnvironment(
-      "APPSYNC_ENDPOINT",
+      'APPSYNC_ENDPOINT',
       `https://${this.api.domain}/graphql`
     );
 
-    const uploadedRule = new Rule(this, "new-uploads", {
+    const uploadedRule = new Rule(this, 'new-uploads', {
       eventPattern: {
-        source: Match.anyOf("aws.s3"),
-        detailType: Match.anyOf("Object Created"),
+        source: Match.anyOf('aws.s3'),
+        detailType: Match.anyOf('Object Created'),
         detail: {
           bucket: {
             name: Match.anyOf(this.storage.landingZoneBucket.bucketName),
           },
-          object: { key: Match.prefix("uploads/") },
-          reason: Match.anyOf("PutObject"),
+          object: { key: Match.prefix('uploads/') },
+          reason: Match.anyOf('PutObject'),
         },
       },
     });
@@ -72,15 +72,15 @@ export class ContentHubRepo extends Construct {
       new LambdaFunction(this.functions.markCompleteUploadFn)
     );
 
-    this.ssmParameterStore = new SSMParameterStoreConstruct(this, "content-hub-repository-parameter", {
-      failureMode: "denylist",
+    this.ssmParameterStore = new SSMParameterStoreConstruct(this, 'content-hub-repository-parameter', {
+      failureMode: 'denylist',
       nodeJSLambdaFunction: this.functions.getPresignedUploadUrlFn
     });
 
     this.functions.getPresignedUploadUrlFn.addEnvironment(
-        "FAILURE_INJECTION_PARAM",
-        this.ssmParameterStore.ssmParameterStore.parameterName
-    )
+      'FAILURE_INJECTION_PARAM',
+      this.ssmParameterStore.ssmParameterStore.parameterName
+    );
 
     this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.getPresignedUploadUrlFn);
   }

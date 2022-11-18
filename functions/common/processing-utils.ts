@@ -1,9 +1,9 @@
-import { FileStatuses, markFileAs } from "./appsync-iam-client";
-import { dynamodbClientV3 } from "./dynamodb-client";
+import { FileStatuses, markFileAs } from './appsync-iam-client';
+import { dynamodbClientV3 } from './dynamodb-client';
 
 export interface TransformParams {
-  width: number;
-  height?: number;
+  width: number
+  height?: number
 }
 
 /**
@@ -11,8 +11,8 @@ export interface TransformParams {
  * @param {string} tableName - The name of the table to use
  */
 interface GetTransformParamsProps {
-  id: string;
-  tableName: string;
+  id: string
+  tableName: string
 }
 
 const getTransformParams = async (
@@ -23,7 +23,7 @@ const getTransformParams = async (
     Key: {
       id: props.id,
     },
-    ProjectionExpression: "transformParams",
+    ProjectionExpression: 'transformParams',
   });
   if (!res.Item) throw new Error(`Unable to find item with id ${props.id}`);
 
@@ -43,11 +43,11 @@ export const getVideoTransformParams = async (
 ): Promise<TransformParams> => {
   const transformParams = await getTransformParams(props);
   switch (transformParams) {
-    case "480p":
+    case '480p':
       return { width: 720, height: 480 };
-    case "720p":
+    case '720p':
       return { width: 1280, height: 720 };
-    case "1080p":
+    case '1080p':
       return { width: 1920, height: 1080 };
     default:
       return { width: 720, height: 480 };
@@ -67,11 +67,11 @@ export const getImageTransformParams = async (
 ): Promise<TransformParams> => {
   const transformParams = await getTransformParams(props);
   switch (transformParams) {
-    case "small":
+    case 'small':
       return { width: 720, height: 480 };
-    case "medium":
+    case 'medium':
       return { width: 1280, height: 720 };
-    case "large":
+    case 'large':
       return { width: 1920, height: 1080 };
     default:
       return { width: 720, height: 480 };
@@ -107,7 +107,8 @@ export class ItemsListKeeper {
   private getItem(id: string) {
     try {
       const itemToRemove = this.items.get(id);
-      if (!itemToRemove) throw new Error("Unable to find item in ItemsList");
+      if (!itemToRemove) throw new Error('Unable to find item in ItemsList');
+      
       return itemToRemove;
     } catch (err) {
       throw err;
@@ -214,15 +215,13 @@ export const TimeoutErr = Symbol();
  * @param {any} prom - Promise that does a time consuming async operation
  * @param {number} time - Max time to trigger a timeout rejection in milliseconds (suggested `context.getRemainingTimeInMillis() - ms`)
  */
-export const timedOutAsyncOperation = async (prom: any, time: number) => {
-  return await Promise.race([
-    prom,
-    new Promise((_r, rej) => {
-      const timer = setTimeout(() => rej(TimeoutErr), time);
-      timer.unref();
-    }),
-  ]);
-};
+export const timedOutAsyncOperation = async (prom: any, time: number) => await Promise.race([
+  prom,
+  new Promise((_r, rej) => {
+    const timer = setTimeout(() => rej(TimeoutErr), time);
+    timer.unref();
+  }),
+]);
 
 /**
  * Utility function to parse and extract the object key from the body of a SQS Record.
@@ -260,4 +259,4 @@ export const getObjectKey = (body: string) => {
  * @param {string} objectKey - Key of the S3 object
  */
 export const getFileId = (objectKey: string) =>
-  objectKey.split("/").at(-1)!.split(".")[0];
+  objectKey.split('/').at(-1)!.split('.')[0];

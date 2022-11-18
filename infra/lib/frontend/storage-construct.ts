@@ -1,11 +1,11 @@
-import { Stack, RemovalPolicy, CfnOutput } from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { Stack, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import {
   Bucket,
   BucketAccessControl,
   BucketEncryption,
-} from "aws-cdk-lib/aws-s3";
-import { websiteBucketNamePrefix, environment } from "../constants";
+} from 'aws-cdk-lib/aws-s3';
+import { websiteBucketNamePrefix, environment } from '../constants';
 
 class StorageConstructProps {}
 
@@ -15,7 +15,7 @@ export class StorageConstruct extends Construct {
   constructor(scope: Construct, id: string, _props?: StorageConstructProps) {
     super(scope, id);
 
-    this.websiteBucket = new Bucket(this, "website", {
+    this.websiteBucket = new Bucket(this, 'website', {
       bucketName: `${websiteBucketNamePrefix}-${
         Stack.of(this).account
       }-${environment}`,
@@ -25,7 +25,7 @@ export class StorageConstruct extends Construct {
       autoDeleteObjects: true,
     });
 
-    new CfnOutput(this, "WebsiteBucketName", {
+    new CfnOutput(this, 'WebsiteBucketName', {
       value: this.websiteBucket.bucketName,
     });
   }

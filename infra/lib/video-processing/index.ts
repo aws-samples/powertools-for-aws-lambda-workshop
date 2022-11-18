@@ -1,11 +1,11 @@
-import { Construct } from "constructs";
-import { Rule, Match } from "aws-cdk-lib/aws-events";
-import { SqsQueue } from "aws-cdk-lib/aws-events-targets";
-import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
-import { FunctionsConstruct } from "./functions-construct";
-import { QueuesConstruct } from "./queues-construct";
-import { Duration } from "aws-cdk-lib";
-import { SSMParameterStoreConstruct } from "../shared/ssm/ssm-parameter-store-construct";
+import { Construct } from 'constructs';
+import { Rule, Match } from 'aws-cdk-lib/aws-events';
+import { SqsQueue } from 'aws-cdk-lib/aws-events-targets';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { FunctionsConstruct } from './functions-construct';
+import { QueuesConstruct } from './queues-construct';
+import { Duration } from 'aws-cdk-lib';
+import { SSMParameterStoreConstruct } from '../shared/ssm/ssm-parameter-store-construct';
 
 class VideoProcessingProps {
   landingZoneBucketName: string;
@@ -22,12 +22,12 @@ export class VideoProcessing extends Construct {
     const { landingZoneBucketName } = props;
     const videoProcessingTimeout = Duration.seconds(120);
 
-    this.functions = new FunctionsConstruct(this, "functions-construct", {
+    this.functions = new FunctionsConstruct(this, 'functions-construct', {
       landingZoneBucketName,
       videoProcessingTimeout,
     });
 
-    this.queues = new QueuesConstruct(this, "queues-construct", {
+    this.queues = new QueuesConstruct(this, 'queues-construct', {
       videoProcessingTimeout,
     });
 
@@ -39,35 +39,35 @@ export class VideoProcessing extends Construct {
       })
     );
 
-    const videoProcessRule = new Rule(this, "video-process", {
+    const videoProcessRule = new Rule(this, 'video-process', {
       eventPattern: {
-        source: Match.anyOf("aws.s3"),
-        detailType: Match.anyOf("Object Created"),
+        source: Match.anyOf('aws.s3'),
+        detailType: Match.anyOf('Object Created'),
         detail: {
           bucket: {
             name: Match.anyOf(landingZoneBucketName),
           },
           object: {
             key: Match.anyOf(
-              Match.prefix("uploads/video/mp4"),
-              Match.prefix("uploads/video/webm")
+              Match.prefix('uploads/video/mp4'),
+              Match.prefix('uploads/video/webm')
             ),
           },
-          reason: Match.anyOf("PutObject"),
+          reason: Match.anyOf('PutObject'),
         },
       },
     });
     videoProcessRule.addTarget(new SqsQueue(this.queues.processingQueue));
 
-    this.ssmParameterStore = new SSMParameterStoreConstruct(this, "process-video-parameter", {
-      failureMode: "denylist",
+    this.ssmParameterStore = new SSMParameterStoreConstruct(this, 'process-video-parameter', {
+      failureMode: 'denylist',
       nodeJSLambdaFunction: this.functions.resizeVideoFn
     });
 
     this.functions.resizeVideoFn.addEnvironment(
-        "FAILURE_INJECTION_PARAM",
-        this.ssmParameterStore.ssmParameterStore.parameterName
-    )
+      'FAILURE_INJECTION_PARAM',
+      this.ssmParameterStore.ssmParameterStore.parameterName
+    );
 
     this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.resizeVideoFn);
   }

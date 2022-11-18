@@ -1,7 +1,7 @@
-import { StackProps, Stack, RemovalPolicy } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { Code, LayerVersion } from "aws-cdk-lib/aws-lambda";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 import {
   commonFunctionSettings,
@@ -9,10 +9,10 @@ import {
   commonEnvVars,
   dynamoFilesTableName,
   environment,
-} from "../constants";
+} from '../constants';
 
 interface FunctionsConstructProps extends StackProps {
-  landingZoneBucketName: string;
+  landingZoneBucketName: string
 }
 
 export class FunctionsConstruct extends Construct {
@@ -27,16 +27,16 @@ export class FunctionsConstruct extends Construct {
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    const sharpLayer = new LayerVersion(this, "sharp-layer", {
+    const sharpLayer = new LayerVersion(this, 'sharp-layer', {
       compatibleRuntimes: [commonFunctionSettings.runtime!],
-      code: Code.fromAsset("../layers/sharp"),
-      description: "Bundles Sharp lib for image processing",
+      code: Code.fromAsset('../layers/sharp'),
+      description: 'Bundles Sharp lib for image processing',
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    this.resizeImageFn = new NodejsFunction(this, "process-image", {
+    this.resizeImageFn = new NodejsFunction(this, 'process-image', {
       ...commonFunctionSettings,
-      entry: "../functions/process-image.ts",
+      entry: '../functions/process-image.ts',
       functionName: `process-image-name-${environment}`,
       environment: {
         ...localEnvVars,
@@ -46,7 +46,7 @@ export class FunctionsConstruct extends Construct {
       layers: [sharpLayer],
       bundling: {
         ...commonBundlingSettings,
-        externalModules: ["sharp"],
+        externalModules: ['sharp'],
       },
     });
 

@@ -1,19 +1,19 @@
-import { Stack, RemovalPolicy } from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { Stack, RemovalPolicy } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import {
   Table,
   AttributeType,
   BillingMode,
   ProjectionType,
-} from "aws-cdk-lib/aws-dynamodb";
+} from 'aws-cdk-lib/aws-dynamodb';
 import {
   Bucket,
   BucketAccessControl,
   BucketEncryption,
   HttpMethods,
-} from "aws-cdk-lib/aws-s3";
-import { dynamoFilesTableName, dynamoFilesByUserGsiName } from "../constants";
-import { IGrantable } from "aws-cdk-lib/aws-iam";
+} from 'aws-cdk-lib/aws-s3';
+import { dynamoFilesTableName, dynamoFilesByUserGsiName } from '../constants';
+import { IGrantable } from 'aws-cdk-lib/aws-iam';
 
 class StorageConstructProps {
   landingZoneBucketName: string;
@@ -30,23 +30,23 @@ export class StorageConstruct extends Construct {
 
     const commonTableSettings = {
       billingMode: BillingMode.PAY_PER_REQUEST,
-      partitionKey: { name: "id", type: AttributeType.STRING },
+      partitionKey: { name: 'id', type: AttributeType.STRING },
       removalPolicy: RemovalPolicy.DESTROY,
     };
 
-    this.filesTable = new Table(this, "files-table", {
+    this.filesTable = new Table(this, 'files-table', {
       tableName: dynamoFilesTableName,
       ...commonTableSettings,
     });
 
     this.filesTable.addGlobalSecondaryIndex({
       indexName: dynamoFilesByUserGsiName,
-      partitionKey: { name: "id", type: AttributeType.STRING },
-      sortKey: { name: "userId", type: AttributeType.STRING },
+      partitionKey: { name: 'id', type: AttributeType.STRING },
+      sortKey: { name: 'userId', type: AttributeType.STRING },
       projectionType: ProjectionType.ALL,
     });
 
-    this.landingZoneBucket = new Bucket(this, "landing-zone", {
+    this.landingZoneBucket = new Bucket(this, 'landing-zone', {
       bucketName: landingZoneBucketName,
       transferAcceleration: true,
       accessControl: BucketAccessControl.PRIVATE,
@@ -55,9 +55,9 @@ export class StorageConstruct extends Construct {
       autoDeleteObjects: true,
       cors: [
         {
-          allowedMethods: [HttpMethods.POST, HttpMethods.PUT],
-          allowedOrigins: ["*"],
-          allowedHeaders: ["*"],
+          allowedMethods: [ HttpMethods.POST, HttpMethods.PUT ],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
         },
       ],
       eventBridgeEnabled: true,

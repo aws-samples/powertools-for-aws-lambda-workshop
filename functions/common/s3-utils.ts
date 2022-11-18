@@ -1,30 +1,30 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { readFile } from "node:fs/promises";
-import { s3ClientV3 } from "./s3-client";
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { readFile } from 'node:fs/promises';
+import { s3ClientV3 } from './s3-client';
 
 /**
  * @param {string} key - The key to be used for the new object on S3
  * @param {string} bucketName - The bucket name where the file is uploaded
  */
 interface SaveFileToS3PropsBase {
-  key: string;
-  bucketName: string;
+  key: string
+  bucketName: string
 }
 
 /**
  * @param {string} pathToFile - The local path where the file is stored
  */
 interface SaveFileToS3Props extends SaveFileToS3PropsBase {
-  pathToFile: string;
-  body?: never;
+  pathToFile: string
+  body?: never
 }
 
 /**
  * @param {Buffer} - The buffer containing the file
  */
 interface SaveBufferToS3Props extends SaveFileToS3PropsBase {
-  body: Buffer;
-  pathToFile?: never;
+  body: Buffer
+  pathToFile?: never
 }
 
 /**

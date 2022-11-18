@@ -1,4 +1,4 @@
-import type { PreSignUpTriggerEvent, Context, Callback } from "aws-lambda";
+import type { PreSignUpTriggerEvent, Context, Callback } from 'aws-lambda';
 
 export const handler = (
   event: PreSignUpTriggerEvent,

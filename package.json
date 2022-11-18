@@ -2,7 +2,6 @@
   "name": "aws-lambda-powertools-typescript-workshop",
   "version": "1.0.0",
   "description": "TBD",
-  "type": "module",
   "workspaces": [
     "scripts",
     "frontend",
@@ -11,6 +10,8 @@
   ],
   "scripts": {
     "ts-node": "ts-node",
+    "lint": "eslint --ext .ts --no-error-on-unmatched-pattern infra layers functions",
+    "lint-fix": "eslint --fix --ext .ts --no-error-on-unmatched-pattern infra layers functions",
     "bootstrap": "sh scripts/bootstrap_env.sh",
     "clean": "rm -rf node_modules infra/node_modules infra/cdk.out frontend/node_modules frontend/src/aws-exports.cjs functions/node_modules layers/*/nodejs/node_modules",
     "frontend:start": "npm start -w frontend",
@@ -37,6 +38,9 @@
   },
   "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
+    "eslint": "^8.27.0",
     "ts-node": "^10.9.1"
   }
 }

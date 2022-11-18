@@ -1,8 +1,8 @@
-import { LogFormatter } from "@aws-lambda-powertools/logger";
+import { LogFormatter } from '@aws-lambda-powertools/logger';
 import {
   UnformattedAttributes,
   LogAttributes,
-} from "@aws-lambda-powertools/logger/lib/types";
+} from '@aws-lambda-powertools/logger/lib/types';
 
 class OctankLogFormatter extends LogFormatter {
   public formatAttributes(attributes: UnformattedAttributes): LogAttributes {

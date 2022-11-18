@@ -1,10 +1,10 @@
-import { StackProps, Stack, Duration } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { Queue } from "aws-cdk-lib/aws-sqs";
-import { environment } from "../constants";
+import { StackProps, Stack, Duration } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { environment } from '../constants';
 
 interface QueuesConstructProps extends StackProps {
-  videoProcessingTimeout: Duration;
+  videoProcessingTimeout: Duration
 }
 
 export class QueuesConstruct extends Construct {
@@ -16,13 +16,13 @@ export class QueuesConstruct extends Construct {
 
     const { videoProcessingTimeout } = props;
 
-    this.deadLetterQueue = new Queue(this, "dead-letter-queue", {
+    this.deadLetterQueue = new Queue(this, 'dead-letter-queue', {
       queueName: `VideoProcessing-DeadLetterQueue-${
         Stack.of(this).account
       }-${environment}`,
     });
 
-    this.processingQueue = new Queue(this, "processing-queue", {
+    this.processingQueue = new Queue(this, 'processing-queue', {
       queueName: `VideoProcessing-Queue-${
         Stack.of(this).account
       }-${environment}`,

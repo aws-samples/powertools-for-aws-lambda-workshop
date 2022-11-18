@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-import "source-map-support/register";
-import * as cdk from "aws-cdk-lib";
-import { InfraStack } from "../lib/infra-stack";
-import { powertoolsServiceName, environment } from "../lib/constants";
+import 'source-map-support/register';
+import * as cdk from 'aws-cdk-lib';
+import { InfraStack } from '../lib/infra-stack';
+import { powertoolsServiceName, environment } from '../lib/constants';
 
 const app = new cdk.App();
-new InfraStack(app, "InfraStack", {
+new InfraStack(app, 'InfraStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -22,10 +22,10 @@ new InfraStack(app, "InfraStack", {
   tags: {
     Service: powertoolsServiceName,
     Environment: environment,
-    ManagedBy: "CDK",
-    GithubRepo: "aws-samples/aws-lambda-powertools-workshop",
-    Owner: "AWS",
-    AwsRegion: process.env.CDK_DEFAULT_REGION || "N/A",
-    AwsAccountId: process.env.CDK_DEFAULT_ACCOUNT || "N/A",
+    ManagedBy: 'CDK',
+    GithubRepo: 'aws-samples/aws-lambda-powertools-workshop',
+    Owner: 'AWS',
+    AwsRegion: process.env.CDK_DEFAULT_REGION || 'N/A',
+    AwsAccountId: process.env.CDK_DEFAULT_ACCOUNT || 'N/A',
   },
 });

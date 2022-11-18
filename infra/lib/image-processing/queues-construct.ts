@@ -1,9 +1,9 @@
-import { StackProps, Stack, aws_cloudwatch as cloudwatch } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { Queue } from "aws-cdk-lib/aws-sqs";
-import { environment } from "../constants";
+import { StackProps, Stack, aws_cloudwatch as cloudwatch } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { environment } from '../constants';
 
-interface QueuesConstructProps extends StackProps {}
+type QueuesConstructProps = StackProps;
 
 export class QueuesConstruct extends Construct {
   public readonly processingQueue: Queue;
@@ -12,13 +12,13 @@ export class QueuesConstruct extends Construct {
   constructor(scope: Construct, id: string, props: QueuesConstructProps) {
     super(scope, id);
 
-    this.deadLetterQueue = new Queue(this, "dead-letter-queue", {
+    this.deadLetterQueue = new Queue(this, 'dead-letter-queue', {
       queueName: `ImageProcessing-DeadLetterQueue-${
         Stack.of(this).account
       }-${environment}`,
     });
 
-    this.processingQueue = new Queue(this, "processing-queue", {
+    this.processingQueue = new Queue(this, 'processing-queue', {
       queueName: `ImageProcessing-Queue-${
         Stack.of(this).account
       }-${environment}`,
@@ -29,7 +29,7 @@ export class QueuesConstruct extends Construct {
     });
 
     // TODO: change this
-    const metric = this.processingQueue.metric("ApproximateNumberOfMessagesVisible");
+    const metric = this.processingQueue.metric('ApproximateNumberOfMessagesVisible');
 
     const alarm = new cloudwatch.Alarm(this, 'Alarm', {
       metric: metric,

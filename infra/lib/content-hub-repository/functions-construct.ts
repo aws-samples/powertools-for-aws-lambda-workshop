@@ -1,6 +1,6 @@
-import { StackProps, Stack, aws_ssm as ssm } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { StackProps, Stack, aws_ssm as ssm } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   dynamoFilesTableName,
   dynamoFilesByUserGsiName,
@@ -8,10 +8,10 @@ import {
   commonBundlingSettings,
   commonEnvVars,
   environment,
-} from "../constants";
+} from '../constants';
 
 interface FunctionsConstructProps extends StackProps {
-  landingZoneBucketName: string;
+  landingZoneBucketName: string
 }
 
 export class FunctionsConstruct extends Construct {
@@ -29,10 +29,10 @@ export class FunctionsConstruct extends Construct {
 
     this.getPresignedUploadUrlFn = new NodejsFunction(
       this,
-      "get-presigned-upload-url",
+      'get-presigned-upload-url',
       {
         ...commonFunctionSettings,
-        entry: "../functions/get-presigned-upload-url.ts",
+        entry: '../functions/get-presigned-upload-url.ts',
         functionName: `get-presigned-upload-url-${environment}`,
         environment: {
           ...localEnvVars,
@@ -45,10 +45,10 @@ export class FunctionsConstruct extends Construct {
 
     this.getPresignedDownloadUrlFn = new NodejsFunction(
       this,
-      "get-presigned-download-url",
+      'get-presigned-download-url',
       {
         ...commonFunctionSettings,
-        entry: "../functions/get-presigned-download-url.ts",
+        entry: '../functions/get-presigned-download-url.ts',
         functionName: `get-presigned-download-url-${environment}`,
         environment: {
           ...localEnvVars,
@@ -60,9 +60,9 @@ export class FunctionsConstruct extends Construct {
       }
     );
 
-    this.markCompleteUploadFn = new NodejsFunction(this, "mark-file-queued", {
+    this.markCompleteUploadFn = new NodejsFunction(this, 'mark-file-queued', {
       ...commonFunctionSettings,
-      entry: "../functions/mark-file-queued.ts",
+      entry: '../functions/mark-file-queued.ts',
       functionName: `mark-file-queued-${environment}`,
       environment: {
         ...localEnvVars,

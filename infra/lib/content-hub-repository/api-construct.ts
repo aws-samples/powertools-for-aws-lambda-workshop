@@ -1,16 +1,16 @@
-import { Construct } from "constructs";
-import { Function } from "aws-cdk-lib/aws-lambda";
+import { Construct } from 'constructs';
+import { Function } from 'aws-cdk-lib/aws-lambda';
 import {
   GraphqlApi,
   Schema,
   AuthorizationType,
   MappingTemplate,
-} from "@aws-cdk/aws-appsync-alpha";
-import { CfnOutput, Fn } from "aws-cdk-lib";
-import { IUserPool } from "aws-cdk-lib/aws-cognito";
-import { environment } from "../constants";
-import { Table } from "aws-cdk-lib/aws-dynamodb";
-import { RetentionDays } from "aws-cdk-lib/aws-logs";
+} from '@aws-cdk/aws-appsync-alpha';
+import { CfnOutput, Fn } from 'aws-cdk-lib';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
+import { environment } from '../constants';
+import { Table } from 'aws-cdk-lib/aws-dynamodb';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 class ApiConstructProps {
   getPresignedUploadUrlFn: Function;
@@ -33,9 +33,9 @@ export class ApiConstruct extends Construct {
       table,
     } = props;
 
-    this.api = new GraphqlApi(this, "graphql-api", {
+    this.api = new GraphqlApi(this, 'graphql-api', {
       name: `API-${environment}`,
-      schema: Schema.fromAsset("./lib/content-hub-repository/schema.graphql"),
+      schema: Schema.fromAsset('./lib/content-hub-repository/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: AuthorizationType.USER_POOL,
@@ -53,21 +53,21 @@ export class ApiConstruct extends Construct {
         retention: RetentionDays.FIVE_DAYS,
       },
     });
-    this.domain = Fn.select(2, Fn.split("/", this.api.graphqlUrl as string));
-    const filesTableDS = this.api.addDynamoDbDataSource("files-table", table);
+    this.domain = Fn.select(2, Fn.split('/', this.api.graphqlUrl as string));
+    const filesTableDS = this.api.addDynamoDbDataSource('files-table', table);
     const lambdaPresignedUploadDS = this.api.addLambdaDataSource(
-      "lambda-get-presigned-download-url",
+      'lambda-get-presigned-download-url',
       getPresignedUploadUrlFn
     );
     const lambdaPresignedDownloadDS = this.api.addLambdaDataSource(
-      "lambda-get-presigned-upload-url",
+      'lambda-get-presigned-upload-url',
       getPresignedDownloadUrlFn
     );
-    const noneDS = this.api.addNoneDataSource("local-none");
+    const noneDS = this.api.addNoneDataSource('local-none');
 
     filesTableDS.createResolver({
-      typeName: "Mutation",
-      fieldName: "updateFileStatus",
+      typeName: 'Mutation',
+      fieldName: 'updateFileStatus',
       requestMappingTemplate: MappingTemplate.fromString(`{
         "version": "2018-05-29",
         "operation" : "UpdateItem",
@@ -88,22 +88,22 @@ export class ApiConstruct extends Construct {
     });
 
     lambdaPresignedUploadDS.createResolver({
-      typeName: "Mutation",
-      fieldName: "generatePresignedUploadUrl",
+      typeName: 'Mutation',
+      fieldName: 'generatePresignedUploadUrl',
       requestMappingTemplate: MappingTemplate.lambdaRequest(),
       responseMappingTemplate: MappingTemplate.lambdaResult(),
     });
 
     lambdaPresignedDownloadDS.createResolver({
-      typeName: "Query",
-      fieldName: "generatePresignedDownloadUrl",
+      typeName: 'Query',
+      fieldName: 'generatePresignedDownloadUrl',
       requestMappingTemplate: MappingTemplate.lambdaRequest(),
       responseMappingTemplate: MappingTemplate.lambdaResult(),
     });
 
     noneDS.createResolver({
-      typeName: "Subscription",
-      fieldName: "onUpdateFileStatus",
+      typeName: 'Subscription',
+      fieldName: 'onUpdateFileStatus',
       requestMappingTemplate:
         MappingTemplate.fromString(`## [Start] Subscription Request template. **
         $util.toJson({
@@ -120,15 +120,15 @@ export class ApiConstruct extends Construct {
         ## [End] Subscription Response template. **`),
     });
 
-    new CfnOutput(this, "ApiEndpoint", {
+    new CfnOutput(this, 'ApiEndpoint', {
       value: this.domain,
     });
 
-    new CfnOutput(this, "ApiUrl", {
+    new CfnOutput(this, 'ApiUrl', {
       value: this.api.graphqlUrl,
     });
 
-    new CfnOutput(this, "ApiId", {
+    new CfnOutput(this, 'ApiId', {
       value: this.api.apiId,
     });
   }

@@ -1,15 +1,15 @@
-import { StackProps, Duration, Stack } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { StackProps, Duration, Stack } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import {
   commonFunctionSettings,
   commonBundlingSettings,
   commonEnvVars,
   environment,
   trafficGeneratorIntervalInMinutes,
-} from "../constants";
+} from '../constants';
 
-interface FunctionsConstructProps extends StackProps {}
+type FunctionsConstructProps = StackProps;
 
 export class FunctionsConstruct extends Construct {
   public readonly usersGeneratorFn: NodejsFunction;
@@ -20,13 +20,13 @@ export class FunctionsConstruct extends Construct {
 
     const localEnvVars = {
       ...commonEnvVars,
-      DUMMY_PASSWORD: "ABCabc123456789!",
+      DUMMY_PASSWORD: 'ABCabc123456789!',
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    this.usersGeneratorFn = new NodejsFunction(this, "users-generator", {
+    this.usersGeneratorFn = new NodejsFunction(this, 'users-generator', {
       ...commonFunctionSettings,
-      entry: "../functions/users-generator.ts",
+      entry: '../functions/users-generator.ts',
       functionName: `users-generator-${environment}`,
       timeout: Duration.seconds(60),
       environment: {
@@ -36,9 +36,9 @@ export class FunctionsConstruct extends Construct {
       bundling: { ...commonBundlingSettings },
     });
 
-    this.trafficGeneratorFn = new NodejsFunction(this, "traffic-generator", {
+    this.trafficGeneratorFn = new NodejsFunction(this, 'traffic-generator', {
       ...commonFunctionSettings,
-      entry: "../functions/traffic-generator.ts",
+      entry: '../functions/traffic-generator.ts',
       functionName: `traffic-generator-${environment}`,
       environment: {
         ...localEnvVars,

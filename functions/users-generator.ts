@@ -1,15 +1,15 @@
-import { SignUpCommand } from "@aws-sdk/client-cognito-identity-provider";
-import type { CloudFormationCustomResourceEvent } from "aws-lambda";
-import { setTimeout } from "timers/promises";
+import { SignUpCommand } from '@aws-sdk/client-cognito-identity-provider';
+import type { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { setTimeout } from 'timers/promises';
 
-import { injectLambdaContext } from "@aws-lambda-powertools/logger";
-import { captureLambdaHandler } from "@aws-lambda-powertools/tracer";
-import middy from "@middy/core";
-import { cognitoClientV3 } from "./common/cognito-client";
-import { logger, tracer } from "./common/powertools";
+import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import middy from '@middy/core';
+import { cognitoClientV3 } from './common/cognito-client';
+import { logger, tracer } from './common/powertools';
 
-const cognitoUserPoolClientID = process.env.COGNITO_USER_POOL_CLIENT_ID || "";
-const dummyPassword = process.env.DUMMY_PASSWORD || "";
+const cognitoUserPoolClientID = process.env.COGNITO_USER_POOL_CLIENT_ID || '';
+const dummyPassword = process.env.DUMMY_PASSWORD || '';
 
 const createUser = async (
   email: string,
@@ -25,14 +25,14 @@ const createUser = async (
       })
     );
   } catch (err) {
-    logger.error("error", err as Error);
+    logger.error('error', err as Error);
     throw err;
   }
 };
 
 export const handler = middy(
   async (event: CloudFormationCustomResourceEvent) => {
-    if (event.RequestType === "Create") {
+    if (event.RequestType === 'Create') {
       for await (const idx of Array(50).keys()) {
         const email = `dummyuser+${idx + 1}@example.com`;
         const password = dummyPassword;
@@ -40,7 +40,8 @@ export const handler = middy(
         try {
           await createUser(email, password, cognitoUserPoolClientID);
         } catch (err) {
-          logger.error("Error while creating the user", err as Error);
+          logger.error('Error while creating the user', err as Error);
+          
           return;
         }
 

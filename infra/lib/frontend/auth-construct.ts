@@ -1,6 +1,6 @@
-import { StackProps, CfnOutput, RemovalPolicy } from "aws-cdk-lib";
-import { Construct } from "constructs";
-import { IRole } from "aws-cdk-lib/aws-iam";
+import { StackProps, CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { IRole } from 'aws-cdk-lib/aws-iam';
 import {
   AccountRecovery,
   UserPool,
@@ -8,16 +8,16 @@ import {
   UserPoolClient,
   VerificationEmailStyle,
   IUserPoolClient,
-} from "aws-cdk-lib/aws-cognito";
+} from 'aws-cdk-lib/aws-cognito';
 import {
   IdentityPool,
   UserPoolAuthenticationProvider,
-} from "@aws-cdk/aws-cognito-identitypool-alpha";
-import { Function } from "aws-cdk-lib/aws-lambda";
-import { environment } from "../constants";
+} from '@aws-cdk/aws-cognito-identitypool-alpha';
+import { Function } from 'aws-cdk-lib/aws-lambda';
+import { environment } from '../constants';
 
 interface AuthConstructProps extends StackProps {
-  preSignUpCognitoTriggerFn: Function;
+  preSignUpCognitoTriggerFn: Function
 }
 
 export class AuthConstruct extends Construct {
@@ -31,7 +31,7 @@ export class AuthConstruct extends Construct {
 
     const { preSignUpCognitoTriggerFn } = props;
 
-    this.userPool = new UserPool(this, "user-pool", {
+    this.userPool = new UserPool(this, 'user-pool', {
       userPoolName: `frontend-auth-${environment}`,
       selfSignUpEnabled: true,
       accountRecovery: AccountRecovery.EMAIL_ONLY,
@@ -57,7 +57,7 @@ export class AuthConstruct extends Construct {
       },
     });
 
-    this.userPoolClient = new UserPoolClient(this, "user-pool-client", {
+    this.userPoolClient = new UserPoolClient(this, 'user-pool-client', {
       userPool: this.userPool,
       authFlows: {
         adminUserPassword: true,
@@ -66,7 +66,7 @@ export class AuthConstruct extends Construct {
     });
 
     const { authenticatedRole, unauthenticatedRole, identityPoolId } =
-      new IdentityPool(this, "myIdentityPool", {
+      new IdentityPool(this, 'myIdentityPool', {
         allowUnauthenticatedIdentities: true,
         authenticationProviders: {
           userPools: [
@@ -78,15 +78,15 @@ export class AuthConstruct extends Construct {
     this.unauthRole = unauthenticatedRole;
     this.authRole = authenticatedRole;
 
-    new CfnOutput(this, "UserPoolId", {
+    new CfnOutput(this, 'UserPoolId', {
       value: this.userPool.userPoolId,
     });
 
-    new CfnOutput(this, "UserPoolClientId", {
+    new CfnOutput(this, 'UserPoolClientId', {
       value: this.userPoolClient.userPoolClientId,
     });
 
-    new CfnOutput(this, "IdentityPoolId", {
+    new CfnOutput(this, 'IdentityPoolId', {
       value: identityPoolId,
     });
   }
