@@ -20,7 +20,7 @@ class Lambda implements LambdaInterface {
 
     @tracer.captureMethod()
     protected async putFileMetadataInTable(fileId: string, key: string, type: string, userId: string, transformParams?: string) {
-        await dynamodbClientV3.put({
+        return await dynamodbClientV3.put({
             TableName: dynamoDBTableFiles,
             Item: {
                 id: fileId,
@@ -53,15 +53,18 @@ class Lambda implements LambdaInterface {
     public async handler(event: AppSyncResolverEvent<GeneratePresignedUploadUrlMutationVariables>): Promise<Partial<PresignedUrl>> {
         try {
             const fileId = randomUUID();
-            const {type: fileType, transformParams} = event.arguments.input!;
-            if (!fileType || !transformParams)
+            const { type: fileType, transformParams } = event.arguments.input!;
+            if (!fileType || !transformParams) {
                 throw new Error("File type or transformParams not provided.");
-            const {username: userId} = event.identity as AppSyncIdentityCognito;
-            const objectKey = `uploads/${this.getObjectKey(fileType)}/${fileId}.${
+            }
+
+            const { username: userId } = event.identity as AppSyncIdentityCognito;
+            const objectKeyValue = await this.getObjectKey(fileType);
+            const objectKey = `uploads/${objectKeyValue}/${fileId}.${
                 fileType.split("/")[1]
             }`;
 
-            logger.debug("[GET presigned-url] Object Key", {
+            logger.info("[GET presigned-url] Object Key", {
                 details: objectKey,
             });
 
@@ -71,11 +74,11 @@ class Lambda implements LambdaInterface {
                 fileType
             );
 
-            logger.debug("[GET presigned-url] File", {
+            logger.info("[GET presigned-url] File", {
                 details: {url: uploadUrl, id: fileId},
             });
 
-            await this.putFileMetadataInTable(
+            const response = await this.putFileMetadataInTable(
                 fileId,
                 objectKey,
                 fileType,
@@ -83,7 +86,11 @@ class Lambda implements LambdaInterface {
                 transformParams
             );
 
-            return {url: uploadUrl, id: fileId};
+            logger.info("[GET presigned-url] DynamoDB response", {
+                details: response,
+            });
+
+            return { url: uploadUrl, id: fileId };
         } catch (err) {
             logger.error("Unable to generate presigned url", err);
             throw err;
