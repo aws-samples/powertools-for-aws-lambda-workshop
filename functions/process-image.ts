@@ -19,7 +19,7 @@ import {s3ClientV3} from "./common/s3-client";
 import {saveAssetToS3} from "./common/s3-utils";
 import {LambdaInterface} from "@aws-lambda-powertools/commons";
 
-const failureLambda = require('failure-lambda');
+// const failureLambda = require('failure-lambda');
 
 const dynamoDBTableFiles = process.env.TABLE_NAME_FILES || "";
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || "";
@@ -27,7 +27,7 @@ let itemsProcessorHelper: ItemsListKeeper;
 
 class Lambda implements LambdaInterface {
 
-    @tracer.captureMethod()
+    @tracer.captureMethod({ subSegmentName: "#### get original object", captureResponse: false })
     protected async getOriginalObject(key: string, bucketName: string) {
         const res = await s3ClientV3.send(
             new GetObjectCommand({
@@ -44,37 +44,25 @@ class Lambda implements LambdaInterface {
         });
     }
 
-    @tracer.captureMethod()
+    @tracer.captureMethod({ subSegmentName: "#### process image", captureResponse: false })
     protected async processImage(fileId: string, originalImage: Buffer, {width, height}: TransformParams, mainSubSegment: Subsegment) {
-
-        return (await tracer.provider.captureAsyncFunc(
-            "### process image",
-            async (subsegment?: Subsegment) => {
-                subsegment?.addAnnotation("fileId", fileId);
-                try {
-                    const resizedImg = await sharp(originalImage)
-                        .resize(width, height)
-                        .toFormat("webp")
-                        .toBuffer();
-                    return resizedImg;
-                } catch (err) {
-                    subsegment?.addErrorFlag();
-                    subsegment?.addError(err, false);
-                    logger.error(`Error processing video`, {
-                        details: fileId,
-                        error: err,
-                    });
-                    throw err;
-                } finally {
-                    subsegment?.close();
-                    subsegment?.flush();
-                }
-            },
-            mainSubSegment
-        )) as Buffer;
+        try {
+            // @ts-ignore
+            const resizedImg = await sharp(originalImage)
+                .resize(width, height)
+                .toFormat("webp")
+                .toBuffer();
+            return resizedImg;
+        } catch (err) {
+            logger.error(`Error processing image`, {
+                details: fileId,
+                error: err,
+            });
+            throw err;
+        }
     }
 
-    @tracer.captureMethod()
+    @tracer.captureMethod({ subSegmentName: "### process one", })
     protected async processOne (fileId: string, objectKey: string, mainSubSegment: Subsegment) {
         const newFileKey = `transformed/image/webp/${fileId}.webp`;
 
@@ -136,7 +124,7 @@ class Lambda implements LambdaInterface {
             );
         } catch (err) {
             if (err !== TimeoutErr) {
-                logger.error("An unexpected error occurred", err);
+                logger.error("An unexpected error occurred", err as Error);
             }
             logger.error("Function will timeout in", {
                 details: context.getRemainingTimeInMillis(),
@@ -173,4 +161,5 @@ class Lambda implements LambdaInterface {
 }
 
 const handlerClass = new Lambda();
-export const handler = failureLambda(handlerClass.handler.bind(handlerClass));
+// TODO: reintroduce failureLambda()
+export const handler = handlerClass.handler.bind(handlerClass);

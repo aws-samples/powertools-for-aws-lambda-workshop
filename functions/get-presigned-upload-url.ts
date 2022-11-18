@@ -1,4 +1,4 @@
-import type {AppSyncIdentityCognito, AppSyncResolverEvent} from "aws-lambda";
+import type {AppSyncIdentityCognito, AppSyncResolverEvent, Context} from "aws-lambda";
 import {logger, tracer} from "./common/powertools";
 import {dynamodbClientV3} from "./common/dynamodb-client";
 
@@ -50,7 +50,7 @@ class Lambda implements LambdaInterface {
 
     @tracer.captureLambdaHandler()
     @logger.injectLambdaContext()
-    public async handler(event: AppSyncResolverEvent<GeneratePresignedUploadUrlMutationVariables>): Promise<Partial<PresignedUrl>> {
+    public async handler(event: AppSyncResolverEvent<GeneratePresignedUploadUrlMutationVariables>, _context: Context): Promise<Partial<PresignedUrl>> {
         try {
             const fileId = randomUUID();
             const { type: fileType, transformParams } = event.arguments.input!;
@@ -92,7 +92,7 @@ class Lambda implements LambdaInterface {
 
             return { url: uploadUrl, id: fileId };
         } catch (err) {
-            logger.error("Unable to generate presigned url", err);
+            logger.error("Unable to generate presigned url", err as Error);
             throw err;
         }
     }

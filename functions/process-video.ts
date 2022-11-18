@@ -1,4 +1,4 @@
-const failureLambda = require('failure-lambda');
+// const failureLambda = require('failure-lambda');
 
 import {MetricUnits} from "@aws-lambda-powertools/metrics";
 import type {Context, SQSEvent, SQSRecord} from "aws-lambda";
@@ -6,7 +6,7 @@ import type {Subsegment} from "aws-xray-sdk-core";
 import ffmpeg from "fluent-ffmpeg";
 
 import {logger, metrics, tracer} from "./common/powertools";
-import {getPresignedDownloadUrl, getPresignedUploadUrl} from "./common/presigned-url-utils";
+import {getPresignedDownloadUrl} from "./common/presigned-url-utils";
 import type {TransformParams} from "./common/processing-utils";
 import {
     getFileId,
@@ -25,46 +25,33 @@ let itemsProcessorHelper: ItemsListKeeper;
 
 class Lambda implements LambdaInterface {
 
-    @tracer.captureMethod()
+    @tracer.captureMethod({ subSegmentName: "#### process video" })
     protected async processVideo(
         presignedUrlOriginalVideo: string,
         {width, height}: TransformParams,
         fileId: string,
         tmpFilePath: string,
-        mainSubSegment: Subsegment
     ): Promise<void> {
-        await tracer.provider.captureAsyncFunc(
-            "### process video",
-            async (subsegment?: Subsegment) => {
-                subsegment?.addAnnotation("fileId", fileId);
-                try {
-                    return new Promise<void>((resolve, reject) => {
-                        ffmpeg(presignedUrlOriginalVideo)
-                            .size(`${width}x${height}`)
-                            .on("error", (err) => reject(err))
-                            .on("end", () => {
-                                resolve();
-                            })
-                            .save(tmpFilePath);
-                    });
-                } catch (err) {
-                    subsegment?.addErrorFlag();
-                    subsegment?.addError(err, false);
-                    logger.error(`Error processing video`, {
-                        details: fileId,
-                        error: err,
-                    });
-                    throw err;
-                } finally {
-                    subsegment?.close();
-                    subsegment?.flush();
-                }
-            },
-            mainSubSegment
-        );
+        try {
+            return new Promise<void>((resolve, reject) => {
+                ffmpeg(presignedUrlOriginalVideo)
+                    .size(`${width}x${height}`)
+                    .on("error", (err) => reject(err))
+                    .on("end", () => {
+                        resolve();
+                    })
+                    .save(tmpFilePath);
+            });
+        } catch (err) {
+            logger.error(`Error processing video`, {
+                details: fileId,
+                error: err,
+            });
+            throw err;
+        }
     }
 
-    @tracer.captureMethod()
+    @tracer.captureMethod({ subSegmentName: "### process one", })
     protected async processOne(fileId: string, objectKey: string, mainSubSegment: Subsegment) {
         const newFileKey = `transformed/video/webm/${fileId}.webm`;
         const tmpFilePath = `/tmp/${fileId}.webm`;
@@ -84,7 +71,6 @@ class Lambda implements LambdaInterface {
             transformParams,
             fileId,
             tmpFilePath,
-            mainSubSegment
         );
 
         await saveAssetToS3({
@@ -130,7 +116,7 @@ class Lambda implements LambdaInterface {
             );
         } catch (err) {
             if (err !== TimeoutErr) {
-                logger.error("An un expected error occurred", err);
+                logger.error("An un expected error occurred", err as Error);
             }
             logger.error("Function will timeout in", {
                 details: context.getRemainingTimeInMillis(),
@@ -169,4 +155,5 @@ class Lambda implements LambdaInterface {
 }
 
 const handlerClass = new Lambda();
-export const handler = failureLambda(handlerClass.handler.bind(handlerClass));
+// TODO: reintroduce failureLambda()
+export const handler = handlerClass.handler.bind(handlerClass);

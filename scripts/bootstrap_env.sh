@@ -18,5 +18,5 @@ cd ../../../
 
 # Install sharp nodejs bindings + precompiled version into layer folder
 cd layers/sharp/nodejs
-SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install --arch=x64 --platform=linux --libc=glibc sharp
+SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install --arch=x64 --platform=linux --libc=glibc sharp@0.31.1
 cd ../../../
