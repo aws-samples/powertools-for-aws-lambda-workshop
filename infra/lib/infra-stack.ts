@@ -119,7 +119,7 @@ export class InfraStack extends Stack {
         {
           "process-image": imageProcessing.ssmParameterStore.ssmParameterStore.parameterName,
           "process-video": videoProcessing.ssmParameterStore.ssmParameterStore.parameterName,
-          "content-hub-repository": videoProcessing.ssmParameterStore.ssmParameterStore.parameterName
+          "content-hub-repository": contentHubRepo.ssmParameterStore.ssmParameterStore.parameterName
         }
     );
 
