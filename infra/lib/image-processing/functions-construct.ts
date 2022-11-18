@@ -2,7 +2,7 @@ import { StackProps, Stack, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Code, LayerVersion } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { aws_ssm as ssm } from "aws-cdk-lib";
+
 import {
   commonFunctionSettings,
   commonBundlingSettings,
@@ -16,6 +16,7 @@ interface FunctionsConstructProps extends StackProps {
 }
 
 export class FunctionsConstruct extends Construct {
+
   public readonly resizeImageFn: NodejsFunction;
 
   constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
@@ -33,20 +34,14 @@ export class FunctionsConstruct extends Construct {
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    const failureLambdaParameter = new ssm.StringParameter(this, `/failure-lambda/${environment}/process-image`, {
-          stringValue: '{"isEnabled": false, "failureMode": "latency", "rate": 1, "minLatency": 300, "maxLatency": 1000, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com", "dynamodb.*.amazonaws.com"]}',
-        }
-    );
-
     this.resizeImageFn = new NodejsFunction(this, "process-image", {
       ...commonFunctionSettings,
       entry: "../functions/process-image.ts",
-      functionName: `process-image-${environment}`,
+      functionName: `process-image-name-${environment}`,
       environment: {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
         BUCKET_NAME_FILES: props.landingZoneBucketName,
-        FAILURE_INJECTION_PARAM: failureLambdaParameter.parameterName
       },
       layers: [sharpLayer],
       bundling: {
@@ -55,6 +50,5 @@ export class FunctionsConstruct extends Construct {
       },
     });
 
-    failureLambdaParameter.grantRead(this.resizeImageFn);
   }
 }

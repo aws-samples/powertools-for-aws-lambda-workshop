@@ -6,6 +6,7 @@ import { AuthConstruct } from "../frontend/auth-construct";
 import { ApiConstruct } from "./api-construct";
 import { FunctionsConstruct } from "./functions-construct";
 import { StorageConstruct } from "./storage-construct";
+import { SSMParameterStoreConstruct } from "../shared/ssm/ssm-parameter-store-construct";
 
 class ContentHubRepoProps {
   userPool: IUserPool;
@@ -17,6 +18,7 @@ export class ContentHubRepo extends Construct {
   public readonly auth: AuthConstruct;
   public readonly api: ApiConstruct;
   public readonly functions: FunctionsConstruct;
+  public readonly ssmParameterStore: SSMParameterStoreConstruct;
 
   constructor(scope: Construct, id: string, props: ContentHubRepoProps) {
     super(scope, id);
@@ -69,5 +71,17 @@ export class ContentHubRepo extends Construct {
     uploadedRule.addTarget(
       new LambdaFunction(this.functions.markCompleteUploadFn)
     );
+
+    this.ssmParameterStore = new SSMParameterStoreConstruct(this, "content-hub-repository-parameter", {
+      failureMode: "denylist",
+      nodeJSLambdaFunction: this.functions.getPresignedUploadUrlFn
+    });
+
+    this.functions.getPresignedUploadUrlFn.addEnvironment(
+        "FAILURE_INJECTION_PARAM",
+        this.ssmParameterStore.ssmParameterStore.parameterName
+    )
+
+    this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.getPresignedUploadUrlFn);
   }
 }

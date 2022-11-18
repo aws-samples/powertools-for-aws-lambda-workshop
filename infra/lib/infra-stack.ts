@@ -6,6 +6,7 @@ import { ContentHubRepo } from "./content-hub-repository";
 import { ImageProcessing } from "./image-processing";
 import { VideoProcessing } from "./video-processing";
 import { TrafficGenerator } from "./traffic-generator";
+import { Experiments } from "./chaos-experiments";
 import {
   landingZoneBucketNamePrefix,
   powertoolsServiceName,
@@ -109,6 +110,17 @@ export class InfraStack extends Stack {
     frontend.auth.userPool.grant(
       trafficGenerator.functions.trafficGeneratorFn,
       "cognito-idp:AdminInitiateAuth"
+    );
+
+    // Experiments component
+    const experiments = new Experiments(
+        this,
+        "chaos-experiments",
+        {
+          "process-image": imageProcessing.ssmParameterStore.ssmParameterStore.parameterName,
+          "process-video": videoProcessing.ssmParameterStore.ssmParameterStore.parameterName,
+          "content-hub-repository": videoProcessing.ssmParameterStore.ssmParameterStore.parameterName
+        }
     );
 
     new CfnOutput(this, "AWSRegion", {

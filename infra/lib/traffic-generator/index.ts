@@ -5,6 +5,7 @@ import { Provider } from "aws-cdk-lib/custom-resources";
 import { Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { FunctionsConstruct } from "./functions-construct";
+
 import { trafficGeneratorIntervalInMinutes } from "./../constants";
 
 class TrafficGeneratorProps {}

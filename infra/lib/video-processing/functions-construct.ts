@@ -2,7 +2,7 @@ import { StackProps, Duration, Stack, RemovalPolicy } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Code, LayerVersion } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
-import { aws_ssm as ssm } from "aws-cdk-lib";
+
 import {
   commonFunctionSettings,
   commonBundlingSettings,
@@ -36,15 +36,10 @@ export class FunctionsConstruct extends Construct {
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    const failureLambdaParameter = new ssm.StringParameter(this, `/failure-lambda/${environment}/process-video`, {
-          stringValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["s3.*.amazonaws.com"]}',
-        }
-    );
-
     this.resizeVideoFn = new NodejsFunction(this, "process-video", {
       ...commonFunctionSettings,
       entry: "../functions/process-video.ts",
-      functionName: `process-video-${environment}`,
+      functionName: `process-video-name-${environment}`,
       memorySize: 4096,
       timeout: videoProcessingTimeout,
       environment: {
@@ -52,7 +47,6 @@ export class FunctionsConstruct extends Construct {
         TABLE_NAME_FILES: dynamoFilesTableName,
         BUCKET_NAME_FILES: props.landingZoneBucketName,
         FFMPEG_PATH: "/opt/bin/ffmpeg",
-        FAILURE_INJECTION_PARAM: failureLambdaParameter.parameterName
       },
       layers: [ffmpegLayer],
       bundling: {
@@ -61,6 +55,5 @@ export class FunctionsConstruct extends Construct {
       },
     });
 
-    failureLambdaParameter.grantRead(this.resizeVideoFn);
   }
 }

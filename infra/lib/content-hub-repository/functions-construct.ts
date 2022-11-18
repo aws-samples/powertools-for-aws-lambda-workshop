@@ -27,11 +27,6 @@ export class FunctionsConstruct extends Construct {
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    const failureLambdaParameter = new ssm.StringParameter(this, `/failure-lambda/${environment}/get-presigned-upload-url`, {
-            stringValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 0.1, "minLatency": 100, "maxLatency": 400, "exceptionMsg": "Exception message!", "statusCode": 404, "diskSpace": 100, "denylist": ["dynamodb.*.amazonaws.com"]}',
-        }
-    );
-
     this.getPresignedUploadUrlFn = new NodejsFunction(
       this,
       "get-presigned-upload-url",
@@ -43,13 +38,10 @@ export class FunctionsConstruct extends Construct {
           ...localEnvVars,
           TABLE_NAME_FILES: dynamoFilesTableName,
           BUCKET_NAME_FILES: props.landingZoneBucketName,
-          FAILURE_INJECTION_PARAM: failureLambdaParameter.parameterName
         },
         bundling: { ...commonBundlingSettings },
       }
     );
-
-    failureLambdaParameter.grantRead(this.getPresignedUploadUrlFn);
 
     this.getPresignedDownloadUrlFn = new NodejsFunction(
       this,

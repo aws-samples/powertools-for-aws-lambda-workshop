@@ -1,4 +1,4 @@
-import { StackProps, Stack } from "aws-cdk-lib";
+import { StackProps, Stack, aws_cloudwatch as cloudwatch } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 import { environment } from "../constants";
@@ -26,6 +26,16 @@ export class QueuesConstruct extends Construct {
         maxReceiveCount: 1,
         queue: this.deadLetterQueue,
       },
+    });
+
+    // TODO: change this
+    const metric = this.processingQueue.metric("ApproximateNumberOfMessagesVisible");
+
+    const alarm = new cloudwatch.Alarm(this, 'Alarm', {
+      metric: metric,
+      threshold: 20000,
+      evaluationPeriods: 3,
+      datapointsToAlarm: 2,
     });
   }
 }

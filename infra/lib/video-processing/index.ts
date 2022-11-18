@@ -5,6 +5,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { FunctionsConstruct } from "./functions-construct";
 import { QueuesConstruct } from "./queues-construct";
 import { Duration } from "aws-cdk-lib";
+import { SSMParameterStoreConstruct } from "../shared/ssm/ssm-parameter-store-construct";
 
 class VideoProcessingProps {
   landingZoneBucketName: string;
@@ -13,6 +14,7 @@ class VideoProcessingProps {
 export class VideoProcessing extends Construct {
   public readonly functions: FunctionsConstruct;
   public readonly queues: QueuesConstruct;
+  public readonly ssmParameterStore: SSMParameterStoreConstruct;
 
   constructor(scope: Construct, id: string, props: VideoProcessingProps) {
     super(scope, id);
@@ -56,5 +58,17 @@ export class VideoProcessing extends Construct {
       },
     });
     videoProcessRule.addTarget(new SqsQueue(this.queues.processingQueue));
+
+    this.ssmParameterStore = new SSMParameterStoreConstruct(this, "process-video-parameter", {
+      failureMode: "denylist",
+      nodeJSLambdaFunction: this.functions.resizeVideoFn
+    });
+
+    this.functions.resizeVideoFn.addEnvironment(
+        "FAILURE_INJECTION_PARAM",
+        this.ssmParameterStore.ssmParameterStore.parameterName
+    )
+
+    this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.resizeVideoFn);
   }
 }
