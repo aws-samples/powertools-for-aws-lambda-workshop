@@ -1,6 +1,7 @@
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from 'aws-lambda';
-import { logger, tracer } from './common/powertools';
+import { logger, tracer, metrics } from './common/powertools';
 import { dynamodbClientV3 } from './common/dynamodb-client';
+import { requestResponseMetric } from './common/middleware/requestResponseMetric';
 
 import middy from '@middy/core';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
@@ -63,10 +64,13 @@ export const handler = middy(
 
       return { url: downloadUrl, id: fileId };
     } catch (err) {
-      logger.error('Unable to generate presigned url', err);
+      logger.error('Unable to generate presigned url', err as Error);
       throw err;
     }
   }
 )
   .use(captureLambdaHandler(tracer))
+  .use(requestResponseMetric(metrics, {
+    graphqlOperation: 'GeneratePresignedDownloadUrlQuery'
+  }))
   .use(injectLambdaContext(logger, { logEvent: true }));
