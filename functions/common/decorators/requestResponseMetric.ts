@@ -1,8 +1,8 @@
-import type { Metrics } from "@aws-lambda-powertools/metrics";
-import { MetricUnits } from "@aws-lambda-powertools/metrics";
+import type { Metrics } from '@aws-lambda-powertools/metrics';
+import { MetricUnits } from '@aws-lambda-powertools/metrics';
 
 interface Options {
-  graphqlOperation: string;
+  graphqlOperation: string
 }
 
 function requestResponseMetric(metrics: Metrics, options: Options) {
@@ -16,15 +16,16 @@ function requestResponseMetric(metrics: Metrics, options: Options) {
       const startTime = Date.now();
       try {
         const response = originalMethod.apply(this, [...args]);
-        metrics.addDimension("httpResponseCode", "200");
+        metrics.addDimension('httpResponseCode', '200');
+        
         return response;
       } catch (err) {
-        metrics.addDimension("httpResponseCode", "500");
+        metrics.addDimension('httpResponseCode', '500');
         throw err;
       } finally {
-        metrics.addDimension("graphqlOperation", options.graphqlOperation);
+        metrics.addDimension('graphqlOperation', options.graphqlOperation);
         const timeElapsed = Date.now() - startTime;
-        metrics.addMetric("latencyInMs", MetricUnits.Milliseconds, timeElapsed);
+        metrics.addMetric('latencyInMs', MetricUnits.Milliseconds, timeElapsed);
         metrics.publishStoredMetrics();
       }
     };

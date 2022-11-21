@@ -1,19 +1,19 @@
-import type { Tracer } from "@aws-lambda-powertools/tracer";
-import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+import type { Tracer } from '@aws-lambda-powertools/tracer';
+import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 
 interface FailureSettings {
-  isEnabled: boolean;
-  rate: number;
-  failureMode: string;
-  minLatency: number;
-  maxLatency: number;
-  exceptionMsg: string;
-  statusCode: number;
-  diskSpace: number;
-  denylist: string[];
+  isEnabled: boolean
+  rate: number
+  failureMode: string
+  minLatency: number
+  maxLatency: number
+  exceptionMsg: string
+  statusCode: number
+  diskSpace: number
+  denylist: string[]
 }
 
-const failureInjectionParamName = process.env.FAILURE_INJECTION_PARAM || "";
+const failureInjectionParamName = process.env.FAILURE_INJECTION_PARAM || '';
 let ssmClient: SSMClient;
 
 const getSettings = async (tracer: Tracer): Promise<FailureSettings> => {

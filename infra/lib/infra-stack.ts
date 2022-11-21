@@ -12,6 +12,7 @@ import {
   powertoolsServiceName,
   environment,
 } from './constants';
+import { MonitoringConstruct } from './monitoring';
 
 export class InfraStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -122,6 +123,9 @@ export class InfraStack extends Stack {
         'content-hub-repository': contentHubRepo.ssmParameterStore.ssmParameterStore.parameterName
       }
     );
+
+    // Monitoring
+    const monitoring = new MonitoringConstruct(this, 'image-processing-dashboard');
 
     new CfnOutput(this, 'AWSRegion', {
       value: Stack.of(this).region,

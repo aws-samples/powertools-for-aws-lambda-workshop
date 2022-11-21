@@ -80,25 +80,26 @@ export class ExperimentsConstruct extends Construct {
 
     const startAutomation = {
       actionId: 'aws:ssm:start-automation-execution',
-      description: 'Put config into parameter store to enable Lambda Chaos.',
+      description: 'Change values of a Parameter Store to enable the fault injection in a Lambda function.',
       parameters: {
         documentArn: `arn:aws:ssm:${process.env.AWS_REGION}:${Stack.of(this).account}:document/${props.ssmAutomationDocumentName}`,
         documentParameters: JSON.stringify({
-          DurationMinutes: 'PT1M',
+          DurationMinutes: 'PT12M',
           AutomationAssumeRole: ssmaPutParameterStoreRole.roleArn,
           ParameterName: props.parameterStoreName,
-          ParameterValue: '{ "delay": 1000, "is_enabled": false, "error_code": 500, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}',
-          RollbackValue: '{ "delay": 1000, "is_enabled": false, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
+          ParameterValue: '{"isEnabled": true, "failureMode": "denylist", "rate": 1, "denylist": ["dynamodb.*.amazonaws.com"]}',
+          RollbackValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 1, "denylist": ["dynamodb.*.amazonaws.com"]}'
         }),
-        maxDuration: 'PT5M',
+        maxDuration: 'PT15M',
       },
     };
 
     // Experiment
     const logGroup = new logs.LogGroup(this, `/chaos-experiment/${id}`);
+
     const templateEnableLambdaFault = new fis.CfnExperimentTemplate(
       this,
-      'chaos-experiment-log-group',
+      id,
       {
         description: 'Chaos experiment for the AWS Lambda Powertools for TypeScript workshop',
         roleArn: fisRole.roleArn,
@@ -106,17 +107,15 @@ export class ExperimentsConstruct extends Construct {
           { source: 'none' }
         ],
         tags: {
-          Name: `AWS Lambda Powertools for TypeScript workshop - ${id}`,
+          Name: `Chaos Experiment - ${id}`,
           Stackname: Stack.of(this).stackName,
         },
         actions: {
-          ssmaAction: startAutomation,
+          chaosExperiment: startAutomation,
         },
         targets: {},
         logConfiguration: {
           logSchemaVersion: 1,
-
-          // the properties below are optional
           cloudWatchLogsConfiguration: {
             'LogGroupArn': logGroup.logGroupArn
           },
