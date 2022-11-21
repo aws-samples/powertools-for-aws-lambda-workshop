@@ -4,15 +4,15 @@
 
 The architecture of this workload allows users to upload media assets and have them converted to different web-friendly media formats. The flow of the application is as follows:
 
-* End users access an authenticated web application that they can use to upload media assets
-* The application is hosted on Amazon S3  and distributed via Amazon CloudFront
-* When an user uploads a media asset, the application obtains a pre-signed upload URL from a GraphQL API managed by Amazon AppSync
-* The AppSync API forwards the request to an AWS Lambda  function that generates the pre-signed URL and stores the file metadata on Amazon DynamoDB
-* Using the pre-signed url obtained from the API, the user uploads the asset directly to S3
-* This action sends a notification to Amazon EventBridge
-* The events are then filtered and routed to one or more SQS queues, from which they are picked up by Lambda functions
-* Each type of media file is processed by a dedicated component that takes the original file, converts it, and saves the rendition back to S3
-* The processing units update the status of each file in the DynamoDB table
+1.End users access an authenticated web application that they can use to upload media assets
+2.The application is hosted on Amazon S3  and distributed via Amazon CloudFront
+3.When an user uploads a media asset, the application obtains a pre-signed upload URL from a GraphQL API managed by Amazon AppSync
+4.The AppSync API forwards the request to an AWS Lambda  function that generates the pre-signed URL and stores the file metadata on Amazon DynamoDB
+5.Using the pre-signed url obtained from the API, the user uploads the asset directly to S3
+6.This action sends a notification to Amazon EventBridge
+7. The events are then filtered and routed to one or more SQS queues, from which they are picked up by Lambda functions
+8. Each type of media file is processed by a dedicated component that takes the original file, converts it, and saves the rendition back to S3
+9. The processing units update the status of each file in the DynamoDB table
 
 
 ## Deploy
