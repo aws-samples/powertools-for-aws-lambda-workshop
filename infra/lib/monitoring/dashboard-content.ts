@@ -1,3 +1,5 @@
+import { Stack } from "aws-cdk-lib"; 
+
 const dashboardContent = {
   widgets: [
     {
@@ -28,7 +30,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - ConcurrentExecutions',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -47,7 +49,7 @@ const dashboardContent = {
             {
               stat: 'Average',
               id: 'm0',
-              region: 'eu-central-1'
+              region: process.env.CDK_DEFAULT_REGION
             }
           ]
         ],
@@ -60,7 +62,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - Duration',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -91,7 +93,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - Errors',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -122,7 +124,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - Invocations',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -141,7 +143,7 @@ const dashboardContent = {
             {
               stat: 'Sum',
               id: 'm0',
-              region: 'eu-central-1'
+              region: process.env.CDK_DEFAULT_REGION
             }
           ]
         ],
@@ -154,7 +156,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - Throttles',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -173,7 +175,7 @@ const dashboardContent = {
             {
               stat: 'Average',
               id: 'm0',
-              region: 'eu-central-1'
+              region: process.env.CDK_DEFAULT_REGION
             }
           ]
         ],
@@ -186,7 +188,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - IteratorAge',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -205,7 +207,7 @@ const dashboardContent = {
             {
               stat: 'Sum',
               id: 'm0',
-              region: 'eu-central-1'
+              region: process.env.CDK_DEFAULT_REGION
             }
           ]
         ],
@@ -218,7 +220,7 @@ const dashboardContent = {
         start: '-PT15M',
         end: 'P0D',
         title: 'Lambda - DeadLetterErrors',
-        region: 'eu-central-1'
+        region: process.env.CDK_DEFAULT_REGION
       }
     },
     {
@@ -256,14 +258,14 @@ const dashboardContent = {
               label: 'Consumed',
               id: 'e1',
               color: '#0073BB',
-              region: 'eu-central-1'
+              region: process.env.CDK_DEFAULT_REGION
             }
           ]
         ],
         title: 'DynamoDB - Read usage (average units/second)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Average',
         period: 60,
         yAxis: {
@@ -285,7 +287,7 @@ const dashboardContent = {
         title: 'DynamoDB - Read throttled requests (count)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Sum',
         period: 60,
         yAxis: {
@@ -341,7 +343,7 @@ const dashboardContent = {
         title: 'DynamoDB - Write throttled requests (count)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Sum',
         period: 60,
         yAxis: {
@@ -397,7 +399,7 @@ const dashboardContent = {
         title: 'DynamoDB - Write usage (average units/second)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Average',
         period: 60,
         yAxis: {
@@ -433,7 +435,7 @@ const dashboardContent = {
               label: 'Consumed',
               id: 'e1',
               color: '#0073BB',
-              region: 'eu-central-1'
+              region: process.env.CDK_DEFAULT_REGION
             }
           ]
         ],
@@ -451,7 +453,7 @@ const dashboardContent = {
         title: 'DynamoDB - Get latency (milliseconds)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Average',
         period: 60,
         yAxis: {
@@ -495,7 +497,7 @@ const dashboardContent = {
         title: 'DynamoDB - Put latency (milliseconds)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Average',
         period: 60,
         yAxis: {
@@ -540,7 +542,7 @@ const dashboardContent = {
         title: 'DynamoDB - System errors read (count)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Sum',
         period: 60,
         yAxis: {
@@ -596,7 +598,7 @@ const dashboardContent = {
         title: 'DynamoDB - System errors write (count)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Sum',
         period: 60,
         yAxis: {
@@ -652,7 +654,7 @@ const dashboardContent = {
         title: 'User errors (count)',
         view: 'timeSeries',
         stacked: false,
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         stat: 'Sum',
         period: 60,
         yAxis: {
@@ -692,7 +694,7 @@ const dashboardContent = {
             }
           ]
         ],
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         title: 'SQS - Number Of Messages Received',
         period: 60,
         start: '-PT3H',
@@ -719,7 +721,7 @@ const dashboardContent = {
             }
           ]
         ],
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         title: 'SQS - Number Of Messages Deleted',
         period: 60,
         start: '-PT3H',
@@ -746,7 +748,7 @@ const dashboardContent = {
             }
           ]
         ],
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         title: 'SQS - Approximate Number Of Messages Not Visible',
         period: 60,
         start: '-PT3H',
@@ -773,7 +775,7 @@ const dashboardContent = {
             }
           ]
         ],
-        region: 'eu-central-1',
+        region: process.env.CDK_DEFAULT_REGION,
         title: 'Approximate Age Of Oldest Message',
         period: 60,
         start: '-PT3H',
