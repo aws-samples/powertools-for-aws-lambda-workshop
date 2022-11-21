@@ -8,7 +8,7 @@ import {
   Button,
 } from "@aws-amplify/ui-react";
 
-import cache from "../../helpers/Cache";
+import cache from "../../helpers/cache";
 
 type SettingsProps = {
   children?: React.ReactNode;
