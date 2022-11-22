@@ -37,7 +37,7 @@ export class FunctionsConstruct extends Construct {
     this.resizeImageFn = new NodejsFunction(this, 'process-image', {
       ...commonFunctionSettings,
       entry: '../functions/process-image.ts',
-      functionName: `process-image-name-${environment}`,
+      functionName: `process-image-${environment}`,
       environment: {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
