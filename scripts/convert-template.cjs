@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
+/* eslint-disable */
 
 const { writeFile, readFile, mkdir } = require("node:fs/promises");
 const { existsSync } = require("node:fs");
@@ -11,6 +12,7 @@ const getJSONFile = async (path) => {
     const templateContent = await readFile(path, {
       encoding: "utf-8",
     });
+
     return JSON.parse(templateContent);
   } catch (err) {
     console.error(err);
@@ -30,8 +32,9 @@ const writeJSONFile = async (content, path) => {
 const main = async () => {
   const currentDir = process.cwd();
   const basePath = "../infra/cdk.out";
-  const stackName = "InfraStack-prod";
+  const stackName = "InfraStack";
   const cfnTemplateFileName = `${stackName}.template.json`;
+  const cfnTemplateFileNameOut = `${stackName}.out.template.json`;
   const assetsFileName = `${stackName}.assets.json`;
   // Get original Cfn template
   const template = await getJSONFile(join(basePath, cfnTemplateFileName));
@@ -116,7 +119,7 @@ const main = async () => {
   });
 
   // Save modified Cfn template in the out dir
-  await writeJSONFile(template, join(outDir, `${cfnTemplateFileName}`));
+  await writeJSONFile(template, join(outDir, `${cfnTemplateFileNameOut}`));
 };
 
 main();

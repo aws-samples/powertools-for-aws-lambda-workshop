@@ -21,6 +21,7 @@
     "infra:destroy": "npm run cdk:destroy -w infra",
     "infra:deploy": "npm run cdk:deploy -w infra",
     "infra:deployHot": "npm run cdk:deploy:hotswap -w infra",
+    "infra:synth": "npm run cdk:synth-dev -w infra",
     "utils:createConfig": "npm run createConfig -w scripts",
     "utils:resizeC9EBS": "sh scripts/resize.sh",
     "utils:downloadFfmpegToLayer": "sh scripts/download-ffmpeg-to-layer.sh",
@@ -40,7 +41,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.43.0",
     "@typescript-eslint/parser": "^5.43.0",
-    "eslint": "^8.27.0",
+    "eslint": "^8.28.0",
     "ts-node": "^10.9.1"
   }
 }
