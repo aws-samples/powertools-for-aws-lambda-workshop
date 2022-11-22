@@ -1,6 +1,7 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
   commonBundlingSettings,
@@ -8,12 +9,10 @@ import {
   environment,
 } from '../constants';
 
-type FunctionsConstructProps = StackProps;
-
 export class FunctionsConstruct extends Construct {
   public readonly preSignUpCognitoTriggerFn: NodejsFunction;
 
-  constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
+  public constructor(scope: Construct, id: string, _props: StackProps) {
     super(scope, id);
 
     const localEnvVars = {
@@ -36,5 +35,23 @@ export class FunctionsConstruct extends Construct {
         },
       }
     );
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    NagSuppressions.addResourceSuppressions(this.preSignUpCognitoTriggerFn.role!, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using an AWS managed policy for AWS Lambda - AWSLambdaBasicExecutionRole"',
+      },
+    ]);
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    NagSuppressions.addResourceSuppressions(this.preSignUpCognitoTriggerFn.role!, [
+      {
+        id: 'AwsSolutions-IAM5',
+        reason:
+          'Active tracing requires a wildcard permission in order to send trace data in X-Ray',
+      },
+    ], true);
   }
 }

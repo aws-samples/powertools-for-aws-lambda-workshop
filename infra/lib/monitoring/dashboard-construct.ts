@@ -5,7 +5,7 @@ import { dashboardContent } from './dashboard-content';
 export class DashboardConstruct extends Construct {
   public readonly dashboard: CfnDashboard;
 
-  constructor(scope: Construct, id: string) {
+  public constructor(scope: Construct, id: string) {
     super(scope, id);
 
     this.dashboard = new CfnDashboard(this, id, {

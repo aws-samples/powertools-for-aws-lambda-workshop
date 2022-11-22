@@ -1,26 +1,26 @@
 import { Construct } from 'constructs';
-import { IUserPool, IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { AuthConstruct } from '../frontend/auth-construct';
 import { ApiConstruct } from './api-construct';
 import { FunctionsConstruct } from './functions-construct';
 import { StorageConstruct } from './storage-construct';
-import { SSMParameterStoreConstruct } from '../shared/ssm/ssm-parameter-store-construct';
+import { ParametersConstruct } from './parameters-construct';
 
-class ContentHubRepoProps {
-  userPool: IUserPool;
-  landingZoneBucketName: string;
+interface ContentHubRepoProps {
+  userPool: IUserPool
+  landingZoneBucketName: string
 }
 
 export class ContentHubRepo extends Construct {
-  public readonly storage: StorageConstruct;
-  public readonly auth: AuthConstruct;
   public readonly api: ApiConstruct;
+  public readonly auth: AuthConstruct;
   public readonly functions: FunctionsConstruct;
-  public readonly ssmParameterStore: SSMParameterStoreConstruct;
+  public readonly parameters: ParametersConstruct;
+  public readonly storage: StorageConstruct;
 
-  constructor(scope: Construct, id: string, props: ContentHubRepoProps) {
+  public constructor(scope: Construct, id: string, props: ContentHubRepoProps) {
     super(scope, id);
 
     const { landingZoneBucketName, userPool } = props;
@@ -72,16 +72,22 @@ export class ContentHubRepo extends Construct {
       new LambdaFunction(this.functions.markCompleteUploadFn)
     );
 
-    this.ssmParameterStore = new SSMParameterStoreConstruct(this, 'content-hub-repository-parameter', {
-      failureMode: 'denylist',
-      nodeJSLambdaFunction: this.functions.getPresignedUploadUrlFn
-    });
+    this.parameters = new ParametersConstruct(this, 'parameters-construct', {});
 
-    this.functions.getPresignedUploadUrlFn.addEnvironment(
+    this.parameters.getDownloadUrlFailuresString.grantRead(
+      this.functions.getPresignedDownloadUrlFn
+    );
+    this.functions.getPresignedDownloadUrlFn.addEnvironment(
       'FAILURE_INJECTION_PARAM',
-      this.ssmParameterStore.ssmParameterStore.parameterName
+      this.parameters.getDownloadUrlFailuresString.stringParameter.parameterName
     );
 
-    this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.getPresignedUploadUrlFn);
+    this.parameters.getUploadUrlFailuresString.grantRead(
+      this.functions.getPresignedUploadUrlFn
+    );
+    this.functions.getPresignedUploadUrlFn.addEnvironment(
+      'FAILURE_INJECTION_PARAM',
+      this.parameters.getUploadUrlFailuresString.stringParameter.parameterName
+    );
   }
 }

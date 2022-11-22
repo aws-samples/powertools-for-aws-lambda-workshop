@@ -1,21 +1,22 @@
 import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CfnGroup } from 'aws-cdk-lib/aws-resourcegroups';
+import { NagSuppressions } from 'cdk-nag';
 import { Frontend } from './frontend';
 import { ContentHubRepo } from './content-hub-repository';
 import { ImageProcessing } from './image-processing';
 import { VideoProcessing } from './video-processing';
 import { TrafficGenerator } from './traffic-generator';
 import { Experiments } from './chaos-experiments';
+import { MonitoringConstruct } from './monitoring';
 import {
   landingZoneBucketNamePrefix,
   powertoolsServiceName,
   environment,
 } from './constants';
-import { MonitoringConstruct } from './monitoring';
 
 export class InfraStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  public constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     new CfnGroup(this, 'resource-group', {
@@ -34,9 +35,7 @@ export class InfraStack extends Stack {
       },
     });
 
-    const landingZoneBucketName = `${landingZoneBucketNamePrefix}-${
-      Stack.of(this).account
-    }-${environment}`;
+    const landingZoneBucketName = `${landingZoneBucketNamePrefix}-${Stack.of(this).account}-${environment}`;
 
     const frontend = new Frontend(this, 'frontend', {});
 
@@ -114,21 +113,74 @@ export class InfraStack extends Stack {
     );
 
     // Experiments component
-    const experiments = new Experiments(
+    new Experiments(
       this,
       'chaos-experiments',
       {
-        'process-image': imageProcessing.ssmParameterStore.ssmParameterStore.parameterName,
-        'process-video': videoProcessing.ssmParameterStore.ssmParameterStore.parameterName,
-        'content-hub-repository': contentHubRepo.ssmParameterStore.ssmParameterStore.parameterName
+        'process-image': imageProcessing.parameters.processImageFailuresString.stringParameter.parameterName,
+        'process-video': videoProcessing.parameters.processVideoFailuresString.stringParameter.parameterName,
+        'get-upload-url': contentHubRepo.parameters.getUploadUrlFailuresString.stringParameter.parameterName // TODO: rename this to get-upload-url
       }
     );
 
     // Monitoring
-    const monitoring = new MonitoringConstruct(this, 'image-processing-dashboard');
+    new MonitoringConstruct(this, 'image-processing-dashboard');
 
     new CfnOutput(this, 'AWSRegion', {
       value: Stack.of(this).region,
+    });
+
+    [
+      'InfraStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
+      'InfraStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
+      'InfraStack/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/Resource',
+      'InfraStack/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+      'InfraStack/traffic-generator/DummyUsersProvider/framework-onEvent/Resource',
+    ].forEach((resourcePath: string) => {
+      let id = 'AwsSolutions-L1';
+      let reason = 'Resource created and managed by CDK.';
+      if (resourcePath.endsWith('ServiceRole/Resource')) {
+        id = 'AwsSolutions-IAM4';
+      } else if (resourcePath.endsWith('DefaultPolicy/Resource')) {
+        id = 'AwsSolutions-IAM5';
+        reason +=
+          ' This type of resource is a singleton fn that interacts with many resources so IAM policies are lax by design to allow this use case.';
+      }
+      NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
+        {
+          id,
+          reason,
+        },
+      ]);
+    });
+
+    [
+      'InfraStack/content-hub-repo/api-construct/graphql-api/lambda-get-presigned-download-url/ServiceRole/DefaultPolicy/Resource',
+      'InfraStack/content-hub-repo/api-construct/graphql-api/files-table/ServiceRole/DefaultPolicy/Resource',
+      'InfraStack/content-hub-repo/api-construct/graphql-api/lambda-get-presigned-upload-url/ServiceRole/DefaultPolicy/Resource'
+    ].forEach((resourcePath: string) => {
+      NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason: 'Wildcard needed to allow generic AppSync resolvers.',
+        }
+      ]);
+    });
+
+    [
+      'InfraStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
+      'InfraStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource'
+    ].forEach((resourcePath: string) => {
+      NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason: 'Resource created and managed by CDK.'
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason: 'Wildcard needed to allow generic AppSync resolvers.',
+        }
+      ]);
     });
   }
 }

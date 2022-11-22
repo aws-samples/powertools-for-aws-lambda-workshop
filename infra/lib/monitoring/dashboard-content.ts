@@ -1,5 +1,3 @@
-import { Stack } from "aws-cdk-lib"; 
-
 const dashboardContent = {
   widgets: [
     {
@@ -14,7 +12,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'ConcurrentExecutions',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Maximum',
               id: 'm0'
@@ -45,7 +43,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'Duration',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Average',
               id: 'm0',
@@ -77,7 +75,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'Errors',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Sum',
               id: 'm0'
@@ -108,7 +106,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'Invocations',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Sum',
               id: 'm0'
@@ -139,7 +137,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'Throttles',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Sum',
               id: 'm0',
@@ -171,7 +169,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'IteratorAge',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Average',
               id: 'm0',
@@ -203,7 +201,7 @@ const dashboardContent = {
             'AWS/Lambda',
             'DeadLetterErrors',
             'FunctionName',
-            'process-image-name-dev',
+            'process-image-dev',
             {
               stat: 'Sum',
               id: 'm0',
@@ -688,7 +686,7 @@ const dashboardContent = {
             'AWS/SQS',
             'NumberOfMessagesReceived',
             'QueueName',
-            'ImageProcessing-Queue-358160174743-dev',
+            'ImageProcessing-Queue-dev',
             {
               stat: 'Sum'
             }
@@ -715,7 +713,7 @@ const dashboardContent = {
             'AWS/SQS',
             'NumberOfMessagesDeleted',
             'QueueName',
-            'ImageProcessing-Queue-358160174743-dev',
+            'ImageProcessing-Queue-dev',
             {
               stat: 'Sum'
             }
@@ -742,7 +740,7 @@ const dashboardContent = {
             'AWS/SQS',
             'ApproximateNumberOfMessagesNotVisible',
             'QueueName',
-            'ImageProcessing-Queue-358160174743-dev',
+            'ImageProcessing-Queue-dev',
             {
               stat: 'Average'
             }
@@ -769,7 +767,7 @@ const dashboardContent = {
             'AWS/SQS',
             'ApproximateAgeOfOldestMessage',
             'QueueName',
-            'ImageProcessing-Queue-358160174743-dev',
+            'ImageProcessing-Queue-dev',
             {
               stat: 'Maximum'
             }

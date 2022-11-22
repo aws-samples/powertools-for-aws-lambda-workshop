@@ -1,4 +1,4 @@
-import { Stack, RemovalPolicy } from 'aws-cdk-lib';
+import { RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   Table,
@@ -14,16 +14,17 @@ import {
 } from 'aws-cdk-lib/aws-s3';
 import { dynamoFilesTableName, dynamoFilesByUserGsiName } from '../constants';
 import { IGrantable } from 'aws-cdk-lib/aws-iam';
+import { NagSuppressions } from 'cdk-nag';
 
-class StorageConstructProps {
-  landingZoneBucketName: string;
+interface StorageConstructProps {
+  landingZoneBucketName: string
 }
 
 export class StorageConstruct extends Construct {
   public readonly filesTable: Table;
   public readonly landingZoneBucket: Bucket;
 
-  constructor(scope: Construct, id: string, props: StorageConstructProps) {
+  public constructor(scope: Construct, id: string, props: StorageConstructProps) {
     super(scope, id);
 
     const { landingZoneBucketName } = props;
@@ -46,6 +47,13 @@ export class StorageConstruct extends Construct {
       projectionType: ProjectionType.ALL,
     });
 
+    NagSuppressions.addResourceSuppressions(this.filesTable, [
+      {
+        id: 'AwsSolutions-DDB3',
+        reason: 'No point-in-time recovery needed for this table, it\'s for a short-lived workshop.',
+      }
+    ]);
+
     this.landingZoneBucket = new Bucket(this, 'landing-zone', {
       bucketName: landingZoneBucketName,
       transferAcceleration: true,
@@ -62,29 +70,49 @@ export class StorageConstruct extends Construct {
       ],
       eventBridgeEnabled: true,
     });
+
+    NagSuppressions.addResourceSuppressions(this.landingZoneBucket, [
+      {
+        id: 'AwsSolutions-S1',
+        reason:
+          'This bucket is deployed as part of an AWS workshop and as such it\'s short-lived.',
+      },
+      {
+        id: 'AwsSolutions-S2',
+        reason:
+          'This bucket uses CDK default settings which block public access and allows for overriding, in this case from CloudFormation distribution.',
+      },
+    ]);
+
+    NagSuppressions.addResourceSuppressions(this.landingZoneBucket, [
+      {
+        id: 'AwsSolutions-S10',
+        reason: 'This bucket is deployed as part of an AWS workshop. It already uses CloudFront with redirect to HTTPS.',
+      }
+    ], true);
   }
 
-  public grantReadDataOnTable(grantee: IGrantable) {
-    this.filesTable.grantReadData(grantee);
+  public grantGetOnBucket(grantee: IGrantable): void {
+    this.landingZoneBucket.grantRead(grantee);
   }
 
-  public grantReadWriteDataOnTable(grantee: IGrantable) {
-    this.filesTable.grantReadWriteData(grantee);
-  }
-
-  public grantWriteDataOnTable(grantee: IGrantable) {
-    this.filesTable.grantWriteData(grantee);
-  }
-
-  public grantReadWrite(grantee: IGrantable) {
-    this.landingZoneBucket.grantReadWrite(grantee);
-  }
-
-  public grantPutOnBucket(grantee: IGrantable) {
+  public grantPutOnBucket(grantee: IGrantable): void {
     this.landingZoneBucket.grantPut(grantee);
   }
 
-  public grantGetOnBucket(grantee: IGrantable) {
-    this.landingZoneBucket.grantRead(grantee);
+  public grantReadDataOnTable(grantee: IGrantable): void {
+    this.filesTable.grantReadData(grantee);
+  }
+
+  public grantReadWrite(grantee: IGrantable): void {
+    this.landingZoneBucket.grantReadWrite(grantee);
+  }
+
+  public grantReadWriteDataOnTable(grantee: IGrantable): void {
+    this.filesTable.grantReadWriteData(grantee);
+  }
+
+  public grantWriteDataOnTable(grantee: IGrantable): void {
+    this.filesTable.grantWriteData(grantee);
   }
 }

@@ -1,21 +1,19 @@
 import { StackProps, Duration, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
   commonBundlingSettings,
   commonEnvVars,
   environment,
-  trafficGeneratorIntervalInMinutes,
 } from '../constants';
 
-type FunctionsConstructProps = StackProps;
-
 export class FunctionsConstruct extends Construct {
-  public readonly usersGeneratorFn: NodejsFunction;
   public readonly trafficGeneratorFn: NodejsFunction;
+  public readonly usersGeneratorFn: NodejsFunction;
 
-  constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
+  public constructor(scope: Construct, id: string, _props: StackProps) {
     super(scope, id);
 
     const localEnvVars = {
@@ -36,6 +34,22 @@ export class FunctionsConstruct extends Construct {
       bundling: { ...commonBundlingSettings },
     });
 
+    NagSuppressions.addResourceSuppressions(this.usersGeneratorFn, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+      },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
+      }
+    ], true);
+
     this.trafficGeneratorFn = new NodejsFunction(this, 'traffic-generator', {
       ...commonFunctionSettings,
       entry: '../functions/traffic-generator.ts',
@@ -49,5 +63,21 @@ export class FunctionsConstruct extends Construct {
       timeout: Duration.seconds(900),
       bundling: { ...commonBundlingSettings },
     });
+
+    NagSuppressions.addResourceSuppressions(this.trafficGeneratorFn, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+      },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
+      }
+    ], true);
   }
 }

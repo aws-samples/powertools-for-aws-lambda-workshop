@@ -16,15 +16,16 @@ import {
   OriginRequestQueryStringBehavior,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { NagSuppressions } from 'cdk-nag';
 
-class DistributionConstructProps {
-  websiteBucket: Bucket;
+interface DistributionConstructProps {
+  websiteBucket: Bucket
 }
 
 export class DistributionConstruct extends Construct {
-  distribution: Distribution;
+  public readonly distribution: Distribution;
 
-  constructor(scope: Construct, id: string, props: DistributionConstructProps) {
+  public constructor(scope: Construct, id: string, props: DistributionConstructProps) {
     super(scope, id);
 
     this.distribution = new Distribution(this, 'distribution', {
@@ -65,9 +66,27 @@ export class DistributionConstruct extends Construct {
     new CfnOutput(this, 'DistributionId', {
       value: this.distribution.distributionId,
     });
+
+    NagSuppressions.addResourceSuppressions(this.distribution, [
+      {
+        id: 'AwsSolutions-CFR1',
+        reason: 'No geo restrictions are needed for this distribution, it\'s for a short-lived workshop.',
+      }, {
+        id: 'AwsSolutions-CFR2',
+        reason: 'No WAF needed for this distribution, it\'s for a short-lived workshop.',
+      },
+      {
+        id: 'AwsSolutions-CFR3',
+        reason: 'No logging needed for this distribution, it\'s for a short-lived workshop.',
+      },
+      {
+        id: 'AwsSolutions-CFR4',
+        reason: 'Using default SSL settings for this distribution, it\'s for a short-lived workshop.',
+      }
+    ]);
   }
 
-  public addApiBehavior(apiDomain: string) {
+  public addApiBehavior(apiDomain: string): void {
     this.distribution.addBehavior('/graphql', new HttpOrigin(apiDomain), {
       viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,

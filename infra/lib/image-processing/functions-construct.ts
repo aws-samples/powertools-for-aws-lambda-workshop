@@ -2,7 +2,7 @@ import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-
+import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
   commonBundlingSettings,
@@ -19,7 +19,7 @@ export class FunctionsConstruct extends Construct {
 
   public readonly resizeImageFn: NodejsFunction;
 
-  constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
+  public constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
     super(scope, id);
 
     const localEnvVars = {
@@ -28,6 +28,7 @@ export class FunctionsConstruct extends Construct {
     };
 
     const sharpLayer = new LayerVersion(this, 'sharp-layer', {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       compatibleRuntimes: [commonFunctionSettings.runtime!],
       code: Code.fromAsset('../layers/sharp'),
       description: 'Bundles Sharp lib for image processing',
@@ -37,7 +38,7 @@ export class FunctionsConstruct extends Construct {
     this.resizeImageFn = new NodejsFunction(this, 'process-image', {
       ...commonFunctionSettings,
       entry: '../functions/process-image.ts',
-      functionName: `process-image-name-${environment}`,
+      functionName: `process-image-${environment}`,
       environment: {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
@@ -49,6 +50,22 @@ export class FunctionsConstruct extends Construct {
         externalModules: ['sharp'],
       },
     });
+
+    NagSuppressions.addResourceSuppressions(this.resizeImageFn, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+      },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
+      }
+    ], true);
 
   }
 }

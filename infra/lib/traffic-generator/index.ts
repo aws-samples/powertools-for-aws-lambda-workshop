@@ -1,4 +1,4 @@
-import { CustomResource, Duration } from 'aws-cdk-lib';
+import { CustomResource, Duration, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Provider } from 'aws-cdk-lib/custom-resources';
@@ -8,12 +8,10 @@ import { FunctionsConstruct } from './functions-construct';
 
 import { trafficGeneratorIntervalInMinutes } from './../constants';
 
-class TrafficGeneratorProps {}
-
 export class TrafficGenerator extends Construct {
   public readonly functions: FunctionsConstruct;
 
-  constructor(scope: Construct, id: string, props: TrafficGeneratorProps) {
+  public constructor(scope: Construct, id: string, _props: StackProps) {
     super(scope, id);
 
     this.functions = new FunctionsConstruct(this, 'functions-construct', {});

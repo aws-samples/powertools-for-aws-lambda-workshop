@@ -4,18 +4,18 @@ import { SqsQueue } from 'aws-cdk-lib/aws-events-targets';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
-import { SSMParameterStoreConstruct } from '../shared/ssm/ssm-parameter-store-construct';
+import { ParametersConstruct } from './parameters-construct';
 
-class ImageProcessingProps {
-  landingZoneBucketName: string;
+interface ImageProcessingProps {
+  landingZoneBucketName: string
 }
 
 export class ImageProcessing extends Construct {
   public readonly functions: FunctionsConstruct;
+  public readonly parameters: ParametersConstruct;
   public readonly queues: QueuesConstruct;
-  public readonly ssmParameterStore: SSMParameterStoreConstruct;
 
-  constructor(scope: Construct, id: string, props: ImageProcessingProps) {
+  public constructor(scope: Construct, id: string, props: ImageProcessingProps) {
     super(scope, id);
 
     const { landingZoneBucketName } = props;
@@ -53,18 +53,15 @@ export class ImageProcessing extends Construct {
     });
     imageProcessRule.addTarget(new SqsQueue(this.queues.processingQueue));
 
-    this.ssmParameterStore = new SSMParameterStoreConstruct(this, 'process-image-parameter', {
-      failureMode: 'denylist',
-      nodeJSLambdaFunction: this.functions.resizeImageFn
-    });
+    this.parameters = new ParametersConstruct(this, 'parameters-construct', {});
+
+    this.parameters.processImageFailuresString.grantRead(
+      this.functions.resizeImageFn
+    );
 
     this.functions.resizeImageFn.addEnvironment(
       'FAILURE_INJECTION_PARAM',
-      this.ssmParameterStore.ssmParameterStore.parameterName
+      this.parameters.processImageFailuresString.stringParameter.parameterName
     );
-
-    this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.resizeImageFn);
-
   }
-
 }

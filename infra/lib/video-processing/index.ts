@@ -1,22 +1,22 @@
 import { Construct } from 'constructs';
+import { Duration } from 'aws-cdk-lib';
 import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { SqsQueue } from 'aws-cdk-lib/aws-events-targets';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
-import { Duration } from 'aws-cdk-lib';
-import { SSMParameterStoreConstruct } from '../shared/ssm/ssm-parameter-store-construct';
+import { ParametersConstruct } from './parameters-construct';
 
-class VideoProcessingProps {
-  landingZoneBucketName: string;
+interface VideoProcessingProps {
+  landingZoneBucketName: string
 }
 
 export class VideoProcessing extends Construct {
   public readonly functions: FunctionsConstruct;
+  public readonly parameters: ParametersConstruct;
   public readonly queues: QueuesConstruct;
-  public readonly ssmParameterStore: SSMParameterStoreConstruct;
 
-  constructor(scope: Construct, id: string, props: VideoProcessingProps) {
+  public constructor(scope: Construct, id: string, props: VideoProcessingProps) {
     super(scope, id);
 
     const { landingZoneBucketName } = props;
@@ -59,16 +59,15 @@ export class VideoProcessing extends Construct {
     });
     videoProcessRule.addTarget(new SqsQueue(this.queues.processingQueue));
 
-    this.ssmParameterStore = new SSMParameterStoreConstruct(this, 'process-video-parameter', {
-      failureMode: 'denylist',
-      nodeJSLambdaFunction: this.functions.resizeVideoFn
-    });
+    this.parameters = new ParametersConstruct(this, 'parameters-construct', {});
+
+    this.parameters.processVideoFailuresString.grantRead(
+      this.functions.resizeVideoFn
+    );
 
     this.functions.resizeVideoFn.addEnvironment(
       'FAILURE_INJECTION_PARAM',
-      this.ssmParameterStore.ssmParameterStore.parameterName
+      this.parameters.processVideoFailuresString.stringParameter.parameterName
     );
-
-    this.ssmParameterStore.ssmParameterStore.grantRead(this.functions.resizeVideoFn);
   }
 }

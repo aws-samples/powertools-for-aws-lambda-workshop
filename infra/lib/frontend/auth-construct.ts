@@ -13,20 +13,21 @@ import {
   IdentityPool,
   UserPoolAuthenticationProvider,
 } from '@aws-cdk/aws-cognito-identitypool-alpha';
-import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Function as FunctionType } from 'aws-cdk-lib/aws-lambda';
+import { NagSuppressions } from 'cdk-nag';
 import { environment } from '../constants';
 
 interface AuthConstructProps extends StackProps {
-  preSignUpCognitoTriggerFn: Function
+  preSignUpCognitoTriggerFn: FunctionType
 }
 
 export class AuthConstruct extends Construct {
-  authRole: IRole;
-  unauthRole: IRole;
-  userPool: IUserPool;
-  userPoolClient: IUserPoolClient;
+  public readonly authRole: IRole;
+  public readonly unauthRole: IRole;
+  public readonly userPool: IUserPool;
+  public readonly userPoolClient: IUserPoolClient;
 
-  constructor(scope: Construct, id: string, props: AuthConstructProps) {
+  public constructor(scope: Construct, id: string, props: AuthConstructProps) {
     super(scope, id);
 
     const { preSignUpCognitoTriggerFn } = props;
@@ -57,6 +58,21 @@ export class AuthConstruct extends Construct {
       },
     });
 
+    NagSuppressions.addResourceSuppressions(this.userPool, [
+      {
+        id: 'AwsSolutions-COG1',
+        reason: 'The default for this construct already sets a strict password policy',
+      },
+      {
+        id: 'AwsSolutions-COG2',
+        reason: 'This is a demo app, so we want to allow users to sign up easily (no MFA)',
+      },
+      {
+        id: 'AwsSolutions-COG3',
+        reason: 'This is a demo app, so we won\'t enable AdvancedSecurityMode',
+      }
+    ]);
+
     this.userPoolClient = new UserPoolClient(this, 'user-pool-client', {
       userPool: this.userPool,
       authFlows: {
@@ -67,7 +83,7 @@ export class AuthConstruct extends Construct {
 
     const { authenticatedRole, unauthenticatedRole, identityPoolId } =
       new IdentityPool(this, 'myIdentityPool', {
-        allowUnauthenticatedIdentities: true,
+        allowUnauthenticatedIdentities: false,
         authenticationProviders: {
           userPools: [
             new UserPoolAuthenticationProvider({ userPool: this.userPool }),

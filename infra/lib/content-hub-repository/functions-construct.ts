@@ -1,6 +1,7 @@
-import { StackProps, Stack, aws_ssm as ssm } from 'aws-cdk-lib';
+import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NagSuppressions } from 'cdk-nag';
 import {
   dynamoFilesTableName,
   dynamoFilesByUserGsiName,
@@ -15,11 +16,11 @@ interface FunctionsConstructProps extends StackProps {
 }
 
 export class FunctionsConstruct extends Construct {
-  public readonly getPresignedUploadUrlFn: NodejsFunction;
   public readonly getPresignedDownloadUrlFn: NodejsFunction;
+  public readonly getPresignedUploadUrlFn: NodejsFunction;
   public readonly markCompleteUploadFn: NodejsFunction;
 
-  constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
+  public constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
     super(scope, id);
 
     const localEnvVars = {
@@ -43,6 +44,22 @@ export class FunctionsConstruct extends Construct {
       }
     );
 
+    NagSuppressions.addResourceSuppressions(this.getPresignedUploadUrlFn, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+      },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
+      }
+    ], true);
+
     this.getPresignedDownloadUrlFn = new NodejsFunction(
       this,
       'get-presigned-download-url',
@@ -60,6 +77,22 @@ export class FunctionsConstruct extends Construct {
       }
     );
 
+    NagSuppressions.addResourceSuppressions(this.getPresignedDownloadUrlFn, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+      },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
+      }
+    ], true);
+
     this.markCompleteUploadFn = new NodejsFunction(this, 'mark-file-queued', {
       ...commonFunctionSettings,
       entry: '../functions/mark-file-queued.ts',
@@ -70,5 +103,21 @@ export class FunctionsConstruct extends Construct {
       },
       bundling: { ...commonBundlingSettings },
     });
+
+    NagSuppressions.addResourceSuppressions(this.markCompleteUploadFn, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+      },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
+      }
+    ], true);
   }
 }

@@ -1,5 +1,5 @@
 import { Construct } from 'constructs';
-import { Function } from 'aws-cdk-lib/aws-lambda';
+import { Function as FunctionType } from 'aws-cdk-lib/aws-lambda';
 import {
   GraphqlApi,
   Schema,
@@ -11,19 +11,20 @@ import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { environment } from '../constants';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { NagSuppressions } from 'cdk-nag';
 
-class ApiConstructProps {
-  getPresignedUploadUrlFn: Function;
-  getPresignedDownloadUrlFn: Function;
-  userPool: IUserPool;
-  table: Table;
+interface ApiConstructProps {
+  getPresignedUploadUrlFn: FunctionType
+  getPresignedDownloadUrlFn: FunctionType
+  userPool: IUserPool
+  table: Table
 }
 
 export class ApiConstruct extends Construct {
   public readonly api: GraphqlApi;
   public readonly domain: string;
 
-  constructor(scope: Construct, id: string, props: ApiConstructProps) {
+  public constructor(scope: Construct, id: string, props: ApiConstructProps) {
     super(scope, id);
 
     const {
@@ -53,6 +54,15 @@ export class ApiConstruct extends Construct {
         retention: RetentionDays.FIVE_DAYS,
       },
     });
+
+    NagSuppressions.addResourceSuppressions(this.api, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason:
+          'Intentionally using managed policy for logging.',
+      },
+    ], true);
+
     this.domain = Fn.select(2, Fn.split('/', this.api.graphqlUrl as string));
     const filesTableDS = this.api.addDynamoDbDataSource('files-table', table);
     const lambdaPresignedUploadDS = this.api.addLambdaDataSource(

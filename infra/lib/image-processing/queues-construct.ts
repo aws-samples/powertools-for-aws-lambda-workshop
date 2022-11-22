@@ -1,37 +1,52 @@
-import { StackProps, Stack, aws_cloudwatch as cloudwatch } from 'aws-cdk-lib';
+import { StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { Alarm } from 'aws-cdk-lib/aws-cloudwatch';
+import { NagSuppressions } from 'cdk-nag';
 import { environment } from '../constants';
 
-type QueuesConstructProps = StackProps;
-
 export class QueuesConstruct extends Construct {
-  public readonly processingQueue: Queue;
   public readonly deadLetterQueue: Queue;
+  public readonly processingQueue: Queue;
 
-  constructor(scope: Construct, id: string, props: QueuesConstructProps) {
+  public constructor(scope: Construct, id: string, _props: StackProps) {
     super(scope, id);
 
     this.deadLetterQueue = new Queue(this, 'dead-letter-queue', {
-      queueName: `ImageProcessing-DeadLetterQueue-${
-        Stack.of(this).account
-      }-${environment}`,
+      queueName: `ImageProcessing-DeadLetterQueue-${environment}`,
     });
 
+    NagSuppressions.addResourceSuppressions(this.deadLetterQueue, [
+      {
+        id: 'AwsSolutions-SQS3',
+        reason:
+          'This is already a DLQ, an additional DLQ is redundant.',
+      },
+      {
+        id: 'AwsSolutions-SQS4',
+        reason: 'Not using SSL intentionally, queue is not public.',
+      },
+    ]);
+
     this.processingQueue = new Queue(this, 'processing-queue', {
-      queueName: `ImageProcessing-Queue-${
-        Stack.of(this).account
-      }-${environment}`,
+      queueName: `ImageProcessing-Queue-${environment}`,
       deadLetterQueue: {
         maxReceiveCount: 1,
         queue: this.deadLetterQueue,
       },
     });
 
+    NagSuppressions.addResourceSuppressions(this.processingQueue, [
+      {
+        id: 'AwsSolutions-SQS4',
+        reason: 'Not using SSL intentionally, queue is not public.',
+      },
+    ]);
+
     // TODO: change this
     const metric = this.processingQueue.metric('ApproximateNumberOfMessagesVisible');
 
-    const alarm = new cloudwatch.Alarm(this, 'Alarm', {
+    new Alarm(this, 'Alarm', {
       metric: metric,
       threshold: 20000,
       evaluationPeriods: 3,

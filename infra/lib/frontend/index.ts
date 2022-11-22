@@ -4,15 +4,15 @@ import { FunctionsConstruct } from './functions-construct';
 import { DistributionConstruct } from './distribution-construct';
 import { StorageConstruct } from './storage-construct';
 
-class FrontendProps {}
+class FrontendProps { }
 
 export class Frontend extends Construct {
-  public readonly storage: StorageConstruct;
   public readonly auth: AuthConstruct;
   public readonly cdn: DistributionConstruct;
+  public readonly storage: StorageConstruct;
   private readonly functions: FunctionsConstruct;
 
-  constructor(scope: Construct, id: string, _props: FrontendProps) {
+  public constructor(scope: Construct, id: string, _props: FrontendProps) {
     super(scope, id);
 
     this.storage = new StorageConstruct(this, 'storage-construct', {});
@@ -28,7 +28,7 @@ export class Frontend extends Construct {
     });
   }
 
-  public addApiBehavior(apiDomain: string) {
+  public addApiBehavior(apiDomain: string): void {
     this.cdn.addApiBehavior(apiDomain);
   }
 }

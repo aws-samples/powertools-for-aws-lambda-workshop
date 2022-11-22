@@ -1,103 +1,161 @@
-import { aws_fis as fis, aws_iam as iam, aws_logs as logs, Stack, StackProps } from 'aws-cdk-lib';
+import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Effect } from 'aws-cdk-lib/aws-iam';
+import { CfnExperimentTemplate } from 'aws-cdk-lib/aws-fis';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Role, ServicePrincipal, PolicyStatement, CompositePrincipal, Effect, PolicyDocument } from 'aws-cdk-lib/aws-iam';
+import { NagSuppressions } from 'cdk-nag';
+import { environment } from '../constants';
 
 interface ExperimentsConstructProps extends StackProps {
   parameterStoreName: string
   ssmAutomationDocumentName: string
+  experimentName: string
 }
 
 export class ExperimentsConstruct extends Construct {
 
-  constructor(scope: Construct, id: string, props: ExperimentsConstructProps) {
+  public constructor(scope: Construct, id: string, props: ExperimentsConstructProps) {
     super(scope, id);
 
-    const fisRole = new iam.Role(this, 'chaos-experiments-fis-iam-role', {
-      assumedBy: new iam.ServicePrincipal('fis.amazonaws.com', {
+    const { parameterStoreName, ssmAutomationDocumentName, experimentName } = props;
+
+    const regionAccountFragment = `${Stack.of(this).region}:${Stack.of(this).account}`;
+    const ssmRegionalAccountPrefix = `arn:aws:ssm:${regionAccountFragment}`;
+    const ssmDocumentArn = `${ssmRegionalAccountPrefix}:document/${ssmAutomationDocumentName}`;
+
+    const logGroup = new LogGroup(this, `chaos-experiment-logs-${id}`, {
+      logGroupName: `/workshop/chaos-experiments/${experimentName}-${environment}`,
+      retention: RetentionDays.FIVE_DAYS,
+    });
+
+    const fisRole = new Role(this, 'chaos-experiments-fis-iam-role', {
+      roleName: `fis-role-${experimentName}-${environment}`,
+      assumedBy: new ServicePrincipal('fis.amazonaws.com', {
         conditions: {
           StringEquals: {
             'aws:SourceAccount': Stack.of(this).account,
           },
           ArnLike: {
-            'aws:SourceArn': `arn:aws:fis:${process.env.AWS_REGION}:${Stack.of(this).account}:experiment/*`,
+            'aws:SourceArn': `arn:aws:fis:${regionAccountFragment}:experiment/*`,
           },
         },
       }),
+      inlinePolicies: {
+        'ssm-automation': new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: [
+                'ssm:StopAutomationExecution',
+                'ssm:GetAutomationExecution',
+                'ssm:StartAutomationExecution'
+              ],
+              resources: [
+                ssmDocumentArn,
+                `${ssmRegionalAccountPrefix}:automation-definition/*:*`,
+                `${ssmRegionalAccountPrefix}:automation-execution/*`
+              ]
+            }),
+          ]
+        }),
+        'cloudwatch-logs': new PolicyDocument({
+          statements: [
+            /*
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: [
+                "logs:CreateLogStream"
+              ],
+              resources: [
+                `arn:aws:logs:*:${Stack.of(this).account}:log-group:*`
+              ]
+            }),
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: [
+                "logs:PutLogEvents"
+              ],
+              resources: [
+                `arn:aws:logs:*:${Stack.of(this).account}:log-group:*:log-stream:*`
+              ],
+            }),
+            */
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              actions: [
+                'logs:CreateLogDelivery',
+                'logs:PutResourcePolicy',
+                'logs:DescribeResourcePolicies',
+                'logs:DescribeLogGroups'
+              ],
+              resources: ['*']
+            })
+          ]
+        }),
+        'pass-iam-role': new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: [`arn:aws:iam::*:role/*`],
+              actions: ['iam:PassRole'],
+            })
+          ]
+        })
+      }
     });
 
-    // TODO: remove *
-    fisRole.addToPolicy(
-      new iam.PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: [`*`],
-        actions: [
-          'ssm:StopAutomationExecution',
-          'ssm:GetAutomationExecution',
-          'ssm:StartAutomationExecution'
-        ],
-      })
-    );
+    NagSuppressions.addResourceSuppressions(fisRole, [
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard needed to allow access to CloudWatch.',
+      },
+    ], true);
 
-    fisRole.addToPolicy(
-      new iam.PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: [`arn:aws:iam::*:role/*`],
-        actions: ['iam:PassRole'],
-      })
-    );
-
-    fisRole.addToPolicy(
-      new iam.PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: [`*`],
-        actions: [
-          'logs:CreateLogDelivery',
-          'logs:PutResourcePolicy',
-          'logs:DescribeResourcePolicies',
-          'logs:DescribeLogGroups'
-        ],
-      })
-    );
-
-    const ssmaPutParameterStoreRole = new iam.Role(
+    const ssmaPutParameterStoreRole = new Role(
       this,
       'ssma-put-parameterstore-role',
       {
-        assumedBy: new iam.CompositePrincipal(
-          new iam.ServicePrincipal('iam.amazonaws.com'),
-          new iam.ServicePrincipal('ssm.amazonaws.com')
+        roleName: `automation-role-experiment-${experimentName}-${environment}`,
+        assumedBy: new CompositePrincipal(
+          new ServicePrincipal('iam.amazonaws.com'),
+          new ServicePrincipal('ssm.amazonaws.com')
         ),
+        inlinePolicies: {
+          'ssm-automation': new PolicyDocument({
+            statements: [
+              new PolicyStatement({
+                effect: Effect.ALLOW,
+                actions: [
+                  'ssm:PutParameter',
+                ],
+                resources: [
+                  `arn:aws:ssm:${regionAccountFragment}:parameter/${parameterStoreName}`,
+                ],
+              }),
+            ],
+          }),
+        }
       }
-    );
-
-    ssmaPutParameterStoreRole.addToPolicy(
-      new iam.PolicyStatement({
-        effect: Effect.ALLOW,
-        resources: [`*`],
-        actions: ['ssm:PutParameter'],
-      })
     );
 
     const startAutomation = {
       actionId: 'aws:ssm:start-automation-execution',
       description: 'Change values of a Parameter Store to enable the fault injection in a Lambda function.',
       parameters: {
-        documentArn: `arn:aws:ssm:${process.env.AWS_REGION}:${Stack.of(this).account}:document/${props.ssmAutomationDocumentName}`,
+        documentArn: ssmDocumentArn,
         documentParameters: JSON.stringify({
           DurationMinutes: 'PT12M',
           AutomationAssumeRole: ssmaPutParameterStoreRole.roleArn,
-          ParameterName: props.parameterStoreName,
-          ParameterValue: '{"isEnabled": true, "failureMode": "denylist", "rate": 1, "denylist": ["dynamodb.*.amazonaws.com"]}',
-          RollbackValue: '{"isEnabled": false, "failureMode": "denylist", "rate": 1, "denylist": ["dynamodb.*.amazonaws.com"]}'
+          ParameterName: parameterStoreName,
+          ParameterValue: JSON.stringify({ 'isEnabled': true, 'failureMode': 'denylist', 'rate': 1, 'denylist': ['dynamodb.*.amazonaws.com'] }),
+          RollbackValue: JSON.stringify({ 'isEnabled': false, 'failureMode': 'denylist', 'rate': 1, 'denylist': ['dynamodb.*.amazonaws.com'] })
         }),
         maxDuration: 'PT15M',
       },
     };
 
     // Experiment
-    const logGroup = new logs.LogGroup(this, `/chaos-experiment/${id}`);
-
-    const templateEnableLambdaFault = new fis.CfnExperimentTemplate(
+    new CfnExperimentTemplate(
       this,
       id,
       {
