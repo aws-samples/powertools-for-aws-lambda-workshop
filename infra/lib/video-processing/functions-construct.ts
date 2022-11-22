@@ -39,7 +39,7 @@ export class FunctionsConstruct extends Construct {
     this.resizeVideoFn = new NodejsFunction(this, 'process-video', {
       ...commonFunctionSettings,
       entry: '../functions/process-video.ts',
-      functionName: `process-video-name-${environment}`,
+      functionName: `process-video-${environment}`,
       memorySize: 4096,
       timeout: videoProcessingTimeout,
       environment: {
