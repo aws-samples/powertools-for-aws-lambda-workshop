@@ -24,7 +24,7 @@ export class ExperimentsConstruct extends Construct {
     const ssmDocumentArn = `${ssmRegionalAccountPrefix}:document/${ssmAutomationDocumentName}`;
 
     const logGroup = new LogGroup(this, `chaos-experiment-logs-${id}`, {
-      logGroupName: `/workshop/chaos-experiments/${experimentName}-${environment}`,
+      logGroupName: `/workshop/chaos-experiments/${experimentName}-${Stack.of(this).account}-${Stack.of(this).region}-${environment}`,
       retention: RetentionDays.FIVE_DAYS,
     });
 
