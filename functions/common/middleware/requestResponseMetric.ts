@@ -1,4 +1,5 @@
 import type middy from '@middy/core';
+
 import type { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricUnits } from '@aws-lambda-powertools/metrics';
 
@@ -25,8 +26,10 @@ const requestResponseMetric = (
     metrics.addDimension('graphqlOperation', options.graphqlOperation);
   };
 
-  const responseHandler = (): void => {
+  const responseHandler = (request: middy.Request): void => {
     metrics.addDimension('httpResponseCode', '200');
+    const { event } = request;
+    metrics.addDimension('consumerCountryCode', event.request.headers["cloudfront-viewer-country"].toString() || 'N/A');
     addTimeElapsedMetric();
     addOperation();
     metrics.publishStoredMetrics();
