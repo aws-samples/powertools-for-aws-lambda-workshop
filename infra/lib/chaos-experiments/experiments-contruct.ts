@@ -1,4 +1,4 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CfnExperimentTemplate } from 'aws-cdk-lib/aws-fis';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -26,6 +26,7 @@ export class ExperimentsConstruct extends Construct {
     const logGroup = new LogGroup(this, `chaos-experiment-logs-${id}`, {
       logGroupName: `/workshop/chaos-experiments/${experimentName}-${environment}`,
       retention: RetentionDays.FIVE_DAYS,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     const fisRole = new Role(this, 'chaos-experiments-fis-iam-role', {
@@ -165,7 +166,7 @@ export class ExperimentsConstruct extends Construct {
           { source: 'none' }
         ],
         tags: {
-          Name: `Chaos Experiment - ${id}`,
+          Name: `Chaos Experiment - ${id} - ${environment.toUpperCase()}`,
           Stackname: Stack.of(this).stackName,
         },
         actions: {

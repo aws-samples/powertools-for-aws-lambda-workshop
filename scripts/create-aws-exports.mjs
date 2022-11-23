@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import { writeFile, readFile } from "node:fs/promises";
+import { writeFile, readFile } from 'node:fs/promises';
 import {
   CloudFormationClient,
   ListStacksCommand,
   DescribeStacksCommand,
-} from "@aws-sdk/client-cloudformation";
+} from '@aws-sdk/client-cloudformation';
 
 const cfnClient = new CloudFormationClient({});
 
@@ -20,22 +20,25 @@ const getStackName = async (name) => {
     const res = await cfnClient.send(
       new ListStacksCommand({
         StackStatusFilter: [
-          "CREATE_COMPLETE",
-          "UPDATE_COMPLETE",
-          "ROLLBACK_COMPLETE",
+          'CREATE_COMPLETE',
+          'UPDATE_COMPLETE',
+          'ROLLBACK_COMPLETE',
         ],
       })
     );
-    const stack = res.StackSummaries.find((stack) =>
-      stack.StackName.toUpperCase().includes(name.toUpperCase())
+    const stack = res.StackSummaries.find(
+      (stack) =>
+        stack.StackName.toUpperCase().includes(name.toUpperCase()) &&
+        stack.StackName.toUpperCase().includes('PROD')
     );
     if (!stack) {
-      throw new Error("Unable to find stack among loaded ones");
+      throw new Error('Unable to find stack among loaded ones');
     }
+
     return stack;
   } catch (err) {
     console.error(err);
-    console.error("Unable to load CloudFormation stacks.");
+    console.error('Unable to load CloudFormation stacks.');
     throw err;
   }
 };
@@ -52,7 +55,7 @@ const getStackOutputs = async (stackName) => {
       })
     );
     if (res.Stacks.length === 0) {
-      throw new Error("Stack not found");
+      throw new Error('Stack not found');
     }
     const keys = [];
     const outputs = {};
@@ -60,13 +63,14 @@ const getStackOutputs = async (stackName) => {
       outputs[OutputKey] = OutputValue;
       keys.push(OutputKey);
     });
+
     return {
       keys,
       vals: outputs,
     };
   } catch (err) {
     console.error(err);
-    console.error("Unable to load CloudFormation Stack outputs.");
+    console.error('Unable to load CloudFormation Stack outputs.');
     throw err;
   }
 };
@@ -81,6 +85,7 @@ const getParams = async (path) => {
     const paramsObject = JSON.parse(fileContent);
     const paramsKeys = Object.keys(paramsObject.InfraStack);
     const paramsValues = paramsObject.InfraStack;
+
     return { keys: paramsKeys, vals: paramsValues };
   } catch (err) {
     throw err;
@@ -97,7 +102,7 @@ export default awsmobile;
     );
   } catch (err) {
     console.error(err);
-    console.error("Unable to write file");
+    console.error('Unable to write file');
     throw err;
   }
 };
@@ -113,23 +118,23 @@ const main = async () => {
   let keys;
   let vals;
   try {
-    console.info("Trying to find output file locally.");
-    const params = await getParams("../infra/cdk.out/params.json");
+    console.info('Trying to find output file locally.');
+    const params = await getParams('../infra/cdk.out/params.json');
     keys = params.keys;
     vals = params.vals;
   } catch (err) {
-    console.info("Unable to find output file locally, trying remotely.");
+    console.info('Unable to find output file locally, trying remotely.');
     try {
-      const stackName = "InfraStack";
+      const stackName = 'InfraStack';
       console.info(`Trying to find stack with ${stackName}`);
       const stack = await getStackName(stackName);
       const params = await getStackOutputs(stack.StackName);
       keys = params.keys;
       vals = params.vals;
-      console.info("Stack found remotely, getting parameters there.");
+      console.info(`Stack '${stack.StackName}' found remotely, using outputs from there.`);
     } catch (err) {
-      console.error("Did you run `npm run infra:deploy` in the project root?");
-      throw new Error("Unable to find parameters locally or remotely.");
+      console.error('Did you run `npm run infra:deploy` in the project root?');
+      throw new Error('Unable to find parameters locally or remotely.');
     }
   }
   const template = {
@@ -144,12 +149,12 @@ const main = async () => {
   template.Auth.userPoolWebClientId =
     vals[getValueFromNamePart(`UserPoolClientId`, keys)];
   const apiEndpointDomain = vals[getValueFromNamePart(`ApiEndpoint`, keys)];
-  template.aws_appsync_authenticationType = "AMAZON_COGNITO_USER_POOLS";
+  template.aws_appsync_authenticationType = 'AMAZON_COGNITO_USER_POOLS';
   template.aws_appsync_graphqlEndpoint = `https://${apiEndpointDomain}/graphql`;
 
-  console.info("Creating config file at frontend/src/aws-exports.cjs");
+  console.info('Creating config file at frontend/src/aws-exports.cjs');
 
-  saveTemplate(template, "../frontend/src/aws-exports.cjs");
+  saveTemplate(template, '../frontend/src/aws-exports.cjs');
 };
 
 main();

@@ -119,12 +119,12 @@ export class InfraStack extends Stack {
       {
         'process-image': imageProcessing.parameters.processImageFailuresString.stringParameter.parameterName,
         'process-video': videoProcessing.parameters.processVideoFailuresString.stringParameter.parameterName,
-        'get-upload-url': contentHubRepo.parameters.getUploadUrlFailuresString.stringParameter.parameterName // TODO: rename this to get-upload-url
+        'get-upload-url': contentHubRepo.parameters.getUploadUrlFailuresString.stringParameter.parameterName
       }
     );
 
     // Monitoring
-    new MonitoringConstruct(this, 'image-processing-dashboard');
+    new MonitoringConstruct(this, `image-processing-dashboard-${environment}`);
 
     new CfnOutput(this, 'AWSRegion', {
       value: Stack.of(this).region,

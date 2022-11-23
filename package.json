@@ -22,6 +22,7 @@
     "infra:deploy": "npm run cdk:deploy -w infra",
     "infra:deployHot": "npm run cdk:deploy:hotswap -w infra",
     "infra:synth": "npm run cdk:synth-dev -w infra",
+    "infra:synth-prod": "npm run cdk:synth-prod -w infra",
     "utils:createConfig": "npm run createConfig -w scripts",
     "utils:resizeC9EBS": "sh scripts/resize.sh",
     "utils:downloadFfmpegToLayer": "sh scripts/download-ffmpeg-to-layer.sh",

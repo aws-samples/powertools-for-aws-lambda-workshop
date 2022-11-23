@@ -69,25 +69,46 @@ const main = async () => {
     template.Conditions.hasOwnProperty("CDKMetadataAvailable")
   )
     delete template.Conditions.CDKMetadataAvailable;
-  // Remove main
-  // Replace S3Bucket key in resources with Type===AWS::Lambda::Function && Code.S3Bucket
+
+  // Replace S3Bucket key in resources with (Type===AWS::Lambda::Function || AWS::Lambda::LayerVersion) && Code.S3Bucket
   Object.keys(template.Resources).forEach((resourceKey) => {
-    if (template.Resources[resourceKey].Type !== "AWS::Lambda::Function")
+    if (
+      !["AWS::Lambda::Function", "AWS::Lambda::LayerVersion"].includes(
+        template.Resources[resourceKey].Type
+      )
+    )
       return;
-    if (template.Resources[resourceKey].Properties.Code.ZipFile) return;
-    template.Resources[resourceKey].Properties.Code.S3Bucket = {
-      Ref: "AssetBucket",
-    };
-    template.Resources[resourceKey].Properties.Code.S3Key = {
-      "Fn::Sub": [
-        "${Prefix}" + template.Resources[resourceKey].Properties.Code.S3Key,
-        {
-          Prefix: {
-            Ref: "AssetPrefix",
+    if (template.Resources[resourceKey].Type === "AWS::Lambda::LayerVersion") {
+      template.Resources[resourceKey].Properties.Content.S3Bucket = {
+        Ref: "AssetBucket",
+      };
+      template.Resources[resourceKey].Properties.Content.S3Key = {
+        "Fn::Sub": [
+          "${Prefix}" +
+            template.Resources[resourceKey].Properties.Content.S3Key,
+          {
+            Prefix: {
+              Ref: "AssetPrefix",
+            },
           },
-        },
-      ],
-    };
+        ],
+      };
+    } else {
+      if (template.Resources[resourceKey].Properties.Code.ZipFile) return;
+      template.Resources[resourceKey].Properties.Code.S3Bucket = {
+        Ref: "AssetBucket",
+      };
+      template.Resources[resourceKey].Properties.Code.S3Key = {
+        "Fn::Sub": [
+          "${Prefix}" + template.Resources[resourceKey].Properties.Code.S3Key,
+          {
+            Prefix: {
+              Ref: "AssetPrefix",
+            },
+          },
+        ],
+      };
+    }
   });
 
   // Empty or create the custom out directory

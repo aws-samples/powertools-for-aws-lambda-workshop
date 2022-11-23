@@ -2,6 +2,7 @@ import { StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { IGrantable } from 'aws-cdk-lib/aws-iam';
+import { environment } from '../constants';
 
 interface FailureParameterConstructProps extends StackProps {
   failureMode: string
@@ -27,7 +28,7 @@ export class FailureParameterConstruct extends Construct {
       this,
       `chaor-string-parameter-${id}`,
       {
-        parameterName: `chaos-${id}`,
+        parameterName: `chaos-${id}-${environment}`,
         stringValue: JSON.stringify({
           isEnabled: false,
           failureMode,

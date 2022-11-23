@@ -17,6 +17,7 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import { S3Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { NagSuppressions } from 'cdk-nag';
+import { environment } from '../constants';
 
 interface DistributionConstructProps {
   websiteBucket: Bucket
@@ -35,6 +36,7 @@ export class DistributionConstruct extends Construct {
         cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         cachePolicy: new CachePolicy(this, 's3-cache', {
+          cachePolicyName: `s3-cache-${environment}`,
           minTtl: Duration.seconds(0),
           maxTtl: Duration.seconds(86400),
           defaultTtl: Duration.seconds(86400),
@@ -61,6 +63,7 @@ export class DistributionConstruct extends Construct {
 
     new CfnOutput(this, 'DistributionDomainName', {
       value: this.distribution.distributionDomainName,
+      description: 'The domain name where the website is hosted',
     });
 
     new CfnOutput(this, 'DistributionId', {
@@ -92,6 +95,7 @@ export class DistributionConstruct extends Construct {
       cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
       allowedMethods: AllowedMethods.ALLOW_ALL,
       cachePolicy: new CachePolicy(this, 'api-cache', {
+        cachePolicyName: `api-cache-${environment}`,
         minTtl: Duration.seconds(0),
         maxTtl: Duration.seconds(1),
         defaultTtl: Duration.seconds(0),
@@ -105,6 +109,7 @@ export class DistributionConstruct extends Construct {
         ),
       }),
       originRequestPolicy: new OriginRequestPolicy(this, 'api-origin-policy', {
+        originRequestPolicyName: `api-origin-policy-${environment}`,
         headerBehavior: OriginRequestHeaderBehavior.none(),
         cookieBehavior: OriginRequestCookieBehavior.none(),
         queryStringBehavior: OriginRequestQueryStringBehavior.none(),
