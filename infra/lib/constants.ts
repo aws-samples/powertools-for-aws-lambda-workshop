@@ -9,7 +9,7 @@ export const dynamoFilesTableName = `media-processing-app-files-${environment}`;
 export const dynamoFilesByUserGsiName = 'filesByUserIndex';
 
 export const websiteBucketNamePrefix = 'website';
-export const landingZoneBucketNamePrefix = 'landing-zone';
+export const landingZoneBucketNamePrefix = 'media-files';
 
 export const powertoolsServiceName = 'media-processing-app';
 export const powertoolsLoggerLogLevel = process.env.NODE_ENV === 'production' ? 'WARN' : 'DEBUG';
