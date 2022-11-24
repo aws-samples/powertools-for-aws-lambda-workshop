@@ -124,7 +124,11 @@ export class InfraStack extends Stack {
     );
 
     // Monitoring
-    new MonitoringConstruct(this, `image-processing-dashboard-${environment}`);
+    new MonitoringConstruct(this, `monitoring-construct`, {
+      tableName: contentHubRepo.storage.filesTable.tableName,
+      functionName: imageProcessing.functions.resizeImageFn.functionName,
+      queueName: imageProcessing.queues.processingQueue.queueName,
+    });
 
     new CfnOutput(this, 'AWSRegion', {
       value: Stack.of(this).region,
