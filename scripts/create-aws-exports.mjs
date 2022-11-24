@@ -155,9 +155,6 @@ const main = async () => {
   console.info('Creating config file at frontend/src/aws-exports.cjs');
 
   saveTemplate(template, '../frontend/src/aws-exports.cjs');
-
-  const deployBucket = vals[getValueFromNamePart(`WebsiteBucketName`, keys)];
-  await writeFile('../frontend/build/bucket', deployBucket);
 };
 
 main();
