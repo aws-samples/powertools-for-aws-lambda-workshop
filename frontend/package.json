@@ -10,6 +10,7 @@
     "deploy:clean": "aws s3 rm s3://$(cat ../infra/cdk.out/params.json | jq -r '.InfraStack | with_entries(select(.key|match(\".*WebsiteBucketName[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]') --recursive",
     "deploy:sync": "aws s3 sync build/ s3://$(cat ../infra/cdk.out/params.json | jq -r '.InfraStack | with_entries(select(.key|match(\".*WebsiteBucketName[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]') --exclude uploads",
     "deploy": "npm run deploy:clean && npm run deploy:sync",
+    "deploy:headless": "aws s3 rm s3://$(cat build/bucket) --recursive && aws s3 sync build/ s3://$(cat build/bucket) --exclude uploads",
     "deploy:invalidateCache": "aws cloudfront create-invalidation --paths \"/index.html\" --distribution-id $(cat ../infra/cdk.out/params.json | jq -r '.InfraStack | with_entries(select(.key|match(\".*DistributionId[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]')"
   },
   "dependencies": {

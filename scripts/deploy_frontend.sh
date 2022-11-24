@@ -7,4 +7,4 @@ set -e
 
 npm run utils:createConfig
 npm run frontend:build
-npm run frontend:deploy
+npm run deploy:headless -w frontend
