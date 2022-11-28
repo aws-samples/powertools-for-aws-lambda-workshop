@@ -148,8 +148,32 @@ export class ExperimentsConstruct extends Construct {
           DurationMinutes: 'PT12M',
           AutomationAssumeRole: ssmaPutParameterStoreRole.roleArn,
           ParameterName: parameterStoreName,
-          ParameterValue: JSON.stringify({ 'isEnabled': true, 'failureMode': 'denylist', 'rate': 1, 'denylist': ['dynamodb.*.amazonaws.com'] }),
-          RollbackValue: JSON.stringify({ 'isEnabled': false, 'failureMode': 'denylist', 'rate': 1, 'denylist': ['dynamodb.*.amazonaws.com'] })
+          ParameterValue: JSON.stringify({
+            "isEnabled": true,
+            "failureMode": "exception",
+            "rate": "1",
+            "minLatency": "100",
+            "maxLatency": "1000",
+            "exceptionMsg": "Unexpected error occurred while trying to connect to DynamoDB",
+            "statusCode": 404,
+            "diskSpace": 100,
+            "denylist": [
+              "dynamodb.*.amazonaws.com"
+            ]
+          }),
+          RollbackValue: JSON.stringify({
+            "isEnabled": false,
+            "failureMode": "exception",
+            "rate": "1",
+            "minLatency": "100",
+            "maxLatency": "1000",
+            "exceptionMsg": "Unexpected error occurred while trying to connect to DynamoDB",
+            "statusCode": 404,
+            "diskSpace": 100,
+            "denylist": [
+              "dynamodb.*.amazonaws.com"
+            ]
+          })
         }),
         maxDuration: 'PT15M',
       },

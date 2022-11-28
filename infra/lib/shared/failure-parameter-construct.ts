@@ -22,7 +22,7 @@ export class FailureParameterConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { failureMode, rate, minLatency, maxLatency } = props;
+    const { failureMode, rate, minLatency, maxLatency, isEnabled } = props;
 
     this.stringParameter = new StringParameter(
       this,
@@ -30,15 +30,17 @@ export class FailureParameterConstruct extends Construct {
       {
         parameterName: `chaos-${id}-${environment}`,
         stringValue: JSON.stringify({
-          isEnabled: false,
-          failureMode,
-          rate: rate || '1',
-          minLatency: minLatency || '100',
-          maxLatency: maxLatency || '1000',
-          exceptionMsg: 'Exception message!',
-          statusCode: 404,
-          diskSpace: 100,
-          denylist: ['dynamodb.*.amazonaws.com'],
+          "isEnabled": isEnabled || false,
+          "failureMode": failureMode || "exception",
+          "rate": rate || "1",
+          "minLatency": minLatency || "100",
+          "maxLatency": maxLatency || "1000",
+          "exceptionMsg": "Unexpected error occurred while trying to connect to DynamoDB",
+          "statusCode": 404,
+          "diskSpace": 100,
+          "denylist": [
+            "dynamodb.*.amazonaws.com"
+          ]
         }),
       }
     );
