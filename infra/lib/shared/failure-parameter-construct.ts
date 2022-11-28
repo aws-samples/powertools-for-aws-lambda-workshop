@@ -32,9 +32,9 @@ export class FailureParameterConstruct extends Construct {
         stringValue: JSON.stringify({
           "isEnabled": isEnabled || false,
           "failureMode": failureMode || "exception",
-          "rate": rate || "1",
-          "minLatency": minLatency || "100",
-          "maxLatency": maxLatency || "1000",
+          "rate": rate || 1,
+          "minLatency": minLatency || 100,
+          "maxLatency": maxLatency || 1000,
           "exceptionMsg": "Unexpected error occurred while trying to connect to DynamoDB",
           "statusCode": 404,
           "diskSpace": 100,
