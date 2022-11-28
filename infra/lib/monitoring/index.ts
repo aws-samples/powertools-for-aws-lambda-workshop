@@ -6,6 +6,7 @@ interface MonitoringConstructProps extends StackProps {
   tableName: string
   functionName: string
   queueName: string
+  deadLetterQueueName: string
 }
 
 export class MonitoringConstruct extends Construct {

@@ -128,6 +128,7 @@ export class InfraStack extends Stack {
       tableName: contentHubRepo.storage.filesTable.tableName,
       functionName: imageProcessing.functions.resizeImageFn.functionName,
       queueName: imageProcessing.queues.processingQueue.queueName,
+      deadLetterQueueName: imageProcessing.queues.deadLetterQueue.queueName,
     });
 
     new CfnOutput(this, 'AWSRegion', {

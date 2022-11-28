@@ -7,6 +7,7 @@ interface DashboardConstructProps extends StackProps {
   tableName: string
   functionName: string
   queueName: string
+  deadLetterQueueName: string
 }
 
 export class DashboardConstruct extends Construct {
@@ -15,7 +16,7 @@ export class DashboardConstruct extends Construct {
   public constructor(scope: Construct, id: string, props: DashboardConstructProps) {
     super(scope, id);
 
-    const { functionName, tableName, queueName } = props;
+    const { functionName, tableName, queueName, deadLetterQueueName } = props;
 
     const lambdaMetricsHeader = [new TextWidget({
       markdown: '## AWS Lambda Metrics',
@@ -710,9 +711,107 @@ export class DashboardConstruct extends Construct {
       )
     ];
 
+    const dqlMetricsHeader = [new TextWidget({
+      markdown: '## Amazon SQS Metrics - Dead Letter Queue',
+      width: 24,
+      height: 1,
+    })];
+    const dqlMetrics = [
+      new Row(
+          new GraphWidget({
+            width: 6,
+            height: 6,
+            legendPosition: LegendPosition.BOTTOM,
+            period: Duration.minutes(1),
+            view: GraphWidgetView.TIME_SERIES,
+            stacked: false,
+            left: [
+              new Metric({
+                namespace: 'AWS/SQS',
+                metricName: `NumberOfMessagesReceived`,
+                dimensionsMap: {
+                  QueueName: deadLetterQueueName,
+                },
+                statistic: Statistic.SUM,
+                period: Duration.minutes(1),
+                region: Stack.of(this).region,
+              }),
+            ],
+            title: 'DLQ - Number Of Messages Received',
+            region: Stack.of(this).region
+          }),
+          new GraphWidget({
+            width: 6,
+            height: 6,
+            legendPosition: LegendPosition.BOTTOM,
+            period: Duration.minutes(1),
+            view: GraphWidgetView.TIME_SERIES,
+            stacked: false,
+            left: [
+              new Metric({
+                namespace: 'AWS/SQS',
+                metricName: `NumberOfMessagesDeleted`,
+                dimensionsMap: {
+                  QueueName: deadLetterQueueName,
+                },
+                statistic: Statistic.SUM,
+                period: Duration.minutes(1),
+                region: Stack.of(this).region,
+              }),
+            ],
+            title: 'DLQ - Number Of Messages Deleted',
+            region: Stack.of(this).region
+          }),
+          new GraphWidget({
+            width: 6,
+            height: 6,
+            legendPosition: LegendPosition.BOTTOM,
+            period: Duration.minutes(1),
+            view: GraphWidgetView.TIME_SERIES,
+            stacked: false,
+            left: [
+              new Metric({
+                namespace: 'AWS/SQS',
+                metricName: `ApproximateNumberOfMessagesNotVisible`,
+                dimensionsMap: {
+                  QueueName: deadLetterQueueName,
+                },
+                statistic: Statistic.AVERAGE,
+                period: Duration.minutes(1),
+                region: Stack.of(this).region,
+              }),
+            ],
+            title: 'DLQ - Approximate Number Of Messages Not Visible',
+            region: Stack.of(this).region
+          }),
+          new GraphWidget({
+            width: 6,
+            height: 6,
+            legendPosition: LegendPosition.BOTTOM,
+            period: Duration.minutes(1),
+            view: GraphWidgetView.TIME_SERIES,
+            stacked: false,
+            left: [
+              new Metric({
+                namespace: 'AWS/SQS',
+                metricName: `ApproximateAgeOfOldestMessage`,
+                dimensionsMap: {
+                  QueueName: deadLetterQueueName,
+                },
+                statistic: Statistic.MAXIMUM,
+                period: Duration.minutes(1),
+                region: Stack.of(this).region,
+              }),
+            ],
+            title: 'DLQ - Approximate Age Of Oldest Message',
+            region: Stack.of(this).region
+          })
+      )
+    ];
+
     this.dashboard = new Dashboard(this, id, {
       dashboardName: `image-processing-dashboard-${environment}`,
-      widgets: [ lambdaMetricsHeader, lambdaMetrics, dynamoDBMetricsHeader, dynamoDBMetrics, sqsMetricsHeader, sqsMetrics ],
+      widgets: [ lambdaMetricsHeader, lambdaMetrics, dynamoDBMetricsHeader, dynamoDBMetrics, sqsMetricsHeader, sqsMetrics, dqlMetricsHeader, dqlMetrics ],
     });
 
   }
