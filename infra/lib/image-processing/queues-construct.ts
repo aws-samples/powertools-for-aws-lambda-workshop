@@ -31,7 +31,7 @@ export class QueuesConstruct extends Construct {
     this.processingQueue = new Queue(this, 'processing-queue', {
       queueName: `ImageProcessing-Queue-${environment}`,
       deadLetterQueue: {
-        maxReceiveCount: 1,
+        maxReceiveCount: 3,
         queue: this.deadLetterQueue,
       },
     });
