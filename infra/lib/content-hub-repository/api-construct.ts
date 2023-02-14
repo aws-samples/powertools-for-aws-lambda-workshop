@@ -2,10 +2,10 @@ import { Construct } from 'constructs';
 import { Function as FunctionType } from 'aws-cdk-lib/aws-lambda';
 import {
   GraphqlApi,
-  Schema,
+  SchemaFile,
   AuthorizationType,
   MappingTemplate,
-} from '@aws-cdk/aws-appsync-alpha';
+} from 'aws-cdk-lib/aws-appsync';
 import { CfnOutput, Fn } from 'aws-cdk-lib';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { environment } from '../constants';
@@ -36,7 +36,7 @@ export class ApiConstruct extends Construct {
 
     this.api = new GraphqlApi(this, 'graphql-api', {
       name: `API-${environment}`,
-      schema: Schema.fromAsset('./lib/content-hub-repository/schema.graphql'),
+      schema: SchemaFile.fromAsset('./lib/content-hub-repository/schema.graphql'),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: AuthorizationType.USER_POOL,
@@ -75,7 +75,7 @@ export class ApiConstruct extends Construct {
     );
     const noneDS = this.api.addNoneDataSource('local-none');
 
-    filesTableDS.createResolver({
+    filesTableDS.createResolver('updateFileStatusMutation', {
       typeName: 'Mutation',
       fieldName: 'updateFileStatus',
       requestMappingTemplate: MappingTemplate.fromString(`{
@@ -97,21 +97,21 @@ export class ApiConstruct extends Construct {
       responseMappingTemplate: MappingTemplate.dynamoDbResultItem(),
     });
 
-    lambdaPresignedUploadDS.createResolver({
+    lambdaPresignedUploadDS.createResolver('generatePresignedUploadUrlMutation', {
       typeName: 'Mutation',
       fieldName: 'generatePresignedUploadUrl',
       requestMappingTemplate: MappingTemplate.lambdaRequest(),
       responseMappingTemplate: MappingTemplate.lambdaResult(),
     });
 
-    lambdaPresignedDownloadDS.createResolver({
+    lambdaPresignedDownloadDS.createResolver('generatePresignedDownloadUrlQuery', {
       typeName: 'Query',
       fieldName: 'generatePresignedDownloadUrl',
       requestMappingTemplate: MappingTemplate.lambdaRequest(),
       responseMappingTemplate: MappingTemplate.lambdaResult(),
     });
 
-    noneDS.createResolver({
+    noneDS.createResolver('onUpdateFileStatusSubscription', {
       typeName: 'Subscription',
       fieldName: 'onUpdateFileStatus',
       requestMappingTemplate:
