@@ -4,14 +4,17 @@
   "description": "",
   "type": "module",
   "keywords": [],
-  "author": "",
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com"
+  },
   "license": "MIT-0",
   "scripts": {
     "createConfig": "node create-aws-exports.mjs",
     "convertCDKtoCfn": "node convert-template.cjs"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.200.0",
+    "@aws-sdk/client-cloudformation": "^3.395.0",
     "shelljs": "^0.8.5"
   }
 }

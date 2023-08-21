@@ -19,8 +19,7 @@ export class QueuesConstruct extends Construct {
     NagSuppressions.addResourceSuppressions(this.deadLetterQueue, [
       {
         id: 'AwsSolutions-SQS3',
-        reason:
-          'This is already a DLQ, an additional DLQ is redundant.',
+        reason: 'This is already a DLQ, an additional DLQ is redundant.',
       },
       {
         id: 'AwsSolutions-SQS4',
@@ -44,7 +43,9 @@ export class QueuesConstruct extends Construct {
     ]);
 
     // TODO: change this
-    const metric = this.processingQueue.metric('ApproximateNumberOfMessagesVisible');
+    const metric = this.processingQueue.metric(
+      'ApproximateNumberOfMessagesVisible'
+    );
 
     new Alarm(this, 'Alarm', {
       metric: metric,

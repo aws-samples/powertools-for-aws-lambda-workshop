@@ -24,7 +24,8 @@ export class FunctionsConstruct extends Construct {
 
     this.usersGeneratorFn = new NodejsFunction(this, 'users-generator', {
       ...commonFunctionSettings,
-      entry: '../functions/users-generator.ts',
+      entry:
+        '../functions/typescript/workshop-services/users-generator/index.ts',
       functionName: `users-generator-${environment}`,
       timeout: Duration.seconds(60),
       environment: {
@@ -34,25 +35,27 @@ export class FunctionsConstruct extends Construct {
       bundling: { ...commonBundlingSettings },
     });
 
-    NagSuppressions.addResourceSuppressions(this.usersGeneratorFn, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-      },
-      {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-      },
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
-      }
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.usersGeneratorFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+      ],
+      true
+    );
 
     this.trafficGeneratorFn = new NodejsFunction(this, 'traffic-generator', {
       ...commonFunctionSettings,
-      entry: '../functions/traffic-generator.ts',
+      entry:
+        '../functions/typescript/workshop-services/traffic-generator/index.ts',
       functionName: `traffic-generator-${environment}`,
       environment: {
         ...localEnvVars,
@@ -64,20 +67,21 @@ export class FunctionsConstruct extends Construct {
       bundling: { ...commonBundlingSettings },
     });
 
-    NagSuppressions.addResourceSuppressions(this.trafficGeneratorFn, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-      },
-      {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-      },
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
-      }
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.trafficGeneratorFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+      ],
+      true
+    );
   }
 }

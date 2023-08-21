@@ -20,13 +20,17 @@ import { NagSuppressions } from 'cdk-nag';
 import { environment } from '../constants';
 
 interface DistributionConstructProps {
-  websiteBucket: Bucket
+  websiteBucket: Bucket;
 }
 
 export class DistributionConstruct extends Construct {
   public readonly distribution: Distribution;
 
-  public constructor(scope: Construct, id: string, props: DistributionConstructProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: DistributionConstructProps
+  ) {
     super(scope, id);
 
     this.distribution = new Distribution(this, 'distribution', {
@@ -73,19 +77,24 @@ export class DistributionConstruct extends Construct {
     NagSuppressions.addResourceSuppressions(this.distribution, [
       {
         id: 'AwsSolutions-CFR1',
-        reason: 'No geo restrictions are needed for this distribution, it\'s for a short-lived workshop.',
-      }, {
+        reason:
+          "No geo restrictions are needed for this distribution, it's for a short-lived workshop.",
+      },
+      {
         id: 'AwsSolutions-CFR2',
-        reason: 'No WAF needed for this distribution, it\'s for a short-lived workshop.',
+        reason:
+          "No WAF needed for this distribution, it's for a short-lived workshop.",
       },
       {
         id: 'AwsSolutions-CFR3',
-        reason: 'No logging needed for this distribution, it\'s for a short-lived workshop.',
+        reason:
+          "No logging needed for this distribution, it's for a short-lived workshop.",
       },
       {
         id: 'AwsSolutions-CFR4',
-        reason: 'Using default SSL settings for this distribution, it\'s for a short-lived workshop.',
-      }
+        reason:
+          "Using default SSL settings for this distribution, it's for a short-lived workshop.",
+      },
     ]);
   }
 

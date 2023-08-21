@@ -3,18 +3,26 @@ import { Construct } from 'constructs';
 import { DashboardConstruct } from './dashboard-construct';
 
 interface MonitoringConstructProps extends StackProps {
-  tableName: string
-  functionName: string
-  queueName: string
-  deadLetterQueueName: string
+  tableName: string;
+  functionName: string;
+  queueName: string;
+  deadLetterQueueName: string;
 }
 
 export class MonitoringConstruct extends Construct {
   public readonly imageProcessingDashboard: DashboardConstruct;
 
-  public constructor(scope: Construct, id: string, props: MonitoringConstructProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: MonitoringConstructProps
+  ) {
     super(scope, id);
 
-    this.imageProcessingDashboard = new DashboardConstruct(this, 'dashboard-construct', props);
+    this.imageProcessingDashboard = new DashboardConstruct(
+      this,
+      'dashboard-construct',
+      props
+    );
   }
 }

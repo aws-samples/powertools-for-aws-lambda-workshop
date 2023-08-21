@@ -1,28 +1,44 @@
 import { Duration, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Dashboard, Row, Metric, GraphWidget, GraphWidgetView, LegendPosition, TextWidget, Statistic, MathExpression } from 'aws-cdk-lib/aws-cloudwatch';
+import {
+  Dashboard,
+  Row,
+  Metric,
+  GraphWidget,
+  GraphWidgetView,
+  LegendPosition,
+  TextWidget,
+  Stats,
+  MathExpression,
+} from 'aws-cdk-lib/aws-cloudwatch';
 import { environment } from '../constants';
 
 interface DashboardConstructProps extends StackProps {
-  tableName: string
-  functionName: string
-  queueName: string
-  deadLetterQueueName: string
+  tableName: string;
+  functionName: string;
+  queueName: string;
+  deadLetterQueueName: string;
 }
 
 export class DashboardConstruct extends Construct {
   public readonly dashboard: Dashboard;
 
-  public constructor(scope: Construct, id: string, props: DashboardConstructProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: DashboardConstructProps
+  ) {
     super(scope, id);
 
     const { functionName, tableName, queueName, deadLetterQueueName } = props;
 
-    const lambdaMetricsHeader = [new TextWidget({
-      markdown: '## AWS Lambda Metrics',
-      width: 24,
-      height: 1,
-    })];
+    const lambdaMetricsHeader = [
+      new TextWidget({
+        markdown: '## AWS Lambda Metrics',
+        width: 24,
+        height: 1,
+      }),
+    ];
     const lambdaMetrics = [
       new Row(
         new GraphWidget({
@@ -39,13 +55,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 FunctionName: functionName,
               },
-              statistic: Statistic.MAXIMUM,
+              statistic: Stats.MAXIMUM,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'Lambda - ConcurrentExecutions',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -61,13 +77,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 FunctionName: functionName,
               },
-              statistic: Statistic.AVERAGE,
+              statistic: Stats.AVERAGE,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'Lambda - Duration',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 8,
@@ -83,15 +99,15 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 FunctionName: functionName,
               },
-              statistic: Statistic.SUM,
+              statistic: Stats.SUM,
               period: Duration.minutes(1),
               label: 'Duration',
               region: Stack.of(this).region,
             }),
           ],
           title: 'Lambda - Errors',
-          region: Stack.of(this).region
-        }),
+          region: Stack.of(this).region,
+        })
       ),
       new Row(
         new GraphWidget({
@@ -108,13 +124,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 FunctionName: functionName,
               },
-              statistic: Statistic.SUM,
+              statistic: Stats.SUM,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'Lambda - Invocations',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 8,
@@ -130,13 +146,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 FunctionName: functionName,
               },
-              statistic: Statistic.SUM,
+              statistic: Stats.SUM,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'Lambda - Throttles',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -152,15 +168,15 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 FunctionName: functionName,
               },
-              statistic: Statistic.AVERAGE,
+              statistic: Stats.AVERAGE,
               period: Duration.minutes(1),
               label: 'Duration',
               region: Stack.of(this).region,
             }),
           ],
           title: 'Lambda - IteratorAge',
-          region: Stack.of(this).region
-        }),
+          region: Stack.of(this).region,
+        })
       ),
       new GraphWidget({
         width: 8,
@@ -176,23 +192,24 @@ export class DashboardConstruct extends Construct {
             dimensionsMap: {
               FunctionName: functionName,
             },
-            statistic: Statistic.SUM,
+            statistic: Stats.SUM,
             period: Duration.minutes(1),
             label: 'Duration',
             region: Stack.of(this).region,
           }),
         ],
         title: 'Lambda - DeadLetterErrors',
-        region: Stack.of(this).region
+        region: Stack.of(this).region,
       }),
-
     ];
 
-    const dynamoDBMetricsHeader = [new TextWidget({
-      markdown: '## Amazon DynamoDB Metrics',
-      width: 24,
-      height: 1,
-    })];
+    const dynamoDBMetricsHeader = [
+      new TextWidget({
+        markdown: '## Amazon DynamoDB Metrics',
+        width: 24,
+        height: 1,
+      }),
+    ];
     const dynamoDBMetrics = [
       new Row(
         new GraphWidget({
@@ -205,7 +222,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.AVERAGE,
+          statistic: Stats.AVERAGE,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -226,16 +243,16 @@ export class DashboardConstruct extends Construct {
                   dimensionsMap: {
                     TableName: tableName,
                   },
-                  statistic: Statistic.SUM,
+                  statistic: Stats.SUM,
                   region: Stack.of(this).region,
                 }),
               },
               label: 'Consumed',
               color: '#0073BB',
-            })
+            }),
           ],
           title: 'DynamoDB - Read usage (average units/second)',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -247,7 +264,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.SUM,
+          statistic: Stats.SUM,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -291,7 +308,7 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - Read throttled requests (count)',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -303,7 +320,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.SUM,
+          statistic: Stats.SUM,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -347,8 +364,8 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - Write throttled requests (count)',
-          region: Stack.of(this).region
-        }),
+          region: Stack.of(this).region,
+        })
       ),
       new Row(
         new GraphWidget({
@@ -361,7 +378,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.AVERAGE,
+          statistic: Stats.AVERAGE,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -382,16 +399,16 @@ export class DashboardConstruct extends Construct {
                   dimensionsMap: {
                     TableName: tableName,
                   },
-                  statistic: Statistic.SUM,
+                  statistic: Stats.SUM,
                   region: Stack.of(this).region,
                 }),
               },
               label: 'Consumed',
               color: '#0073BB',
-            })
+            }),
           ],
           title: 'DynamoDB - Write usage (average units/second)',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -403,7 +420,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.AVERAGE,
+          statistic: Stats.AVERAGE,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -429,7 +446,7 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - Get latency (milliseconds)',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -441,7 +458,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.AVERAGE,
+          statistic: Stats.AVERAGE,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -467,8 +484,8 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - Put latency (milliseconds)',
-          region: Stack.of(this).region
-        }),
+          region: Stack.of(this).region,
+        })
       ),
       new Row(
         new GraphWidget({
@@ -481,7 +498,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.SUM,
+          statistic: Stats.SUM,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -525,7 +542,7 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - System errors read (count)',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -537,7 +554,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.SUM,
+          statistic: Stats.SUM,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -581,8 +598,8 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - System errors write (count)',
-          region: Stack.of(this).region
-        }),
+          region: Stack.of(this).region,
+        })
       ),
       new Row(
         new GraphWidget({
@@ -595,7 +612,7 @@ export class DashboardConstruct extends Construct {
           leftYAxis: {
             showUnits: false,
           },
-          statistic: Statistic.SUM,
+          statistic: Stats.SUM,
           left: [
             new Metric({
               namespace: 'AWS/DynamoDB',
@@ -608,16 +625,18 @@ export class DashboardConstruct extends Construct {
             }),
           ],
           title: 'DynamoDB - User errors (count)',
-          region: Stack.of(this).region
-        }),
-      )
+          region: Stack.of(this).region,
+        })
+      ),
     ];
 
-    const sqsMetricsHeader = [new TextWidget({
-      markdown: '## Amazon SQS Metrics',
-      width: 24,
-      height: 1,
-    })];
+    const sqsMetricsHeader = [
+      new TextWidget({
+        markdown: '## Amazon SQS Metrics',
+        width: 24,
+        height: 1,
+      }),
+    ];
     const sqsMetrics = [
       new Row(
         new GraphWidget({
@@ -634,13 +653,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 QueueName: queueName,
               },
-              statistic: Statistic.SUM,
+              statistic: Stats.SUM,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'SQS - Number Of Messages Received',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -656,13 +675,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 QueueName: queueName,
               },
-              statistic: Statistic.SUM,
+              statistic: Stats.SUM,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'SQS - Number Of Messages Deleted',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -678,13 +697,13 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 QueueName: queueName,
               },
-              statistic: Statistic.AVERAGE,
+              statistic: Stats.AVERAGE,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'SQS - Approximate Number Of Messages Not Visible',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         }),
         new GraphWidget({
           width: 6,
@@ -700,119 +719,129 @@ export class DashboardConstruct extends Construct {
               dimensionsMap: {
                 QueueName: queueName,
               },
-              statistic: Statistic.MAXIMUM,
+              statistic: Stats.MAXIMUM,
               period: Duration.minutes(1),
               region: Stack.of(this).region,
             }),
           ],
           title: 'SQS - Approximate Age Of Oldest Message',
-          region: Stack.of(this).region
+          region: Stack.of(this).region,
         })
-      )
+      ),
     ];
 
-    const dqlMetricsHeader = [new TextWidget({
-      markdown: '## Amazon SQS Metrics - Dead Letter Queue',
-      width: 24,
-      height: 1,
-    })];
+    const dqlMetricsHeader = [
+      new TextWidget({
+        markdown: '## Amazon SQS Metrics - Dead Letter Queue',
+        width: 24,
+        height: 1,
+      }),
+    ];
     const dqlMetrics = [
       new Row(
-          new GraphWidget({
-            width: 6,
-            height: 6,
-            legendPosition: LegendPosition.BOTTOM,
-            period: Duration.minutes(1),
-            view: GraphWidgetView.TIME_SERIES,
-            stacked: false,
-            left: [
-              new Metric({
-                namespace: 'AWS/SQS',
-                metricName: `NumberOfMessagesReceived`,
-                dimensionsMap: {
-                  QueueName: deadLetterQueueName,
-                },
-                statistic: Statistic.SUM,
-                period: Duration.minutes(1),
-                region: Stack.of(this).region,
-              }),
-            ],
-            title: 'DLQ - Number Of Messages Received',
-            region: Stack.of(this).region
-          }),
-          new GraphWidget({
-            width: 6,
-            height: 6,
-            legendPosition: LegendPosition.BOTTOM,
-            period: Duration.minutes(1),
-            view: GraphWidgetView.TIME_SERIES,
-            stacked: false,
-            left: [
-              new Metric({
-                namespace: 'AWS/SQS',
-                metricName: `NumberOfMessagesDeleted`,
-                dimensionsMap: {
-                  QueueName: deadLetterQueueName,
-                },
-                statistic: Statistic.SUM,
-                period: Duration.minutes(1),
-                region: Stack.of(this).region,
-              }),
-            ],
-            title: 'DLQ - Number Of Messages Deleted',
-            region: Stack.of(this).region
-          }),
-          new GraphWidget({
-            width: 6,
-            height: 6,
-            legendPosition: LegendPosition.BOTTOM,
-            period: Duration.minutes(1),
-            view: GraphWidgetView.TIME_SERIES,
-            stacked: false,
-            left: [
-              new Metric({
-                namespace: 'AWS/SQS',
-                metricName: `ApproximateNumberOfMessagesNotVisible`,
-                dimensionsMap: {
-                  QueueName: deadLetterQueueName,
-                },
-                statistic: Statistic.AVERAGE,
-                period: Duration.minutes(1),
-                region: Stack.of(this).region,
-              }),
-            ],
-            title: 'DLQ - Approximate Number Of Messages Not Visible',
-            region: Stack.of(this).region
-          }),
-          new GraphWidget({
-            width: 6,
-            height: 6,
-            legendPosition: LegendPosition.BOTTOM,
-            period: Duration.minutes(1),
-            view: GraphWidgetView.TIME_SERIES,
-            stacked: false,
-            left: [
-              new Metric({
-                namespace: 'AWS/SQS',
-                metricName: `ApproximateAgeOfOldestMessage`,
-                dimensionsMap: {
-                  QueueName: deadLetterQueueName,
-                },
-                statistic: Statistic.MAXIMUM,
-                period: Duration.minutes(1),
-                region: Stack.of(this).region,
-              }),
-            ],
-            title: 'DLQ - Approximate Age Of Oldest Message',
-            region: Stack.of(this).region
-          })
-      )
+        new GraphWidget({
+          width: 6,
+          height: 6,
+          legendPosition: LegendPosition.BOTTOM,
+          period: Duration.minutes(1),
+          view: GraphWidgetView.TIME_SERIES,
+          stacked: false,
+          left: [
+            new Metric({
+              namespace: 'AWS/SQS',
+              metricName: `NumberOfMessagesReceived`,
+              dimensionsMap: {
+                QueueName: deadLetterQueueName,
+              },
+              statistic: Stats.SUM,
+              period: Duration.minutes(1),
+              region: Stack.of(this).region,
+            }),
+          ],
+          title: 'DLQ - Number Of Messages Received',
+          region: Stack.of(this).region,
+        }),
+        new GraphWidget({
+          width: 6,
+          height: 6,
+          legendPosition: LegendPosition.BOTTOM,
+          period: Duration.minutes(1),
+          view: GraphWidgetView.TIME_SERIES,
+          stacked: false,
+          left: [
+            new Metric({
+              namespace: 'AWS/SQS',
+              metricName: `NumberOfMessagesDeleted`,
+              dimensionsMap: {
+                QueueName: deadLetterQueueName,
+              },
+              statistic: Stats.SUM,
+              period: Duration.minutes(1),
+              region: Stack.of(this).region,
+            }),
+          ],
+          title: 'DLQ - Number Of Messages Deleted',
+          region: Stack.of(this).region,
+        }),
+        new GraphWidget({
+          width: 6,
+          height: 6,
+          legendPosition: LegendPosition.BOTTOM,
+          period: Duration.minutes(1),
+          view: GraphWidgetView.TIME_SERIES,
+          stacked: false,
+          left: [
+            new Metric({
+              namespace: 'AWS/SQS',
+              metricName: `ApproximateNumberOfMessagesNotVisible`,
+              dimensionsMap: {
+                QueueName: deadLetterQueueName,
+              },
+              statistic: Stats.AVERAGE,
+              period: Duration.minutes(1),
+              region: Stack.of(this).region,
+            }),
+          ],
+          title: 'DLQ - Approximate Number Of Messages Not Visible',
+          region: Stack.of(this).region,
+        }),
+        new GraphWidget({
+          width: 6,
+          height: 6,
+          legendPosition: LegendPosition.BOTTOM,
+          period: Duration.minutes(1),
+          view: GraphWidgetView.TIME_SERIES,
+          stacked: false,
+          left: [
+            new Metric({
+              namespace: 'AWS/SQS',
+              metricName: `ApproximateAgeOfOldestMessage`,
+              dimensionsMap: {
+                QueueName: deadLetterQueueName,
+              },
+              statistic: Stats.MAXIMUM,
+              period: Duration.minutes(1),
+              region: Stack.of(this).region,
+            }),
+          ],
+          title: 'DLQ - Approximate Age Of Oldest Message',
+          region: Stack.of(this).region,
+        })
+      ),
     ];
 
     this.dashboard = new Dashboard(this, id, {
       dashboardName: `image-processing-dashboard-${environment}`,
-      widgets: [ lambdaMetricsHeader, lambdaMetrics, dynamoDBMetricsHeader, dynamoDBMetrics, sqsMetricsHeader, sqsMetrics, dqlMetricsHeader, dqlMetrics ],
+      widgets: [
+        lambdaMetricsHeader,
+        lambdaMetrics,
+        dynamoDBMetricsHeader,
+        dynamoDBMetrics,
+        sqsMetricsHeader,
+        sqsMetrics,
+        dqlMetricsHeader,
+        dqlMetrics,
+      ],
     });
-
   }
 }

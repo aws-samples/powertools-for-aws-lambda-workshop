@@ -14,10 +14,10 @@ import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { NagSuppressions } from 'cdk-nag';
 
 interface ApiConstructProps {
-  getPresignedUploadUrlFn: FunctionType
-  getPresignedDownloadUrlFn: FunctionType
-  userPool: IUserPool
-  table: Table
+  getPresignedUploadUrlFn: FunctionType;
+  getPresignedDownloadUrlFn: FunctionType;
+  userPool: IUserPool;
+  table: Table;
 }
 
 export class ApiConstruct extends Construct {
@@ -36,7 +36,9 @@ export class ApiConstruct extends Construct {
 
     this.api = new GraphqlApi(this, 'graphql-api', {
       name: `API-${environment}`,
-      schema: SchemaFile.fromAsset('./lib/content-hub-repository/schema.graphql'),
+      schema: SchemaFile.fromAsset(
+        './lib/content-hub-repository/schema.graphql'
+      ),
       authorizationConfig: {
         defaultAuthorization: {
           authorizationType: AuthorizationType.USER_POOL,
@@ -55,13 +57,16 @@ export class ApiConstruct extends Construct {
       },
     });
 
-    NagSuppressions.addResourceSuppressions(this.api, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using managed policy for logging.',
-      },
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.api,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason: 'Intentionally using managed policy for logging.',
+        },
+      ],
+      true
+    );
 
     this.domain = Fn.select(2, Fn.split('/', this.api.graphqlUrl as string));
     const filesTableDS = this.api.addDynamoDbDataSource('files-table', table);
@@ -97,19 +102,25 @@ export class ApiConstruct extends Construct {
       responseMappingTemplate: MappingTemplate.dynamoDbResultItem(),
     });
 
-    lambdaPresignedUploadDS.createResolver('generatePresignedUploadUrlMutation', {
-      typeName: 'Mutation',
-      fieldName: 'generatePresignedUploadUrl',
-      requestMappingTemplate: MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: MappingTemplate.lambdaResult(),
-    });
+    lambdaPresignedUploadDS.createResolver(
+      'generatePresignedUploadUrlMutation',
+      {
+        typeName: 'Mutation',
+        fieldName: 'generatePresignedUploadUrl',
+        requestMappingTemplate: MappingTemplate.lambdaRequest(),
+        responseMappingTemplate: MappingTemplate.lambdaResult(),
+      }
+    );
 
-    lambdaPresignedDownloadDS.createResolver('generatePresignedDownloadUrlQuery', {
-      typeName: 'Query',
-      fieldName: 'generatePresignedDownloadUrl',
-      requestMappingTemplate: MappingTemplate.lambdaRequest(),
-      responseMappingTemplate: MappingTemplate.lambdaResult(),
-    });
+    lambdaPresignedDownloadDS.createResolver(
+      'generatePresignedDownloadUrlQuery',
+      {
+        typeName: 'Query',
+        fieldName: 'generatePresignedDownloadUrl',
+        requestMappingTemplate: MappingTemplate.lambdaRequest(),
+        responseMappingTemplate: MappingTemplate.lambdaResult(),
+      }
+    );
 
     noneDS.createResolver('onUpdateFileStatusSubscription', {
       typeName: 'Subscription',

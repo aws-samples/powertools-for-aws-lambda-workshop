@@ -17,14 +17,18 @@ import { IGrantable } from 'aws-cdk-lib/aws-iam';
 import { NagSuppressions } from 'cdk-nag';
 
 interface StorageConstructProps {
-  landingZoneBucketName: string
+  landingZoneBucketName: string;
 }
 
 export class StorageConstruct extends Construct {
   public readonly filesTable: Table;
   public readonly landingZoneBucket: Bucket;
 
-  public constructor(scope: Construct, id: string, props: StorageConstructProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: StorageConstructProps
+  ) {
     super(scope, id);
 
     const { landingZoneBucketName } = props;
@@ -50,8 +54,9 @@ export class StorageConstruct extends Construct {
     NagSuppressions.addResourceSuppressions(this.filesTable, [
       {
         id: 'AwsSolutions-DDB3',
-        reason: 'No point-in-time recovery needed for this table, it\'s for a short-lived workshop.',
-      }
+        reason:
+          "No point-in-time recovery needed for this table, it's for a short-lived workshop.",
+      },
     ]);
 
     this.landingZoneBucket = new Bucket(this, 'landing-zone', {
@@ -63,7 +68,7 @@ export class StorageConstruct extends Construct {
       autoDeleteObjects: true,
       cors: [
         {
-          allowedMethods: [ HttpMethods.POST, HttpMethods.PUT ],
+          allowedMethods: [HttpMethods.POST, HttpMethods.PUT],
           allowedOrigins: ['*'],
           allowedHeaders: ['*'],
         },
@@ -75,7 +80,7 @@ export class StorageConstruct extends Construct {
       {
         id: 'AwsSolutions-S1',
         reason:
-          'This bucket is deployed as part of an AWS workshop and as such it\'s short-lived.',
+          "This bucket is deployed as part of an AWS workshop and as such it's short-lived.",
       },
       {
         id: 'AwsSolutions-S2',
@@ -84,12 +89,17 @@ export class StorageConstruct extends Construct {
       },
     ]);
 
-    NagSuppressions.addResourceSuppressions(this.landingZoneBucket, [
-      {
-        id: 'AwsSolutions-S10',
-        reason: 'This bucket is deployed as part of an AWS workshop. It already uses CloudFront with redirect to HTTPS.',
-      }
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.landingZoneBucket,
+      [
+        {
+          id: 'AwsSolutions-S10',
+          reason:
+            'This bucket is deployed as part of an AWS workshop. It already uses CloudFront with redirect to HTTPS.',
+        },
+      ],
+      true
+    );
   }
 
   public grantGetOnBucket(grantee: IGrantable): void {

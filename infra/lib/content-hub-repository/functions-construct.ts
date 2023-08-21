@@ -12,7 +12,7 @@ import {
 } from '../constants';
 
 interface FunctionsConstructProps extends StackProps {
-  landingZoneBucketName: string
+  landingZoneBucketName: string;
 }
 
 export class FunctionsConstruct extends Construct {
@@ -20,7 +20,11 @@ export class FunctionsConstruct extends Construct {
   public readonly getPresignedUploadUrlFn: NodejsFunction;
   public readonly markCompleteUploadFn: NodejsFunction;
 
-  public constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: FunctionsConstructProps
+  ) {
     super(scope, id);
 
     const localEnvVars = {
@@ -33,7 +37,7 @@ export class FunctionsConstruct extends Construct {
       'get-presigned-upload-url',
       {
         ...commonFunctionSettings,
-        entry: '../functions/get-presigned-upload-url.ts',
+        entry: '../functions/typescript/api/get-presigned-upload-url/index.ts',
         functionName: `get-presigned-upload-url-${environment}`,
         environment: {
           ...localEnvVars,
@@ -44,28 +48,35 @@ export class FunctionsConstruct extends Construct {
       }
     );
 
-    NagSuppressions.addResourceSuppressions(this.getPresignedUploadUrlFn, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-      },
-      {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-      },
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
-      }
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.getPresignedUploadUrlFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+        {
+          id: 'AwsSolutions-L1',
+          reason:
+            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
+        },
+      ],
+      true
+    );
 
     this.getPresignedDownloadUrlFn = new NodejsFunction(
       this,
       'get-presigned-download-url',
       {
         ...commonFunctionSettings,
-        entry: '../functions/get-presigned-download-url.ts',
+        entry:
+          '../functions/typescript/api/get-presigned-download-url/index.ts',
         functionName: `get-presigned-download-url-${environment}`,
         environment: {
           ...localEnvVars,
@@ -77,25 +88,31 @@ export class FunctionsConstruct extends Construct {
       }
     );
 
-    NagSuppressions.addResourceSuppressions(this.getPresignedDownloadUrlFn, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-      },
-      {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-      },
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
-      }
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.getPresignedDownloadUrlFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+        {
+          id: 'AwsSolutions-L1',
+          reason:
+            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
+        },
+      ],
+      true
+    );
 
     this.markCompleteUploadFn = new NodejsFunction(this, 'mark-file-queued', {
       ...commonFunctionSettings,
-      entry: '../functions/mark-file-queued.ts',
+      entry: '../functions/typescript/api/mark-file-queued/index.ts',
       functionName: `mark-file-queued-${environment}`,
       environment: {
         ...localEnvVars,
@@ -104,20 +121,26 @@ export class FunctionsConstruct extends Construct {
       bundling: { ...commonBundlingSettings },
     });
 
-    NagSuppressions.addResourceSuppressions(this.markCompleteUploadFn, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-      },
-      {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-      },
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
-      }
-    ], true);
+    NagSuppressions.addResourceSuppressions(
+      this.markCompleteUploadFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+        {
+          id: 'AwsSolutions-L1',
+          reason:
+            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
+        },
+      ],
+      true
+    );
   }
 }

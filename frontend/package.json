@@ -1,8 +1,12 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com"
+  },
   "scripts": {
     "start": "vite",
     "build": "tsc && vite build",
@@ -14,19 +18,19 @@
     "deploy:invalidateCache": "aws cloudfront create-invalidation --paths \"/index.html\" --distribution-id $(cat ../infra/cdk.out/params.json | jq -r '.InfraStack | with_entries(select(.key|match(\".*DistributionId[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]')"
   },
   "dependencies": {
-    "@aws-amplify/ui-react": "^3.5.0",
-    "aws-amplify": "^4.3.42",
+    "@aws-amplify/ui-react": "^5.1.1",
+    "aws-amplify": "^5.3.8",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-dropzone": "^14.2.2",
-    "react-router-dom": "^6.4.3"
+    "react-dropzone": "^14.2.3",
+    "react-router-dom": "^6.15.0"
   },
   "devDependencies": {
-    "@types/react": "^18.0.18",
-    "@types/react-dom": "^18.0.6",
-    "@vitejs/plugin-react": "^2.1.0",
-    "typescript": "^4.8.2",
-    "vite": "^3.2.7"
+    "@types/react": "^18.2.20",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.4",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.9"
   }
 }

@@ -5,21 +5,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com"
+  },
   "license": "MIT-0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop.git"
-  },
-  "bugs": {
-    "url": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop/issues"
-  },
-  "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme",
-  "description": "",
   "dependencies": {
-    "sharp": "^0.31.1"
+    "sharp": "^0.32.5"
   },
   "devDependencies": {
-    "@types/sharp": "^0.31.0"
+    "@types/sharp": "^0.31.1"
   }
 }

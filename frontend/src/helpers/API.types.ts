@@ -4,7 +4,6 @@
 
 export type PresignedUploadUrlInput = {
   type: string,
-  transformParams?: string | null,
 };
 
 export type PresignedUrl = {

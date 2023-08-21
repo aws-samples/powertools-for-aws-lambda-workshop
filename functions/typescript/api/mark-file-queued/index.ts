@@ -1,0 +1,32 @@
+import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { logMetrics, MetricUnits } from '@aws-lambda-powertools/metrics';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { FileStatus } from '@constants';
+import middy from '@middy/core';
+import { logger, metrics, tracer } from '@powertools';
+import type { EventBridgeEvent } from 'aws-lambda';
+import type { Detail, DetailType } from './types';
+import { markFileAs } from './utils';
+
+const lambdaHandler = async (
+  event: EventBridgeEvent<DetailType, Detail>
+): Promise<void> => {
+  const {
+    object: { key: objectKey },
+  } = event.detail;
+  const fileId = objectKey.split('/').at(-1)!.split('.')[0];
+
+  await markFileAs(fileId, FileStatus.QUEUED);
+
+  logger.debug('Marked File as queued', {
+    details: fileId,
+  });
+  metrics.addMetric('filesUploaded', MetricUnits.Count, 1);
+};
+
+const handler = middy(lambdaHandler)
+  .use(captureLambdaHandler(tracer))
+  .use(injectLambdaContext(logger, { logEvent: true }))
+  .use(logMetrics(metrics));
+
+export { handler };

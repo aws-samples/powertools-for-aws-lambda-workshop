@@ -6,18 +6,16 @@ import { AuthConstruct } from '../frontend/auth-construct';
 import { ApiConstruct } from './api-construct';
 import { FunctionsConstruct } from './functions-construct';
 import { StorageConstruct } from './storage-construct';
-import { ParametersConstruct } from './parameters-construct';
 
 interface ContentHubRepoProps {
-  userPool: IUserPool
-  landingZoneBucketName: string
+  userPool: IUserPool;
+  landingZoneBucketName: string;
 }
 
 export class ContentHubRepo extends Construct {
   public readonly api: ApiConstruct;
   public readonly auth: AuthConstruct;
   public readonly functions: FunctionsConstruct;
-  public readonly parameters: ParametersConstruct;
   public readonly storage: StorageConstruct;
 
   public constructor(scope: Construct, id: string, props: ContentHubRepoProps) {
@@ -70,24 +68,6 @@ export class ContentHubRepo extends Construct {
     });
     uploadedRule.addTarget(
       new LambdaFunction(this.functions.markCompleteUploadFn)
-    );
-
-    this.parameters = new ParametersConstruct(this, 'parameters-construct', {});
-
-    this.parameters.getDownloadUrlFailuresString.grantRead(
-      this.functions.getPresignedDownloadUrlFn
-    );
-    this.functions.getPresignedDownloadUrlFn.addEnvironment(
-      'FAILURE_INJECTION_PARAM',
-      this.parameters.getDownloadUrlFailuresString.stringParameter.parameterName
-    );
-
-    this.parameters.getUploadUrlFailuresString.grantRead(
-      this.functions.getPresignedUploadUrlFn
-    );
-    this.functions.getPresignedUploadUrlFn.addEnvironment(
-      'FAILURE_INJECTION_PARAM',
-      this.parameters.getUploadUrlFailuresString.stringParameter.parameterName
     );
   }
 }

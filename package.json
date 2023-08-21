@@ -1,19 +1,19 @@
 {
   "name": "aws-lambda-powertools-typescript-workshop",
-  "version": "1.0.0",
-  "description": "TBD",
+  "version": "2.0.0",
+  "description": "Powertools for AWS Lambda Workshop",
   "workspaces": [
     "scripts",
     "frontend",
     "infra",
-    "functions"
+    "functions/typescript"
   ],
   "scripts": {
     "ts-node": "ts-node",
     "lint": "eslint --ext .ts --no-error-on-unmatched-pattern infra layers functions",
     "lint-fix": "eslint --fix --ext .ts --no-error-on-unmatched-pattern infra layers functions",
     "bootstrap": "sh scripts/bootstrap_env.sh",
-    "clean": "rm -rf node_modules infra/node_modules infra/cdk.out frontend/node_modules frontend/src/aws-exports.cjs functions/node_modules layers/*/nodejs/node_modules",
+    "clean": "rm -rf node_modules infra/node_modules infra/cdk.out frontend/node_modules frontend/src/aws-exports.cjs functions/typescript/node_modules layers/*/nodejs/node_modules",
     "frontend:start": "npm start -w frontend",
     "frontend:build": "npm run build -w frontend",
     "frontend:deploy": "npm run deploy -w frontend",
@@ -28,34 +28,15 @@
     "utils:downloadFfmpegToLayer": "sh scripts/download-ffmpeg-to-layer.sh",
     "utils:convertCDKtoCfn": "npm run convertCDKtoCfn -w scripts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop.git"
-  },
   "keywords": [],
   "author": "",
   "license": "MIT-0",
-  "bugs": {
-    "url": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop/issues"
-  },
-  "homepage": "https://github.com/aws-samples/aws-lambda-powertools-typescript-workshop#readme",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.43.0",
-    "@typescript-eslint/parser": "^5.43.0",
-    "eslint": "^8.28.0",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "ts-node": "^10.9.1"
-  },
-  "overrides": {
-    "aws-amplify": {
-      "@aws-sdk/client-sts": "3.348.0",
-      "@aws-sdk/client-lex-runtime-service": "3.348.0",
-      "@aws-sdk/client-lex-runtime-v2": "3.348.0",
-      "@aws-sdk/client-location": "3.348.0",
-      "@aws-sdk/client-s3": "3.348.0"
-    },
-    "@aws-amplify/ui-react": {
-      "@aws-sdk/client-sts": "3.348.0",
-      "@aws-sdk/client-location": "3.348.0"
-    }
   }
 }

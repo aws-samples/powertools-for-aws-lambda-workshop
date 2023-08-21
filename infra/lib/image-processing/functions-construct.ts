@@ -12,14 +12,17 @@ import {
 } from '../constants';
 
 interface FunctionsConstructProps extends StackProps {
-  landingZoneBucketName: string
+  landingZoneBucketName: string;
 }
 
 export class FunctionsConstruct extends Construct {
-
   public readonly resizeImageFn: NodejsFunction;
 
-  public constructor(scope: Construct, id: string, props: FunctionsConstructProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: FunctionsConstructProps
+  ) {
     super(scope, id);
 
     const localEnvVars = {
@@ -37,7 +40,7 @@ export class FunctionsConstruct extends Construct {
 
     this.resizeImageFn = new NodejsFunction(this, 'process-image', {
       ...commonFunctionSettings,
-      entry: '../functions/process-image.ts',
+      entry: '../functions/typescript/modules/module1/index.ts',
       functionName: `process-image-${environment}`,
       environment: {
         ...localEnvVars,
@@ -51,21 +54,26 @@ export class FunctionsConstruct extends Construct {
       },
     });
 
-    NagSuppressions.addResourceSuppressions(this.resizeImageFn, [
-      {
-        id: 'AwsSolutions-IAM4',
-        reason:
-          'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-      },
-      {
-        id: 'AwsSolutions-IAM5',
-        reason: 'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-      },
-      {
-        id: 'AwsSolutions-L1',
-        reason: 'Using Nodejs16 intentionally. Latest version not yet tested with Powertools'
-      }
-    ], true);
-
+    NagSuppressions.addResourceSuppressions(
+      this.resizeImageFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+        {
+          id: 'AwsSolutions-L1',
+          reason:
+            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
+        },
+      ],
+      true
+    );
   }
 }

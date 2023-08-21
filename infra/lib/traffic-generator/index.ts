@@ -20,7 +20,7 @@ export class TrafficGenerator extends Construct {
       schedule: Schedule.rate(
         Duration.minutes(trafficGeneratorIntervalInMinutes)
       ),
-      enabled: true,
+      enabled: false,
     });
     cronRule.addTarget(new LambdaFunction(this.functions.trafficGeneratorFn));
 

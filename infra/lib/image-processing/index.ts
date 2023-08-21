@@ -4,18 +4,20 @@ import { SqsQueue } from 'aws-cdk-lib/aws-events-targets';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
-import { ParametersConstruct } from './parameters-construct';
 
 interface ImageProcessingProps {
-  landingZoneBucketName: string
+  landingZoneBucketName: string;
 }
 
 export class ImageProcessing extends Construct {
   public readonly functions: FunctionsConstruct;
-  public readonly parameters: ParametersConstruct;
   public readonly queues: QueuesConstruct;
 
-  public constructor(scope: Construct, id: string, props: ImageProcessingProps) {
+  public constructor(
+    scope: Construct,
+    id: string,
+    props: ImageProcessingProps
+  ) {
     super(scope, id);
 
     const { landingZoneBucketName } = props;
@@ -52,16 +54,5 @@ export class ImageProcessing extends Construct {
       },
     });
     imageProcessRule.addTarget(new SqsQueue(this.queues.processingQueue));
-
-    this.parameters = new ParametersConstruct(this, 'parameters-construct', {});
-
-    this.parameters.processImageFailuresString.grantRead(
-      this.functions.resizeImageFn
-    );
-
-    this.functions.resizeImageFn.addEnvironment(
-      'FAILURE_INJECTION_PARAM',
-      this.parameters.processImageFailuresString.stringParameter.parameterName
-    );
   }
 }
