@@ -33,7 +33,7 @@ export const commonFunctionSettings: Partial<FunctionProps> = {
 export const commonBundlingSettings: Partial<BundlingOptions> = {
   minify: true,
   sourceMap: true,
-  externalModules: ['aws-sdk'],
+  externalModules: ['@aws-sdk/*'],
 };
 
 export const commonEnvVars = {

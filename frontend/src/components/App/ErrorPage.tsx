@@ -1,15 +1,15 @@
-import { useRouteError } from "react-router-dom";
-import { Heading, Text } from "@aws-amplify/ui-react";
+import { useRouteError } from 'react-router-dom';
+import { Heading, Text } from '@aws-amplify/ui-react';
 
-import Body from "./Body";
-import Header from "./Header";
+import Body from './Body';
+import Header from './Header';
 
 type RouterError = {
   statusText?: string;
   message: string;
 };
 
-export default function ErrorPage() {
+export const ErrorPage: React.FC = () => {
   const error = useRouteError() as RouterError;
   console.error(error);
 
@@ -25,4 +25,4 @@ export default function ErrorPage() {
       </Body>
     </>
   );
-}
+};

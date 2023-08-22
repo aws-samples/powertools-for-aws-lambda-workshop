@@ -1,3 +1,4 @@
+import { logger as loggerMain } from './powertools';
 import { Sha256 } from '@aws-crypto/sha256-js';
 import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import { HttpRequest } from '@aws-sdk/protocol-http';
@@ -5,6 +6,7 @@ import { SignatureV4 } from '@aws-sdk/signature-v4';
 import { URL } from 'url';
 import { Headers, fetch } from 'undici';
 
+const logger = loggerMain.createChild();
 const signer = new SignatureV4({
   credentials: defaultProvider(),
   service: 'appsync',
@@ -39,7 +41,7 @@ const makeGraphQlOperation = async (
     // Send the request
     const result = await fetch(apiUrl, {
       headers: new Headers(signedHttpRequest.headers),
-      body: JSON.stringify(signedHttpRequest.body),
+      body: signedHttpRequest.body,
       method: signedHttpRequest.method,
     });
 
@@ -54,8 +56,8 @@ const makeGraphQlOperation = async (
 
     return body.data;
   } catch (err) {
-    console.error(err);
-    throw new Error('Failed to execute GraphQL operation');
+    logger.error('Failed to execute GraphQL operation', err as Error);
+    throw new Error('Failed to execute GraphQL operation', { cause: err });
   }
 };
 

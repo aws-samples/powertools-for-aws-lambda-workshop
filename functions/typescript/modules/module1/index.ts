@@ -2,24 +2,28 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { MetricUnits, logMetrics } from '@aws-lambda-powertools/metrics';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
 import { logger, metrics, tracer } from '@commons/powertools';
-import { FileStatus, ImageSize, TransformSize } from '@constants';
-import middy from '@middy/core';
-import type { Context, SQSEvent } from 'aws-lambda';
 import {
-  TimeoutError,
+  FileStatus,
+  ImageSize,
+  TransformSize,
+  transformedImageExtension,
+  transformedImagePrefix,
+} from '@constants';
+import middy from '@middy/core';
+import type { EventBridgeEvent } from 'aws-lambda';
+import {
   createThumbnail,
   extractFileId,
-  extractObjectKey,
   getOriginalObject,
   markFileAs,
-  timedOutAsyncOperation,
   writeTransformedObjectToS3,
 } from './utils';
+import { Detail, DetailType } from './types';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 
 const processOne = async (fileId: string, objectKey: string): Promise<void> => {
-  const newFileKey = `transformed/image/webp/${fileId}.webp`;
+  const newFileKey = `${transformedImagePrefix}/${fileId}${transformedImageExtension}`;
   // Get the original image from S3
   const originalImage = await getOriginalObject(objectKey, s3BucketFiles);
   const transform = TransformSize[ImageSize.SMALL];
@@ -41,38 +45,21 @@ const processOne = async (fileId: string, objectKey: string): Promise<void> => {
 };
 
 const lambdaHandler = async (
-  event: SQSEvent,
-  context: Context
+  event: EventBridgeEvent<DetailType, Detail>
 ): Promise<void> => {
-  // Batch size is 1, so we can safely assume that there is only one record
-  const record = event.Records[0];
-
-  const { body } = record;
-  const objectKey = extractObjectKey(body);
+  const objectKey = event.detail.object.key;
   const fileId = extractFileId(objectKey);
 
   await markFileAs(fileId, FileStatus.WORKING);
 
   try {
-    await timedOutAsyncOperation(
-      processOne(fileId, objectKey),
-      context.getRemainingTimeInMillis() - 3000
-    );
+    await processOne(fileId, objectKey);
 
     await markFileAs(fileId, FileStatus.DONE);
   } catch (error) {
-    if (error instanceof TimeoutError) {
-      logger.error('An unexpected error occurred', error as Error);
-    }
-    logger.info('Function is about to timeout, marking the asset as failed', {
-      details: {
-        timeToTimeout: context.getRemainingTimeInMillis(),
-      },
-    });
+    logger.error('An unexpected error occurred', error as Error);
 
     await markFileAs(fileId, FileStatus.FAIL);
-
-    logger.error('An unexpected error occurred', error as Error);
 
     throw error;
   }
@@ -80,5 +67,5 @@ const lambdaHandler = async (
 
 export const handler = middy(lambdaHandler)
   .use(captureLambdaHandler(tracer))
-  .use(injectLambdaContext(logger))
+  .use(injectLambdaContext(logger, { logEvent: true }))
   .use(logMetrics(metrics));

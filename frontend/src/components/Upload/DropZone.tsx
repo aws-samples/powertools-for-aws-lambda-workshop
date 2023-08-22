@@ -1,6 +1,6 @@
-import React, { useCallback } from "react";
-import { Flex, Text, useTheme } from "@aws-amplify/ui-react";
-import { DropEvent, FileRejection, useDropzone } from "react-dropzone";
+import React, { useCallback } from 'react';
+import { Flex, Text, useTheme } from '@aws-amplify/ui-react';
+import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
 
 type DropZoneProps = {
   children?: React.ReactNode;
@@ -21,11 +21,11 @@ const DropZone: React.FC<DropZoneProps> = ({ onDropAccepted }) => {
     onDropAccepted,
     onDropRejected,
     accept: {
-      "image/jpeg": [],
-      "image/png": [],
-      "application/json": [],
-      "video/mp4": [],
-      "video/webm": [],
+      'image/jpeg': [],
+      'image/png': [],
+      'application/json': [],
+      'video/mp4': [],
+      'video/webm': [],
     },
     multiple: true,
     maxFiles: 10,
@@ -35,11 +35,11 @@ const DropZone: React.FC<DropZoneProps> = ({ onDropAccepted }) => {
     <Flex
       as="div"
       flex={1}
-      maxHeight={"40%"}
-      margin={"auto 0"}
-      direction={"column"}
-      alignItems={"center"}
-      justifyContent={"center"}
+      maxHeight={'40%'}
+      margin={'auto 0'}
+      direction={'column'}
+      alignItems={'center'}
+      justifyContent={'center'}
       border={`${tokens.borderWidths.medium} dashed ${
         isDragActive
           ? tokens.colors.border.pressed
@@ -49,8 +49,8 @@ const DropZone: React.FC<DropZoneProps> = ({ onDropAccepted }) => {
       backgroundColor={tokens.colors.background.secondary}
       color={tokens.colors.font.primary}
       style={{
-        outline: "none",
-        transition: "border .24s ease-in-out",
+        outline: 'none',
+        transition: 'border .24s ease-in-out',
       }}
       {...getRootProps()}
     >

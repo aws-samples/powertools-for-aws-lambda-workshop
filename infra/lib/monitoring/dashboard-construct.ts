@@ -16,7 +16,6 @@ import { environment } from '../constants';
 interface DashboardConstructProps extends StackProps {
   tableName: string;
   functionName: string;
-  queueName: string;
   deadLetterQueueName: string;
 }
 
@@ -30,7 +29,7 @@ export class DashboardConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { functionName, tableName, queueName, deadLetterQueueName } = props;
+    const { functionName, tableName, deadLetterQueueName } = props;
 
     const lambdaMetricsHeader = [
       new TextWidget({
@@ -637,98 +636,6 @@ export class DashboardConstruct extends Construct {
         height: 1,
       }),
     ];
-    const sqsMetrics = [
-      new Row(
-        new GraphWidget({
-          width: 6,
-          height: 6,
-          legendPosition: LegendPosition.BOTTOM,
-          period: Duration.minutes(1),
-          view: GraphWidgetView.TIME_SERIES,
-          stacked: false,
-          left: [
-            new Metric({
-              namespace: 'AWS/SQS',
-              metricName: `NumberOfMessagesReceived`,
-              dimensionsMap: {
-                QueueName: queueName,
-              },
-              statistic: Stats.SUM,
-              period: Duration.minutes(1),
-              region: Stack.of(this).region,
-            }),
-          ],
-          title: 'SQS - Number Of Messages Received',
-          region: Stack.of(this).region,
-        }),
-        new GraphWidget({
-          width: 6,
-          height: 6,
-          legendPosition: LegendPosition.BOTTOM,
-          period: Duration.minutes(1),
-          view: GraphWidgetView.TIME_SERIES,
-          stacked: false,
-          left: [
-            new Metric({
-              namespace: 'AWS/SQS',
-              metricName: `NumberOfMessagesDeleted`,
-              dimensionsMap: {
-                QueueName: queueName,
-              },
-              statistic: Stats.SUM,
-              period: Duration.minutes(1),
-              region: Stack.of(this).region,
-            }),
-          ],
-          title: 'SQS - Number Of Messages Deleted',
-          region: Stack.of(this).region,
-        }),
-        new GraphWidget({
-          width: 6,
-          height: 6,
-          legendPosition: LegendPosition.BOTTOM,
-          period: Duration.minutes(1),
-          view: GraphWidgetView.TIME_SERIES,
-          stacked: false,
-          left: [
-            new Metric({
-              namespace: 'AWS/SQS',
-              metricName: `ApproximateNumberOfMessagesNotVisible`,
-              dimensionsMap: {
-                QueueName: queueName,
-              },
-              statistic: Stats.AVERAGE,
-              period: Duration.minutes(1),
-              region: Stack.of(this).region,
-            }),
-          ],
-          title: 'SQS - Approximate Number Of Messages Not Visible',
-          region: Stack.of(this).region,
-        }),
-        new GraphWidget({
-          width: 6,
-          height: 6,
-          legendPosition: LegendPosition.BOTTOM,
-          period: Duration.minutes(1),
-          view: GraphWidgetView.TIME_SERIES,
-          stacked: false,
-          left: [
-            new Metric({
-              namespace: 'AWS/SQS',
-              metricName: `ApproximateAgeOfOldestMessage`,
-              dimensionsMap: {
-                QueueName: queueName,
-              },
-              statistic: Stats.MAXIMUM,
-              period: Duration.minutes(1),
-              region: Stack.of(this).region,
-            }),
-          ],
-          title: 'SQS - Approximate Age Of Oldest Message',
-          region: Stack.of(this).region,
-        })
-      ),
-    ];
 
     const dqlMetricsHeader = [
       new TextWidget({
@@ -838,7 +745,6 @@ export class DashboardConstruct extends Construct {
         dynamoDBMetricsHeader,
         dynamoDBMetrics,
         sqsMetricsHeader,
-        sqsMetrics,
         dqlMetricsHeader,
         dqlMetrics,
       ],

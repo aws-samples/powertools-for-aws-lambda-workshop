@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useRef } from "react";
-import { Flex } from "@aws-amplify/ui-react";
-import { ZenObservable } from "zen-observable-ts";
+import React, { useState, useCallback, useRef } from 'react';
+import { Flex } from '@aws-amplify/ui-react';
+import { ZenObservable } from 'zen-observable-ts';
 
-import DropZone from "./DropZone";
-import UploadingTable from "./UploadingTable";
-import { subscribeToFileUpdates } from "../../helpers/API";
-import { FileWithUrlMap, generateUploadUrls } from "./Upload.helpers";
+import DropZone from './DropZone';
+import UploadingTable from './UploadingTable';
+import { subscribeToFileUpdates } from '../../helpers/API';
+import { FileWithUrlMap, generateUploadUrls } from './Upload.helpers';
 
 type UploadProps = {
   children?: React.ReactNode;
@@ -21,6 +21,7 @@ const Upload: React.FC<UploadProps> = () => {
     setFileUploadData((prev) => {
       const fileRef = prev.get(id)!;
       fileRef.status = status;
+
       return new Map([...prev, [id, fileRef]]);
     });
   };
@@ -36,7 +37,7 @@ const Upload: React.FC<UploadProps> = () => {
       or: [],
     };
     for (const { id, status } of fileUploadData.values()) {
-      if (status === "ready") syncExpressionObject.or.push({ id: { eq: id } });
+      if (status === 'ready') syncExpressionObject.or.push({ id: { eq: id } });
     }
     subscriptionRef.current = subscribeToFileUpdates(
       ({ value: { data, errors } }) => {
@@ -45,18 +46,18 @@ const Upload: React.FC<UploadProps> = () => {
           if (onUpdateFileStatus) {
             const { id, status } = onUpdateFileStatus;
             if (!id || !status) return;
-            console.debug("update received", onUpdateFileStatus);
+            console.debug('update received', onUpdateFileStatus);
             setFileStatus(id, status);
           }
         } else {
-          console.debug("no data received");
-          if (errors) console.error("error received", errors);
+          console.debug('no data received');
+          if (errors) console.error('error received', errors);
         }
       },
       (err) => console.error(err),
       syncExpressionObject
     );
-    console.debug("Listening for updates on files", fileUploadData.keys());
+    console.debug('Listening for updates on files', fileUploadData.keys());
   };
 
   const onDropAccepted = useCallback(
@@ -78,10 +79,10 @@ const Upload: React.FC<UploadProps> = () => {
 
   return (
     <Flex
-      paddingTop={"10px"}
-      width={"80vw"}
-      height={"100%"}
-      direction={"column"}
+      paddingTop={'10px'}
+      width={'80vw'}
+      height={'100%'}
+      direction={'column'}
     >
       {fileUploadData.size > 0 ? (
         <UploadingTable

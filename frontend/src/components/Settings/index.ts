@@ -1,2 +1,2 @@
-export * from "./Settings";
-export { default } from "./Settings";
+export * from './Settings';
+export { default } from './Settings';

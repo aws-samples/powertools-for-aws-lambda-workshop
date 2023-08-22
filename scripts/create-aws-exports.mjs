@@ -26,11 +26,17 @@ const getStackName = async (name) => {
         ],
       })
     );
-    const stack = res.StackSummaries.find(
-      (stack) =>
-        stack.StackName.toUpperCase().includes(name.toUpperCase()) &&
-        stack.StackName.toUpperCase().includes('PROD')
+    const stackSummaries = res.StackSummaries.filter((stack) =>
+      stack.StackName.toUpperCase().includes(name.toUpperCase())
     );
+    let stack;
+    if (stackSummaries.length === 1) {
+      stack = stackSummaries[0];
+    } else if (stackSummaries.length > 1) {
+      stack = stackSummaries.find((stack) =>
+        stack.StackName.toUpperCase().includes('PROD')
+      );
+    };
     if (!stack) {
       throw new Error('Unable to find stack among loaded ones');
     }

@@ -61,11 +61,6 @@ export class FunctionsConstruct extends Construct {
           reason:
             'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
         },
-        {
-          id: 'AwsSolutions-L1',
-          reason:
-            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
-        },
       ],
       true
     );
@@ -101,11 +96,6 @@ export class FunctionsConstruct extends Construct {
           reason:
             'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
         },
-        {
-          id: 'AwsSolutions-L1',
-          reason:
-            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
-        },
       ],
       true
     );
@@ -133,11 +123,6 @@ export class FunctionsConstruct extends Construct {
           id: 'AwsSolutions-IAM5',
           reason:
             'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-        },
-        {
-          id: 'AwsSolutions-L1',
-          reason:
-            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
         },
       ],
       true

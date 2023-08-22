@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, memo } from "react";
+import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
 import {
   TableRow,
   TableCell,
@@ -6,9 +6,9 @@ import {
   Button,
   Badge,
   BadgeVariations,
-} from "@aws-amplify/ui-react";
-import { getStatusColor, upload } from "./Upload.helpers";
-import { getDownloadUrl } from "../../helpers/API";
+} from '@aws-amplify/ui-react';
+import { getStatusColor, upload } from './Upload.helpers';
+import { getDownloadUrl } from '../../helpers/API';
 
 type FileUploadProps = {
   children?: React.ReactNode;
@@ -28,8 +28,8 @@ const FileUpload: React.FC<FileUploadProps> = memo(
     if (!url) return null;
 
     useEffect(() => {
-      const uploadFile = async () => {
-        setFileStatus(id, "uploading");
+      const uploadFile = async (): Promise<void> => {
+        setFileStatus(id, 'uploading');
         await upload(url, file, onUploadProgress);
       };
 
@@ -38,12 +38,13 @@ const FileUpload: React.FC<FileUploadProps> = memo(
       uploadFile();
     }, [url]);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const onUploadProgress = useCallback((progressEvent: any): void => {
-      var percentCompleted = Math.round(
+      const percentCompleted = Math.round(
         (progressEvent.loaded * 100) / progressEvent.total
       );
       setProgress(percentCompleted);
-      if (percentCompleted === 100) setFileStatus(id, "uploaded");
+      if (percentCompleted === 100) setFileStatus(id, 'uploaded');
     }, []);
 
     const handleDownload = useCallback(async () => {
@@ -59,9 +60,9 @@ const FileUpload: React.FC<FileUploadProps> = memo(
 
     return (
       <TableRow>
-        <TableCell width={"40%"}>{file.name}</TableCell>
-        <TableCell width={"40%"}>
-          {status === "uploading" && progress !== 100 ? (
+        <TableCell width={'40%'}>{file.name}</TableCell>
+        <TableCell width={'40%'}>
+          {status === 'uploading' && progress !== 100 ? (
             <>
               {status} {progress}% <Loader />
             </>
@@ -71,8 +72,8 @@ const FileUpload: React.FC<FileUploadProps> = memo(
             </Badge>
           )}
         </TableCell>
-        <TableCell width={"20%"}>
-          {status === "completed" ? (
+        <TableCell width={'20%'}>
+          {status === 'completed' ? (
             <Button
               variation="primary"
               size="small"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Table,
@@ -6,10 +6,10 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from "@aws-amplify/ui-react";
+} from '@aws-amplify/ui-react';
 
-import { FileWithUrlMap } from "./Upload.helpers";
-import FileUpload from "./FileUpload";
+import { FileWithUrlMap } from './Upload.helpers';
+import FileUpload from './FileUpload';
 
 type UploadingTableProps = {
   children?: React.ReactNode;
@@ -32,12 +32,12 @@ const UploadingTable: React.FC<UploadingTableProps> = ({
 
     let allFileProcessed = true;
     for (const file of files.values()) {
-      if (!["completed", "failed"].includes(file.status))
+      if (!['completed', 'failed'].includes(file.status))
         allFileProcessed = false;
     }
     if (allFileProcessed) {
       console.info(
-        "All files are completed, unsubscribing from onUpdatePosition AppSync mutation"
+        'All files are completed, unsubscribing from onUpdatePosition AppSync mutation'
       );
       onDone();
       setIsMoreButtonEnabled(true);
@@ -52,18 +52,19 @@ const UploadingTable: React.FC<UploadingTableProps> = ({
   }
 
   if (fileUploadComponents.length === 0) return null;
+
   return (
     <>
       <Table caption="" highlightOnHover={true}>
         <TableHead>
           <TableRow>
-            <TableCell width={"40%"} as="th">
+            <TableCell width={'40%'} as="th">
               File
             </TableCell>
-            <TableCell width={"40%"} as="th">
+            <TableCell width={'40%'} as="th">
               Status
             </TableCell>
-            <TableCell width={"20%"} as="th">
+            <TableCell width={'20%'} as="th">
               Action
             </TableCell>
           </TableRow>
@@ -74,8 +75,8 @@ const UploadingTable: React.FC<UploadingTableProps> = ({
         <Button
           variation="primary"
           size="small"
-          width={"40%"}
-          margin={"auto"}
+          width={'40%'}
+          margin={'auto'}
           onClick={goBack}
         >
           Process more files

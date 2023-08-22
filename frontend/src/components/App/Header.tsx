@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Flex,
   Link as UiLink,
@@ -6,19 +6,19 @@ import {
   Button,
   useAuthenticator,
   useTheme,
-} from "@aws-amplify/ui-react";
-import { Link as ReactRouterLink } from "react-router-dom";
+} from '@aws-amplify/ui-react';
+import { Link as ReactRouterLink } from 'react-router-dom';
 
-import MenuItem from "./MenuItem";
+import MenuItem from './MenuItem';
 
 const ITEMS = [
   {
-    to: "/",
-    label: "Upload",
+    to: '/',
+    label: 'Upload',
   },
   {
-    to: "/settings",
-    label: "Settings",
+    to: '/settings',
+    label: 'Settings',
   },
 ];
 
@@ -73,7 +73,7 @@ const Header: React.FC = () => {
           onClick={() => {
             signOut();
             setTimeout(() => {
-              window.location.replace("/");
+              window.location.replace('/');
             }, 1000);
           }}
         >

@@ -5,7 +5,6 @@ import { DashboardConstruct } from './dashboard-construct';
 interface MonitoringConstructProps extends StackProps {
   tableName: string;
   functionName: string;
-  queueName: string;
   deadLetterQueueName: string;
 }
 

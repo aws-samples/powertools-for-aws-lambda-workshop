@@ -1,10 +1,10 @@
-import React from "react";
-import { Outlet } from "react-router-dom";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-import Body from "./Body";
-import Header from "./Header";
+import Body from './Body';
+import Header from './Header';
 
-type AppProps = {};
+type AppProps = Record<string, unknown>;
 
 const App: React.FC<AppProps> = () => {
   return (

@@ -13,34 +13,6 @@ import type {
 } from './types';
 
 /**
- * Utility function to parse and extract the object key from the body of a SQS Record.
- *
- * Given a stringified representation of a body like this:
- * ```json
- * {
- *   "detail": {
- *     "object": {
- *       "key": "uploads/images/jpg/79894e50c10c40889087194b76c5f1cb.jpg"
- *     }
- *   }
- * }
- * ```
- *
- * It returns `uploads/images/jpg/79894e50c10c40889087194b76c5f1cb.jpg`.
- *
- * @param {string} body - Body of the SQS message
- */
-const extractObjectKey = (body: string): string => {
-  const {
-    detail: {
-      object: { key: objectKey },
-    },
-  } = JSON.parse(body);
-
-  return objectKey;
-};
-
-/**
  * Utility function to extract the file id from a S3 Object key.
  *
  * Given this key `uploads/images/jpg/79894e50c10c40889087194b76c5f1cb.jpg`, it returns `79894e50c10c40889087194b76c5f1cb`.
@@ -74,60 +46,6 @@ const getOriginalObject = async (
 };
 
 /**
- * Timeout Error thrown when the async operation takes longer than the specified timeout.
- */
-class TimeoutError extends Error {
-  public constructor(message?: string, options?: ErrorOptions) {
-    super(message, options);
-    this.name = 'TimeoutError';
-  }
-}
-
-/**
- * Utility function to help handle Lambda time out.
- *
- * The function creates a Promise.race between your long runing async operation
- * and a second promise that rejects after the specified timeout.
- *
- * By specifying a timeout shorter than the maximum Lambda Function duration, you're given some buffer
- * to handle cleanup operations and/or gracefully handle failures.
- *
- * **Note:** Keep in mind that Node.js handles timeouts according to the
- * [Node.js Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/#setTimeout-vs-setInterval)
- * this means that the timeout is not guaranteed to be triggered at the exact time specified.
- *
- * @example
- * ```ts
- * try {
- *   const myLongAsyncOperation;
- *   await timedOutAsyncOperation(
- *     myLongAsyncOperation,
- *     context.getRemainingTimeInMillis() - 5000
- *   )
- * } catch (error) {
- *   if (error instanceof TimeoutError) {
- *     // handle timeout here
- *   }
- *   // handle all other errors
- * }
- * ```
- *
- * @param {typeof Promise} longAsyncOperation - Promise that does a time consuming async operation
- * @param {number} time - Max time to trigger a timeout rejection in milliseconds (suggested `context.getRemainingTimeInMillis() - ms`)
- */
-const timedOutAsyncOperation = async (
-  longAsyncOperation: unknown,
-  time: number
-): Promise<unknown> =>
-  await Promise.race([
-    longAsyncOperation,
-    new Promise((_, reject) => {
-      const timer = setTimeout(() => reject(new TimeoutError()), time);
-      timer.unref();
-    }),
-  ]);
-
-/**
  * Utility function to create a thumbnail from an image.
  */
 const createThumbnail = async ({
@@ -137,7 +55,7 @@ const createThumbnail = async ({
 }: CreateThumbnailParams): Promise<Buffer> => {
   const resizedImg = await sharp(imageBuffer)
     .resize(width, height)
-    .toFormat('webp')
+    .toFormat('jpg')
     .toBuffer();
 
   return resizedImg;
@@ -184,7 +102,7 @@ const markFileAs = async (
   fileId: string,
   status: FileStatusValue
 ): Promise<void> => {
-  await makeGraphQlOperation(process.env.API_URL || '', {
+  await makeGraphQlOperation(process.env.APPSYNC_ENDPOINT || '', {
     query: updateFileStatus,
     operationName: 'UpdateFileStatus',
     variables: {
@@ -198,11 +116,8 @@ const markFileAs = async (
 
 export {
   extractFileId,
-  extractObjectKey,
   getOriginalObject,
   writeTransformedObjectToS3,
   markFileAs,
   createThumbnail,
-  TimeoutError,
-  timedOutAsyncOperation,
 };

@@ -23,9 +23,9 @@ const getPresignedDownloadUrl = async ({
   );
 
 /**
- * Utility function that given a file id and a user id returns the file key from Amazon DynamoDB
+ * Utility function that given a file id and a user id returns the file id from Amazon DynamoDB
  */
-const getFileKey = async ({
+const getFileIdFromStore = async ({
   fileId,
   userId,
   dynamodb,
@@ -45,6 +45,7 @@ const getFileKey = async ({
       ':id': fileId,
       ':userId': userId,
     },
+    AttributesToGet: ['id'],
   });
   if (!res.Items || res.Items.length === 0)
     throw new Error('Unable to find object');
@@ -52,4 +53,4 @@ const getFileKey = async ({
   return res.Items[0].key;
 };
 
-export { getPresignedDownloadUrl, getFileKey };
+export { getPresignedDownloadUrl, getFileIdFromStore };

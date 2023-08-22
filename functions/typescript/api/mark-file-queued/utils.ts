@@ -17,7 +17,7 @@ const markFileAs = async (
   fileId: string,
   status: FileStatusValue
 ): Promise<void> => {
-  await makeGraphQlOperation(process.env.API_URL || '', {
+  await makeGraphQlOperation(process.env.APPSYNC_ENDPOINT || '', {
     query: updateFileStatus,
     operationName: 'UpdateFileStatus',
     variables: {

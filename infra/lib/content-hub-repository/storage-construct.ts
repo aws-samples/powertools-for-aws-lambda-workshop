@@ -5,6 +5,7 @@ import {
   AttributeType,
   BillingMode,
   ProjectionType,
+  StreamViewType,
 } from 'aws-cdk-lib/aws-dynamodb';
 import {
   Bucket,
@@ -41,6 +42,7 @@ export class StorageConstruct extends Construct {
 
     this.filesTable = new Table(this, 'files-table', {
       tableName: dynamoFilesTableName,
+      stream: StreamViewType.NEW_IMAGE,
       ...commonTableSettings,
     });
 

@@ -1,18 +1,24 @@
-import { requestResponseMetric } from '@middlewares/requestResponseMetric';
-import { logger, metrics, tracer } from '@powertools';
-import type { AppSyncIdentityCognito, AppSyncResolverEvent } from 'aws-lambda';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { transformedImageExtension, transformedImagePrefix } from '@constants';
+import { requestResponseMetric } from '@middlewares/requestResponseMetric';
 import middy from '@middy/core';
-import { getPresignedDownloadUrl, getFileKey } from './utils';
+import { logger as loggerMain, metrics, tracer } from '@powertools';
+import type { AppSyncIdentityCognito, AppSyncResolverEvent } from 'aws-lambda';
 import {
   GeneratePresignedDownloadUrlQueryVariables,
   PresignedUrl,
 } from '../../types/API';
+import { getFileIdFromStore, getPresignedDownloadUrl } from './utils';
 
 const tableName = process.env.TABLE_NAME_FILES || '';
 const indexName = process.env.INDEX_NAME_FILES_BY_USER || '';
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
+const logger = loggerMain.createChild({
+  persistentLogAttributes: {
+    path: 'get-presigned-download-url',
+  },
+});
 
 export const handler = middy(
   async (
@@ -23,7 +29,7 @@ export const handler = middy(
       if (!fileId) throw new Error('File id not provided.');
       const { username: userId } = event.identity as AppSyncIdentityCognito;
 
-      const objectKey = await getFileKey({
+      const assetId = await getFileIdFromStore({
         fileId,
         userId,
         dynamodb: {
@@ -31,9 +37,7 @@ export const handler = middy(
           indexName,
         },
       });
-      const transformedObjectKey = objectKey
-        .replace('uploads', 'transformed')
-        .replace(/jpeg|png/g, 'webp');
+      const transformedObjectKey = `${transformedImagePrefix}/${assetId}${transformedImageExtension}`;
       const downloadUrl = await getPresignedDownloadUrl({
         objectKey: transformedObjectKey,
         bucketName: s3BucketFiles,

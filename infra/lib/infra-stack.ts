@@ -4,7 +4,9 @@ import { CfnGroup } from 'aws-cdk-lib/aws-resourcegroups';
 import { NagSuppressions } from 'cdk-nag';
 import { Frontend } from './frontend';
 import { ContentHubRepo } from './content-hub-repository';
-import { ImageProcessing } from './image-processing';
+import { ThumbnailGenerator } from './thumbnail-generator';
+import { ImageDetection } from './image-detection';
+import { ReportingService } from './reporting-service';
 import { TrafficGenerator } from './traffic-generator';
 import { MonitoringConstruct } from './monitoring';
 import {
@@ -47,22 +49,54 @@ export class InfraStack extends Stack {
     frontend.addApiBehavior(contentHubRepo.api.domain);
 
     // Image Processing Module
-    const imageProcessing = new ImageProcessing(this, 'image-processing', {
-      landingZoneBucketName,
-    });
+    const thumbnailGenerator = new ThumbnailGenerator(
+      this,
+      'thumbnail-generator',
+      {
+        landingZoneBucketName,
+      }
+    );
     contentHubRepo.storage.grantReadWrite(
-      imageProcessing.functions.resizeImageFn
+      thumbnailGenerator.functions.thumbnailGeneratorFn
     );
     contentHubRepo.storage.grantReadWriteDataOnTable(
-      imageProcessing.functions.resizeImageFn
+      thumbnailGenerator.functions.thumbnailGeneratorFn
     );
     contentHubRepo.api.api.grantMutation(
-      imageProcessing.functions.resizeImageFn,
+      thumbnailGenerator.functions.thumbnailGeneratorFn,
       'updateFileStatus'
     );
-    imageProcessing.functions.resizeImageFn.addEnvironment(
+    thumbnailGenerator.functions.thumbnailGeneratorFn.addEnvironment(
       'APPSYNC_ENDPOINT',
       `https://${contentHubRepo.api.domain}/graphql`
+    );
+
+    // Image Detection Module
+    const imageDetection = new ImageDetection(this, 'image-detection', {
+      filesBucket: contentHubRepo.storage.landingZoneBucket,
+      filesTable: contentHubRepo.storage.filesTable,
+    });
+
+    // Reporting Service
+    const reportingService = new ReportingService(
+      this,
+      'reporting-service',
+      {}
+    );
+
+    imageDetection.functions.imageDetectionFn.addEnvironment(
+      'API_KEY_SECRET_NAME',
+      reportingService.api.apiKeySecret.secretName
+    );
+    reportingService.api.apiKeySecret.grantRead(
+      imageDetection.functions.imageDetectionFn
+    );
+    imageDetection.functions.imageDetectionFn.addEnvironment(
+      'API_URL_PARAMETER_NAME',
+      reportingService.api.apiUrlParameter.parameterName
+    );
+    reportingService.api.apiUrlParameter.grantRead(
+      imageDetection.functions.imageDetectionFn
     );
 
     // Traffic Generator Component
@@ -95,9 +129,9 @@ export class InfraStack extends Stack {
     // Monitoring
     new MonitoringConstruct(this, `monitoring-construct`, {
       tableName: contentHubRepo.storage.filesTable.tableName,
-      functionName: imageProcessing.functions.resizeImageFn.functionName,
-      queueName: imageProcessing.queues.processingQueue.queueName,
-      deadLetterQueueName: imageProcessing.queues.deadLetterQueue.queueName,
+      functionName:
+        thumbnailGenerator.functions.thumbnailGeneratorFn.functionName,
+      deadLetterQueueName: thumbnailGenerator.queues.deadLetterQueue.queueName,
     });
 
     new CfnOutput(this, 'AWSRegion', {

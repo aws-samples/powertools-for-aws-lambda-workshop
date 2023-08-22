@@ -1,6 +1,5 @@
-import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
+import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
@@ -16,7 +15,7 @@ interface FunctionsConstructProps extends StackProps {
 }
 
 export class FunctionsConstruct extends Construct {
-  public readonly resizeImageFn: NodejsFunction;
+  public readonly imageDetectionFn: NodejsFunction;
 
   public constructor(
     scope: Construct,
@@ -30,32 +29,22 @@ export class FunctionsConstruct extends Construct {
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    const sharpLayer = new LayerVersion(this, 'sharp-layer', {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      compatibleRuntimes: [commonFunctionSettings.runtime!],
-      code: Code.fromAsset('../layers/sharp'),
-      description: 'Bundles Sharp lib for image processing',
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
-
-    this.resizeImageFn = new NodejsFunction(this, 'process-image', {
+    this.imageDetectionFn = new NodejsFunction(this, 'image-detection', {
       ...commonFunctionSettings,
-      entry: '../functions/typescript/modules/module1/index.ts',
-      functionName: `process-image-${environment}`,
+      entry: '../functions/typescript/modules/module2/index.ts',
+      functionName: `image-detection-${environment}`,
       environment: {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
         BUCKET_NAME_FILES: props.landingZoneBucketName,
       },
-      layers: [sharpLayer],
       bundling: {
         ...commonBundlingSettings,
-        externalModules: ['sharp'],
       },
     });
 
     NagSuppressions.addResourceSuppressions(
-      this.resizeImageFn,
+      this.imageDetectionFn,
       [
         {
           id: 'AwsSolutions-IAM4',
@@ -66,11 +55,6 @@ export class FunctionsConstruct extends Construct {
           id: 'AwsSolutions-IAM5',
           reason:
             'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-        },
-        {
-          id: 'AwsSolutions-L1',
-          reason:
-            'Using Nodejs16 intentionally. Latest version not yet tested with Powertools',
         },
       ],
       true

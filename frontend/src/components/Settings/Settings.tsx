@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Heading,
   Text,
@@ -6,9 +6,9 @@ import {
   useTheme,
   Flex,
   Button,
-} from "@aws-amplify/ui-react";
+} from '@aws-amplify/ui-react';
 
-import cache from "../../helpers/cache";
+import cache from '../../helpers/cache';
 
 type SettingsProps = {
   children?: React.ReactNode;
@@ -18,14 +18,14 @@ const Settings: React.FC<SettingsProps> = () => {
   const { tokens } = useTheme();
   const [isLoading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
 
     setLoading(true);
-    const videos = e.currentTarget["videos"].value;
-    const images = e.currentTarget["images"].value;
-    cache.setItem("videos-settings", videos);
-    cache.setItem("images-settings", images);
+    const videos = e.currentTarget['videos'].value;
+    const images = e.currentTarget['images'].value;
+    cache.setItem('videos-settings', videos);
+    cache.setItem('images-settings', images);
     setTimeout(() => {
       setLoading(false);
     }, 350);
@@ -33,10 +33,10 @@ const Settings: React.FC<SettingsProps> = () => {
 
   return (
     <Flex
-      paddingTop={"10px"}
-      width={"80vw"}
-      height={"100%"}
-      direction={"column"}
+      paddingTop={'10px'}
+      width={'80vw'}
+      height={'100%'}
+      direction={'column'}
     >
       <Heading
         level={1}
@@ -55,14 +55,14 @@ const Settings: React.FC<SettingsProps> = () => {
       <form
         onSubmit={handleSubmit}
         style={{
-          width: "40%",
+          width: '40%',
         }}
       >
         <SelectField
           label="Images"
           descriptiveText="Choose a size for the images"
           name="images"
-          defaultValue={cache.getItem("images-settings")}
+          defaultValue={cache.getItem('images-settings')}
         >
           <option value="sd">720×480 px</option>
           <option value="hd">1280×720 px</option>
@@ -73,7 +73,7 @@ const Settings: React.FC<SettingsProps> = () => {
           label="Videos"
           descriptiveText="Choose a resolution for the videos"
           name="videos"
-          defaultValue={cache.getItem("videos-settings")}
+          defaultValue={cache.getItem('videos-settings')}
         >
           <option value="480p">SD (480p)</option>
           <option value="720p">HD (720p)</option>

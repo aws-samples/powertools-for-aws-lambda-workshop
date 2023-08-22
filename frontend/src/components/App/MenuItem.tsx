@@ -1,6 +1,6 @@
-import React from "react";
-import { useHref, useResolvedPath, useLocation, Link } from "react-router-dom";
-import { Flex, Link as UiLink, useTheme } from "@aws-amplify/ui-react";
+import React from 'react';
+import { useHref, useResolvedPath, useLocation, Link } from 'react-router-dom';
+import { Flex, Link as UiLink, useTheme } from '@aws-amplify/ui-react';
 
 export type MenuItemProps = {
   children?: React.ReactNode;
@@ -11,22 +11,22 @@ export type MenuItemProps = {
 
 const MenuItem: React.FC<MenuItemProps> = ({ total, to, label }) => {
   const href = useHref(to);
-  let path = useResolvedPath(to);
-  let location = useLocation();
+  const path = useResolvedPath(to);
+  const location = useLocation();
   const theme = useTheme();
 
-  let toPathname = path.pathname;
-  let locationPathname = location.pathname;
+  const toPathname = path.pathname;
+  const locationPathname = location.pathname;
 
-  let isActive =
+  const isActive =
     locationPathname === toPathname ||
     (locationPathname.startsWith(toPathname) &&
-      locationPathname.charAt(toPathname.length) === "/");
+      locationPathname.charAt(toPathname.length) === '/');
 
   return (
     <Flex
       alignItems="center"
-      justifyContent={total === 1 ? "flex-start" : "center"}
+      justifyContent={total === 1 ? 'flex-start' : 'center'}
       width={`calc(100% / ${total})`}
     >
       <UiLink

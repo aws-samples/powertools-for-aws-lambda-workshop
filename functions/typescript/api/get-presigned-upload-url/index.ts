@@ -2,7 +2,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
 import { requestResponseMetric } from '@middlewares/requestResponseMetric';
 import middy from '@middy/core';
-import { logger, metrics, tracer } from '@powertools';
+import { logger as loggerMain, metrics, tracer } from '@powertools';
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from 'aws-lambda';
 import { randomUUID } from 'node:crypto';
 import type {
@@ -13,6 +13,11 @@ import { getPresignedUploadUrl, storeFileMetadata } from './utils';
 
 const tableName = process.env.TABLE_NAME_FILES || '';
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
+const logger = loggerMain.createChild({
+  persistentLogAttributes: {
+    path: 'get-presigned-upload-url',
+  },
+});
 
 const getObjectKey = (type: string): string => {
   switch (type) {

@@ -17,4 +17,13 @@ const TransformSize = {
   [ImageSize.LARGE]: { width: 1920, height: 1080 },
 } as const;
 
-export { ImageSize, FileStatus, TransformSize };
+const transformedImagePrefix = 'transformed/image/jpg';
+const transformedImageExtension = '.jpeg';
+
+export {
+  ImageSize,
+  FileStatus,
+  TransformSize,
+  transformedImagePrefix,
+  transformedImageExtension,
+};

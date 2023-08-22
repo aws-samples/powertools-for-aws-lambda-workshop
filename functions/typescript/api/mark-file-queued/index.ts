@@ -3,10 +3,16 @@ import { logMetrics, MetricUnits } from '@aws-lambda-powertools/metrics';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
 import { FileStatus } from '@constants';
 import middy from '@middy/core';
-import { logger, metrics, tracer } from '@powertools';
+import { logger as loggerMain, metrics, tracer } from '@powertools';
 import type { EventBridgeEvent } from 'aws-lambda';
 import type { Detail, DetailType } from './types';
 import { markFileAs } from './utils';
+
+const logger = loggerMain.createChild({
+  persistentLogAttributes: {
+    path: 'mark-file-queued',
+  },
+});
 
 const lambdaHandler = async (
   event: EventBridgeEvent<DetailType, Detail>
