@@ -3,6 +3,7 @@ import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
+import { StorageConstruct } from './storage-construct';
 
 interface ThumbnailGeneratorProps {
   landingZoneBucketName: string;
@@ -11,6 +12,7 @@ interface ThumbnailGeneratorProps {
 export class ThumbnailGenerator extends Construct {
   public readonly functions: FunctionsConstruct;
   public readonly queues: QueuesConstruct;
+  public readonly storage: StorageConstruct;
 
   public constructor(
     scope: Construct,
@@ -26,6 +28,9 @@ export class ThumbnailGenerator extends Construct {
     });
 
     this.queues = new QueuesConstruct(this, 'queues-construct', {});
+
+    this.storage = new StorageConstruct(this, 'storage-construct', {});
+    this.storage.grantReadWriteDataOnTable(this.functions.thumbnailGeneratorFn);
 
     const thumbnailGeneratorRule = new Rule(
       this,
