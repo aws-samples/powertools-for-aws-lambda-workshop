@@ -90,12 +90,14 @@ export class ApiConstruct extends Construct {
           "id": $util.dynamodb.toDynamoDBJson($ctx.args.input.id)
         },
         "update": {
-          "expression": "set #status = :val",
+          "expression": "set #status = :val, #transformedKey = :transformedKey",
           "expressionNames": {
             "#status": "status",
+            "#transformedKey": "transformedFileKey"
           },
           "expressionValues": {
-            ":val": $util.dynamodb.toDynamoDBJson($ctx.args.input.status)
+            ":val": $util.dynamodb.toDynamoDBJson($ctx.args.input.status),
+            ":transformedKey": $util.dynamodb.toDynamoDBJson($util.defaultIfNull($ctx.args.input.transformedFileKey, null))
           }
         }
       }`),

@@ -1,13 +1,13 @@
+import { Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
 import { StorageConstruct } from './storage-construct';
+import { environment, landingZoneBucketNamePrefix } from '../constants';
 
-interface ThumbnailGeneratorProps {
-  landingZoneBucketName: string;
-}
+interface ThumbnailGeneratorProps {}
 
 export class ThumbnailGenerator extends Construct {
   public readonly functions: FunctionsConstruct;
@@ -17,20 +17,24 @@ export class ThumbnailGenerator extends Construct {
   public constructor(
     scope: Construct,
     id: string,
-    props: ThumbnailGeneratorProps
+    _props: ThumbnailGeneratorProps
   ) {
     super(scope, id);
 
-    const { landingZoneBucketName } = props;
+    const filesBucketName = `${landingZoneBucketNamePrefix}-${
+      Stack.of(this).account
+    }-${environment}`;
 
-    this.functions = new FunctionsConstruct(this, 'functions-construct', {
-      landingZoneBucketName,
-    });
+    this.functions = new FunctionsConstruct(this, 'functions-construct', {});
 
     this.queues = new QueuesConstruct(this, 'queues-construct', {});
 
     this.storage = new StorageConstruct(this, 'storage-construct', {});
     this.storage.grantReadWriteDataOnTable(this.functions.thumbnailGeneratorFn);
+    this.functions.thumbnailGeneratorFn.addEnvironment(
+      'IDEMPOTENCY_TABLE_NAME',
+      this.storage.idempotencyTable.tableName
+    );
 
     const thumbnailGeneratorRule = new Rule(
       this,
@@ -41,12 +45,12 @@ export class ThumbnailGenerator extends Construct {
           detailType: Match.anyOf('Object Created'),
           detail: {
             bucket: {
-              name: Match.anyOf(landingZoneBucketName),
+              name: Match.anyOf(filesBucketName),
             },
             object: {
               key: Match.anyOf(
-                Match.prefix('uploads/image/jpeg'),
-                Match.prefix('uploads/image/png')
+                Match.prefix('uploads/images/jpeg'),
+                Match.prefix('uploads/images/png')
               ),
             },
             reason: Match.anyOf('PutObject'),

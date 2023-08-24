@@ -15,6 +15,7 @@ export const updateFileStatus = /* GraphQL */ `
     updateFileStatus(input: $input) {
       id
       status
+      transformedFileKey
     }
   }
 `;

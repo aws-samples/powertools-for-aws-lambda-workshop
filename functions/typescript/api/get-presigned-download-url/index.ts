@@ -29,7 +29,7 @@ export const handler = middy(
       if (!fileId) throw new Error('File id not provided.');
       const { username: userId } = event.identity as AppSyncIdentityCognito;
 
-      const assetId = await getFileIdFromStore({
+      const transformedFileKey = await getFileIdFromStore({
         fileId,
         userId,
         dynamodb: {
@@ -37,13 +37,12 @@ export const handler = middy(
           indexName,
         },
       });
-      const transformedObjectKey = `${transformedImagePrefix}/${assetId}${transformedImageExtension}`;
       const downloadUrl = await getPresignedDownloadUrl({
-        objectKey: transformedObjectKey,
+        objectKey: transformedFileKey,
         bucketName: s3BucketFiles,
       });
 
-      logger.debug('[GET presigned-url] File', {
+      logger.debug('file requested for download', {
         details: { url: downloadUrl, id: fileId },
       });
 

@@ -14,6 +14,7 @@ const getPresignedUploadUrl = async ({
   key,
   bucketName,
   type,
+  metadata,
 }: GetPresignedUploadUrlParams): Promise<string> =>
   getSignedUrl(
     s3Client,
@@ -21,6 +22,7 @@ const getPresignedUploadUrl = async ({
       Bucket: bucketName,
       Key: key,
       ContentType: type,
+      Metadata: metadata,
     }),
     {
       expiresIn: 3600,
@@ -45,6 +47,7 @@ const storeFileMetadata = async ({
       status: 'created',
       type,
       userId,
+      expirationTime: (Math.floor(Date.now() / 1000) + 3600) * 24 * 5, // 5 days
     },
   });
 };

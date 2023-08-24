@@ -23,4 +23,11 @@ class NoLabelsFoundError extends ImageDetectionError {
   }
 }
 
-export { ImageDetectionError, NoLabelsFoundError };
+class NoPersonFoundError extends ImageDetectionError {
+  public constructor(metadata: ImageMetadata, options?: ErrorOptions) {
+    super('No person found in image', metadata, options);
+    this.name = 'NoPersonFoundError';
+  }
+}
+
+export { ImageDetectionError, NoLabelsFoundError, NoPersonFoundError };

@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import { s3Client } from '@commons/clients/s3';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { dynamodbClient } from '@commons/clients/dynamodb';
 import { readFile } from 'node:fs/promises';
 import { updateFileStatus } from '@graphql/mutations';
 import { makeGraphQlOperation } from '@commons/appsync-signed-operation';
@@ -21,6 +22,31 @@ import type {
  */
 const extractFileId = (objectKey: string): string =>
   objectKey.split('/').at(-1)!.split('.')[0];
+
+/**
+ * Utility function to get the metadata of a given image from DynamoDB.
+ */
+const getImageMetadata = async (
+  tableName: string,
+  objectKey: string
+): Promise<{ fileId: string; userId: string }> => {
+  const res = await dynamodbClient.get({
+    TableName: tableName,
+    Key: {
+      id: extractFileId(objectKey),
+    },
+    AttributesToGet: ['id', 'userId'],
+  });
+
+  if (!res.Item) {
+    throw new Error('File metadata not found');
+  }
+
+  return {
+    fileId: res.Item.id,
+    userId: res.Item.userId,
+  };
+};
 
 /**
  * Utility function that helps to get an object from S3.
@@ -100,7 +126,8 @@ const writeTransformedObjectToS3 = async ({
  */
 const markFileAs = async (
   fileId: string,
-  status: FileStatusValue
+  status: FileStatusValue,
+  transformedFileKey?: string
 ): Promise<void> => {
   await makeGraphQlOperation(process.env.APPSYNC_ENDPOINT || '', {
     query: updateFileStatus,
@@ -109,6 +136,7 @@ const markFileAs = async (
       input: {
         id: fileId,
         status,
+        transformedFileKey,
       },
     },
   });
@@ -120,4 +148,5 @@ export {
   writeTransformedObjectToS3,
   markFileAs,
   createThumbnail,
+  getImageMetadata,
 };

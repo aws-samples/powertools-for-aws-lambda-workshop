@@ -2,6 +2,7 @@ type GetPresignedUploadUrlParams = {
   key: string;
   bucketName: string;
   type: string;
+  metadata: Record<string, string>;
 };
 
 type StoreFileMetadataParams = {

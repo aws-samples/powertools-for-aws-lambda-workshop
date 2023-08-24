@@ -45,12 +45,11 @@ const getFileIdFromStore = async ({
       ':id': fileId,
       ':userId': userId,
     },
-    AttributesToGet: ['id'],
   });
   if (!res.Items || res.Items.length === 0)
     throw new Error('Unable to find object');
 
-  return res.Items[0].key;
+  return res.Items[0].transformedFileKey;
 };
 
 export { getPresignedDownloadUrl, getFileIdFromStore };

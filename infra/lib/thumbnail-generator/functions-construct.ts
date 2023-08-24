@@ -9,11 +9,10 @@ import {
   commonEnvVars,
   dynamoFilesTableName,
   environment,
+  landingZoneBucketNamePrefix,
 } from '../constants';
 
-interface FunctionsConstructProps extends StackProps {
-  landingZoneBucketName: string;
-}
+interface FunctionsConstructProps extends StackProps {}
 
 export class FunctionsConstruct extends Construct {
   public readonly thumbnailGeneratorFn: NodejsFunction;
@@ -28,6 +27,10 @@ export class FunctionsConstruct extends Construct {
     const localEnvVars = {
       ...commonEnvVars,
       AWS_ACCOUNT_ID: Stack.of(this).account,
+      TABLE_NAME_FILES: dynamoFilesTableName,
+      BUCKET_NAME_FILES: `${landingZoneBucketNamePrefix}-${
+        Stack.of(this).account
+      }-${environment}`,
     };
 
     const sharpLayer = new LayerVersion(this, 'sharp-layer', {
@@ -47,8 +50,6 @@ export class FunctionsConstruct extends Construct {
         functionName: `thumbnail-generator-${environment}`,
         environment: {
           ...localEnvVars,
-          TABLE_NAME_FILES: dynamoFilesTableName,
-          BUCKET_NAME_FILES: props.landingZoneBucketName,
         },
         layers: [sharpLayer],
         bundling: {

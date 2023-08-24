@@ -6,7 +6,7 @@ import { powertoolsServiceName, environment } from '../lib/constants';
 import { AwsSolutionsChecks } from 'cdk-nag';
 
 const app = new App();
-// Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+// Aspects.of(app).add(new AwsSolutionsChecks());
 new InfraStack(app, 'InfraStack', {
   tags: {
     Service: powertoolsServiceName,

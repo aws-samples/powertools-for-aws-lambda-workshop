@@ -22,8 +22,9 @@ const logger = loggerMain.createChild({
 const getObjectKey = (type: string): string => {
   switch (type) {
     case 'image/jpeg':
+      return 'images/jpg';
     case 'image/png':
-      return type;
+      return 'images/png';
     default:
       return 'other';
   }
@@ -38,22 +39,25 @@ export const handler = middy(
       const { type: fileType } = event.arguments.input!;
 
       const { username: userId } = event.identity as AppSyncIdentityCognito;
-      const objectKeyValue = getObjectKey(fileType);
-      const objectKey = `uploads/${objectKeyValue}/${fileId}.${
-        fileType.split('/')[1]
-      }`;
-
-      logger.info('[GET presigned-url] Object Key', {
-        details: objectKey,
-      });
+      const fileTypePrefix = getObjectKey(fileType);
+      const fileExtension = fileType.split('/')[1];
+      const objectKey = [
+        'uploads',
+        fileTypePrefix,
+        `${fileId}.${fileExtension}`,
+      ].join('/');
 
       const uploadUrl = await getPresignedUploadUrl({
         key: objectKey,
         bucketName: s3BucketFiles,
         type: fileType,
+        metadata: {
+          fileId,
+          userId,
+        },
       });
 
-      logger.info('[GET presigned-url] File', {
+      logger.info('ile', {
         details: { url: uploadUrl, id: fileId },
       });
 
@@ -67,13 +71,13 @@ export const handler = middy(
         },
       });
 
-      logger.info('[GET presigned-url] DynamoDB response', {
+      logger.debug('[GET presigned-url] DynamoDB response', {
         details: response,
       });
 
       return { url: uploadUrl, id: fileId };
     } catch (err) {
-      logger.error('Unable to generate presigned url', err as Error);
+      logger.error('unable to generate presigned url', err as Error);
       throw err;
     }
   }

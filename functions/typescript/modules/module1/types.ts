@@ -53,6 +53,13 @@ type CreateThumbnailParams = {
   height: number;
 };
 
+type ProcessOneOptions = {
+  fileId: string;
+  objectKey: string;
+  etag: string;
+  userId: string;
+};
+
 export {
   Detail,
   DetailType,
@@ -61,4 +68,5 @@ export {
   FileStatusKey,
   FileStatusValue,
   CreateThumbnailParams,
+  ProcessOneOptions,
 };

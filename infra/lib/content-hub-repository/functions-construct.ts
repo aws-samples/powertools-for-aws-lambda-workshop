@@ -9,21 +9,21 @@ import {
   commonBundlingSettings,
   commonEnvVars,
   environment,
+  landingZoneBucketNamePrefix,
 } from '../constants';
 
-interface FunctionsConstructProps extends StackProps {
-  landingZoneBucketName: string;
-}
+interface FunctionsConstructProps extends StackProps {}
 
 export class FunctionsConstruct extends Construct {
   public readonly getPresignedDownloadUrlFn: NodejsFunction;
   public readonly getPresignedUploadUrlFn: NodejsFunction;
   public readonly markCompleteUploadFn: NodejsFunction;
+  public readonly cleanDeletedFilesFn: NodejsFunction;
 
   public constructor(
     scope: Construct,
     id: string,
-    props: FunctionsConstructProps
+    _props: FunctionsConstructProps
   ) {
     super(scope, id);
 
@@ -31,6 +31,10 @@ export class FunctionsConstruct extends Construct {
       ...commonEnvVars,
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
+
+    const filesBucketName = `${landingZoneBucketNamePrefix}-${
+      Stack.of(this).account
+    }-${environment}`;
 
     this.getPresignedUploadUrlFn = new NodejsFunction(
       this,
@@ -42,7 +46,7 @@ export class FunctionsConstruct extends Construct {
         environment: {
           ...localEnvVars,
           TABLE_NAME_FILES: dynamoFilesTableName,
-          BUCKET_NAME_FILES: props.landingZoneBucketName,
+          BUCKET_NAME_FILES: filesBucketName,
         },
         bundling: { ...commonBundlingSettings },
       }
@@ -77,7 +81,7 @@ export class FunctionsConstruct extends Construct {
           ...localEnvVars,
           TABLE_NAME_FILES: dynamoFilesTableName,
           INDEX_NAME_FILES_BY_USER: dynamoFilesByUserGsiName,
-          BUCKET_NAME_FILES: props.landingZoneBucketName,
+          BUCKET_NAME_FILES: filesBucketName,
         },
         bundling: { ...commonBundlingSettings },
       }
@@ -113,6 +117,34 @@ export class FunctionsConstruct extends Construct {
 
     NagSuppressions.addResourceSuppressions(
       this.markCompleteUploadFn,
+      [
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
+        },
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
+        },
+      ],
+      true
+    );
+
+    this.cleanDeletedFilesFn = new NodejsFunction(this, 'clean-deleted-files', {
+      ...commonFunctionSettings,
+      entry: '../functions/typescript/api/clean-deleted-files/index.ts',
+      functionName: `clean-deleted-files-${environment}`,
+      environment: {
+        ...localEnvVars,
+        TABLE_NAME_FILES: dynamoFilesTableName,
+      },
+      bundling: { ...commonBundlingSettings },
+    });
+
+    NagSuppressions.addResourceSuppressions(
+      this.cleanDeletedFilesFn,
       [
         {
           id: 'AwsSolutions-IAM4',

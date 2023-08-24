@@ -35,16 +35,11 @@ export class InfraStack extends Stack {
       },
     });
 
-    const landingZoneBucketName = `${landingZoneBucketNamePrefix}-${
-      Stack.of(this).account
-    }-${environment}`;
-
     const frontend = new Frontend(this, 'frontend', {});
 
     // Content Hub Repository
     const contentHubRepo = new ContentHubRepo(this, 'content-hub-repo', {
       userPool: frontend.auth.userPool,
-      landingZoneBucketName,
     });
     frontend.addApiBehavior(contentHubRepo.api.domain);
 
@@ -52,9 +47,7 @@ export class InfraStack extends Stack {
     const thumbnailGenerator = new ThumbnailGenerator(
       this,
       'thumbnail-generator',
-      {
-        landingZoneBucketName,
-      }
+      {}
     );
     contentHubRepo.storage.grantReadWrite(
       thumbnailGenerator.functions.thumbnailGeneratorFn

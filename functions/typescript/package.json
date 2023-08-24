@@ -14,6 +14,8 @@
   "license": "MIT-0",
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.0.0",
+    "@aws-lambda-powertools/batch": "^1.12.1-beta",
+    "@aws-lambda-powertools/idempotency": "^1.12.1-beta",
     "@aws-lambda-powertools/logger": "^1.12.1",
     "@aws-lambda-powertools/metrics": "^1.12.1",
     "@aws-lambda-powertools/parameters": "^1.12.1",

@@ -1,4 +1,4 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   Table,
@@ -8,18 +8,22 @@ import {
   StreamViewType,
 } from 'aws-cdk-lib/aws-dynamodb';
 import {
+  BlockPublicAccess,
   Bucket,
   BucketAccessControl,
   BucketEncryption,
   HttpMethods,
 } from 'aws-cdk-lib/aws-s3';
-import { dynamoFilesTableName, dynamoFilesByUserGsiName } from '../constants';
+import {
+  landingZoneBucketNamePrefix,
+  environment,
+  dynamoFilesTableName,
+  dynamoFilesByUserGsiName,
+} from '../constants';
 import { IGrantable } from 'aws-cdk-lib/aws-iam';
 import { NagSuppressions } from 'cdk-nag';
 
-interface StorageConstructProps {
-  landingZoneBucketName: string;
-}
+interface StorageConstructProps {}
 
 export class StorageConstruct extends Construct {
   public readonly filesTable: Table;
@@ -28,11 +32,9 @@ export class StorageConstruct extends Construct {
   public constructor(
     scope: Construct,
     id: string,
-    props: StorageConstructProps
+    _props: StorageConstructProps
   ) {
     super(scope, id);
-
-    const { landingZoneBucketName } = props;
 
     const commonTableSettings = {
       billingMode: BillingMode.PAY_PER_REQUEST,
@@ -43,6 +45,7 @@ export class StorageConstruct extends Construct {
     this.filesTable = new Table(this, 'files-table', {
       tableName: dynamoFilesTableName,
       stream: StreamViewType.NEW_IMAGE,
+      timeToLiveAttribute: 'ttl',
       ...commonTableSettings,
     });
 
@@ -62,7 +65,9 @@ export class StorageConstruct extends Construct {
     ]);
 
     this.landingZoneBucket = new Bucket(this, 'landing-zone', {
-      bucketName: landingZoneBucketName,
+      bucketName: `${landingZoneBucketNamePrefix}-${
+        Stack.of(this).account
+      }-${environment}`,
       transferAcceleration: true,
       accessControl: BucketAccessControl.PRIVATE,
       encryption: BucketEncryption.S3_MANAGED,
@@ -76,6 +81,12 @@ export class StorageConstruct extends Construct {
         },
       ],
       eventBridgeEnabled: true,
+      lifecycleRules: [
+        {
+          expiration: Duration.days(1),
+          prefix: 'uploads/',
+        },
+      ],
     });
 
     NagSuppressions.addResourceSuppressions(this.landingZoneBucket, [

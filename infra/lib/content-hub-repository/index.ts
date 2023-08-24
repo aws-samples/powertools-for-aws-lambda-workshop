@@ -9,7 +9,6 @@ import { StorageConstruct } from './storage-construct';
 
 interface ContentHubRepoProps {
   userPool: IUserPool;
-  landingZoneBucketName: string;
 }
 
 export class ContentHubRepo extends Construct {
@@ -21,15 +20,11 @@ export class ContentHubRepo extends Construct {
   public constructor(scope: Construct, id: string, props: ContentHubRepoProps) {
     super(scope, id);
 
-    const { landingZoneBucketName, userPool } = props;
+    const { userPool } = props;
 
-    this.storage = new StorageConstruct(this, 'storage-construct', {
-      landingZoneBucketName,
-    });
+    this.storage = new StorageConstruct(this, 'storage-construct', {});
 
-    this.functions = new FunctionsConstruct(this, 'functions-construct', {
-      landingZoneBucketName: this.storage.landingZoneBucket.bucketName,
-    });
+    this.functions = new FunctionsConstruct(this, 'functions-construct', {});
 
     this.storage.grantReadWriteDataOnTable(
       this.functions.getPresignedUploadUrlFn
@@ -37,6 +32,7 @@ export class ContentHubRepo extends Construct {
     this.storage.grantPutOnBucket(this.functions.getPresignedUploadUrlFn);
     this.storage.grantReadDataOnTable(this.functions.getPresignedDownloadUrlFn);
     this.storage.grantGetOnBucket(this.functions.getPresignedDownloadUrlFn);
+    this.storage.grantReadWriteDataOnTable(this.functions.cleanDeletedFilesFn);
 
     this.api = new ApiConstruct(this, 'api-construct', {
       getPresignedUploadUrlFn: this.functions.getPresignedUploadUrlFn,
@@ -61,12 +57,29 @@ export class ContentHubRepo extends Construct {
           bucket: {
             name: Match.anyOf(this.storage.landingZoneBucket.bucketName),
           },
-          object: { key: Match.prefix('uploads/') },
+          object: { key: Match.prefix('uploads/images/') },
           reason: Match.anyOf('PutObject'),
         },
       },
     });
     uploadedRule.addTarget(
+      new LambdaFunction(this.functions.markCompleteUploadFn)
+    );
+
+    const deletedRule = new Rule(this, 'deleted-uploads', {
+      eventPattern: {
+        source: Match.anyOf('aws.s3'),
+        detailType: Match.anyOf('Object Removed'),
+        detail: {
+          bucket: {
+            name: Match.anyOf(this.storage.landingZoneBucket.bucketName),
+          },
+          object: { key: Match.prefix('uploads/images/') },
+          reason: Match.anyOf('DeleteObject'),
+        },
+      },
+    });
+    deletedRule.addTarget(
       new LambdaFunction(this.functions.markCompleteUploadFn)
     );
   }

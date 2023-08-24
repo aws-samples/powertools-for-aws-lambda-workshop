@@ -1,6 +1,7 @@
 type File @aws_iam @aws_cognito_user_pools {
   id: ID
   status: String!
+  transformedFileKey: String
 }
 
 type PresignedUrl {
@@ -11,6 +12,7 @@ type PresignedUrl {
 input FileStatusUpdateInput {
   id: ID
   status: String!
+  transformedFileKey: String
 }
 
 input PresignedUploadUrlInput {
