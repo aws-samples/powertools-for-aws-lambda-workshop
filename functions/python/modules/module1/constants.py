@@ -1,0 +1,2 @@
+TRANSFORMED_IMAGE_PREFIX = "transformed/image/jpg"
+TRANSFORMED_IMAGE_EXTENSION = ".jpeg"
