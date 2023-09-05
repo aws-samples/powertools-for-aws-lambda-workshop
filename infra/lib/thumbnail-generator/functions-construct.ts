@@ -1,7 +1,7 @@
 import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
@@ -15,7 +15,7 @@ import {
 interface FunctionsConstructProps extends StackProps {}
 
 export class FunctionsConstruct extends Construct {
-  public readonly thumbnailGeneratorFn: NodejsFunction;
+  public readonly thumbnailGeneratorFn: lambda.Function;
 
   public constructor(
     scope: Construct,
@@ -33,34 +33,30 @@ export class FunctionsConstruct extends Construct {
       }-${environment}`,
     };
 
-    const sharpLayer = new LayerVersion(this, 'sharp-layer', {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      compatibleRuntimes: [commonFunctionSettings.runtime!],
-      code: Code.fromAsset('../layers/sharp'),
-      description: 'Bundles Sharp lib for image processing',
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
-
-    this.thumbnailGeneratorFn = new NodejsFunction(
-      this,
-      'thumbnail-generator',
-      {
-        ...commonFunctionSettings,
-        entry: '../functions/typescript/modules/module1/index.ts',
-        functionName: `thumbnail-generator-${environment}`,
-        environment: {
-          ...localEnvVars,
-        },
-        layers: [sharpLayer],
+    // The code that defines your stack goes here
+    this.thumbnailGeneratorFn = new lambda.Function(this, 'thumbnail-generator', {
+      functionName: `thumbnail-generator-${environment}`,
+      runtime: lambda.Runtime.DOTNET_6,
+      environment: {
+        ...localEnvVars,
+      },
+      code: lambda.Code.fromAsset('../functions/dotnet/', {
         bundling: {
-          ...commonBundlingSettings,
-          externalModules: [
-            ...(commonBundlingSettings.externalModules || []),
-            'sharp',
+          image: lambda.Runtime.DOTNET_6.bundlingImage,
+          user: 'root',
+          outputType: cdk.BundlingOutput.ARCHIVED,
+          command: [
+            '/bin/sh', '-c',
+            ' dotnet tool install -g Amazon.Lambda.Tools' +
+            ' && dotnet build' +
+            ' && dotnet lambda package --output-package /asset-output/function.zip'
           ],
         },
-      }
-    );
+      }),
+      handler: 'PowertoolsWorkshop::PowertoolsWorkshop.ThumbnailGeneratorFunction::FunctionHandler',
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256
+    });
 
     NagSuppressions.addResourceSuppressions(
       this.thumbnailGeneratorFn,
