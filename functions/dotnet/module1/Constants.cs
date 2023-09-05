@@ -21,3 +21,26 @@ public static class FileStatus
     public static readonly string Completed = "completed";
     public static readonly string Failed = "failed";
 }
+
+public static class Mutations
+{ 
+    public static readonly string GeneratePresignedUploadUrl = @"
+        mutation GeneratePresignedUploadUrl($input: PresignedUploadUrlInput)  {
+            generatePresignedUploadUrl(input: $input) {
+                id
+                url
+            }
+        }
+    ";
+    
+    public static readonly string UpdateFileStatus = @"
+        mutation UpdateFileStatus($input: FileStatusUpdateInput) {
+            updateFileStatus(input: $input) {
+                id
+                status
+                transformedFileKey
+            }
+        }
+    ";
+
+}

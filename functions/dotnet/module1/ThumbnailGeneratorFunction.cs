@@ -24,6 +24,7 @@ namespace PowertoolsWorkshop
         private readonly IAmazonS3 _s3Client;
         private readonly IImageResizer _imageResizer;
         private readonly IAmazonDynamoDB _dynamoDb;
+        private readonly IAppSyncOperations _appSyncOperations;
         private readonly string _filesTableName;
 
         /// <summary>
@@ -37,28 +38,37 @@ namespace PowertoolsWorkshop
 
             _filesTableName = Environment.GetEnvironmentVariable("TABLE_NAME_FILES");
             var idempotencyTableName = Environment.GetEnvironmentVariable("IDEMPOTENCY_TABLE_NAME");
+            var appSyncEndpoint = Environment.GetEnvironmentVariable("APPSYNC_ENDPOINT");
+            
             Idempotency.Configure(builder => builder.UseDynamoDb(idempotencyTableName));
 
             _s3Client = new AmazonS3Client();
             _imageResizer = new ImageResizer();
             _dynamoDb = new AmazonDynamoDBClient();
+            _appSyncOperations = new AppSyncOperations(appSyncEndpoint);
         }
-
+        
         /// <summary>
         /// Constructs an instance with a preconfigured S3 client. This can be used for testing the outside of the Lambda environment.
         /// </summary>
         /// <param name="s3Client"></param>
         /// <param name="imageResizer"></param>
+        /// <param name="appSyncOperations"></param>
         /// <param name="filesTableName"></param>
+        /// <param name="dynamoDb"></param>
         public ThumbnailGeneratorFunction
         (
             IAmazonS3 s3Client,
             IImageResizer imageResizer,
+            IAmazonDynamoDB dynamoDb,
+            IAppSyncOperations appSyncOperations,
             string filesTableName
         )
         {
             _s3Client = s3Client;
             _imageResizer = imageResizer;
+            _dynamoDb = dynamoDb;
+            _appSyncOperations = appSyncOperations;
             _filesTableName = filesTableName;
         }
 
@@ -75,7 +85,7 @@ namespace PowertoolsWorkshop
         public async Task FunctionHandler(S3ObjectCreateEvent evnt, ILambdaContext context)
         {
             Idempotency.RegisterLambdaContext(context);
-            
+
             var etag = evnt.Detail.Object.ETag;
             var objectKey = evnt.Detail.Object.Key;
             var filesBucket = evnt.Detail.Bucket.Name;
@@ -191,6 +201,24 @@ namespace PowertoolsWorkshop
                 .ConfigureAwait(false);
 
             Logger.LogInformation($"File marked as {status}. Sending file status change notification...");
+
+            var variables = new Dictionary<string, object>
+            {
+                {
+                    "input", new
+                    {
+                        id = fileId, status,
+                        transformedFileKey = newObjectKey,
+                    }
+                },
+            };
+
+            await _appSyncOperations.RunGraphql
+                (
+                    Mutations.UpdateFileStatus,
+                    "UpdateFileStatus",
+                    variables)
+                .ConfigureAwait(false);
 
             Logger.LogInformation($"File status change to {status} notification sent successfully.");
         }
