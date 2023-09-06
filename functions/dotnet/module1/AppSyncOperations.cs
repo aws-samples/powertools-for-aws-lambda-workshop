@@ -54,9 +54,9 @@ public class AppSyncOperations : IAppSyncOperations
         var rawBytes = Encoding.ASCII.GetBytes(await requestContent.ReadAsStringAsync());
         var awsRequest = new DefaultRequest(new AmazonAppSyncRequest(), "appsync")
         {
+            Content = rawBytes,
             HttpMethod = "POST",
             Endpoint = _graphQlEndpoint,
-            Content = rawBytes,
             AlternateEndpoint = _awsRegion
         };
 
