@@ -32,7 +32,7 @@ const writeJSONFile = async (content, path) => {
 const main = async () => {
   const currentDir = process.cwd();
   const basePath = "../infra/cdk.out";
-  const stackName = "InfraStack";
+  const stackName = "PowerToolsWorkshop";
   const cfnTemplateFileName = `${stackName}.template.json`;
   const cfnTemplateFileNameOut = `${stackName}.out.template.json`;
   const assetsFileName = `${stackName}.assets.json`;

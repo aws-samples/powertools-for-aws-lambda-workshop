@@ -7,7 +7,7 @@ import { AwsSolutionsChecks } from 'cdk-nag';
 
 const app = new App();
 // Aspects.of(app).add(new AwsSolutionsChecks());
-new InfraStack(app, 'InfraStack', {
+new InfraStack(app, 'PowerToolsWorkshop', {
   tags: {
     Service: powertoolsServiceName,
     Environment: environment,
