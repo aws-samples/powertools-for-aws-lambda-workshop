@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.DynamoDBEvents;
@@ -11,11 +9,9 @@ using AWS.Lambda.Powertools.Metrics;
 using AWS.Lambda.Powertools.Tracing;
 using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
-using Amazon.Util;
 using AWS.Lambda.Powertools.Parameters;
 using AWS.Lambda.Powertools.Parameters.SecretsManager;
 using AWS.Lambda.Powertools.Parameters.SimpleSystemsManagement;
-using Newtonsoft.Json;
 
 namespace PowertoolsWorkshop
 {
@@ -27,6 +23,7 @@ namespace PowertoolsWorkshop
         private static IAmazonRekognition _rekognitionClient;
         private static ISsmProvider _ssmProvider;
         private static ISecretsProvider _secretsProvider;
+        private static IApiOperations _apiOperations;
 
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
@@ -41,6 +38,7 @@ namespace PowertoolsWorkshop
             _apiUrlParameterName = Environment.GetEnvironmentVariable("API_URL_PARAMETER_NAME");
             _apiKeySecretName = Environment.GetEnvironmentVariable("API_KEY_SECRET_NAME");
             _rekognitionClient = new AmazonRekognitionClient();
+            _apiOperations = new ApiOperations();
 
             ParametersManager.DefaultMaxAge(TimeSpan.FromSeconds(900));
             _ssmProvider = ParametersManager.SsmProvider;
@@ -117,25 +115,14 @@ namespace PowertoolsWorkshop
         {
             var apiUrl = await _ssmProvider.GetAsync(_apiUrlParameterName).ConfigureAwait(false);
             var apiKey = await _secretsProvider.GetAsync(_apiKeySecretName).ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(apiUrl))
+
+            if (string.IsNullOrWhiteSpace(apiUrl) || string.IsNullOrWhiteSpace(apiKey))
                 throw new Exception($"Missing apiUrl or apiKey. apiUrl: ${apiUrl}, apiKey: ${apiKey}");
-            
+
             Logger.LogInformation("Sending report to the API");
-            
-            var httpClient = new HttpClient();
-            
-            var jsonPayload = JsonConvert.SerializeObject(new { fileId, userId });
-            var requestContent = new StringContent(jsonPayload, Encoding.ASCII, "application/json");
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
-            {
-                Content = requestContent
-            };
-            
-            httpRequestMessage.Headers.TryAddWithoutValidation("x-api-key", apiKey);
-            httpRequestMessage.Headers.TryAddWithoutValidation(HeaderKeys.ContentTypeHeader, "application/json");
-            
-            var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
-            Logger.LogInformation(httpResponseMessage);
+
+            await _apiOperations.PosAsJsonAsync(apiUrl, apiKey, new { fileId, userId }).ConfigureAwait(false);
+
             Logger.LogInformation("Report sent to the API");
         }
     }
