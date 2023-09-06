@@ -36,6 +36,14 @@ export const commonNodeJsBundlingSettings: Partial<NodeBundlingOptions> = {
   externalModules: ['@aws-sdk/*'],
 };
 
+export const commonJavaFunctionSettings: Partial<FunctionProps> = {
+    runtime: Runtime.JAVA_17,
+    tracing: Tracing.ACTIVE,
+    logRetention: RetentionDays.FIVE_DAYS,
+    timeout: Duration.seconds(30),
+    memorySize: 512,
+};
+
 export const commonDotnetBundlingSettings: BundlingOptions = {
   image: Runtime.DOTNET_6.bundlingImage,
   user: 'root',
