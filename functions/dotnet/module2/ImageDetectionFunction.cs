@@ -37,6 +37,7 @@ namespace PowertoolsWorkshop
             _filesBucketName = Environment.GetEnvironmentVariable("BUCKET_NAME_FILES");
             _apiUrlParameterName = Environment.GetEnvironmentVariable("API_URL_PARAMETER_NAME");
             _apiKeySecretName = Environment.GetEnvironmentVariable("API_KEY_SECRET_NAME");
+            
             _rekognitionClient = new AmazonRekognitionClient();
             _apiOperations = new ApiOperations();
 
@@ -54,7 +55,7 @@ namespace PowertoolsWorkshop
         /// <returns></returns>
         [Metrics(CaptureColdStart = true)]
         [Tracing(CaptureMode = TracingCaptureMode.ResponseAndError)]
-        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.CamelCase)]
+        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.PascalCase)]
         public async Task FunctionHandler(DynamoDBEvent dynamoEvent, ILambdaContext context)
         {
             Logger.LogInformation($"Beginning to process {dynamoEvent.Records.Count} records...");

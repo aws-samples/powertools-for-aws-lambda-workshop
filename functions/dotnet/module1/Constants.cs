@@ -16,15 +16,15 @@ public static class TransformSize
 
 public static class FileStatus
 {
-    public static readonly string Queued= "queued";
-    public static readonly string Working= "in-progress";
-    public static readonly string Completed = "completed";
-    public static readonly string Failed = "failed";
+    public const string Queued= "queued";
+    public const string Working= "in-progress";
+    public const string Completed = "completed";
+    public const string Failed = "failed";
 }
 
 public static class Mutations
 { 
-    public static readonly string GeneratePresignedUploadUrl = @"
+    public const string GeneratePresignedUploadUrl = @"
         mutation GeneratePresignedUploadUrl($input: PresignedUploadUrlInput)  {
             generatePresignedUploadUrl(input: $input) {
                 id
@@ -33,7 +33,7 @@ public static class Mutations
         }
     ";
     
-    public static readonly string UpdateFileStatus = @"
+    public const string UpdateFileStatus = @"
         mutation UpdateFileStatus($input: FileStatusUpdateInput) {
             updateFileStatus(input: $input) {
                 id

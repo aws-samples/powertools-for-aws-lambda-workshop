@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using Amazon.AppSync;
@@ -10,7 +11,6 @@ using Amazon.Runtime.Internal;
 using Amazon.Runtime.Internal.Auth;
 using Amazon.Util;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace PowertoolsWorkshop;
 
@@ -41,7 +41,7 @@ public class AppSyncOperations : IAppSyncOperations
                 .ConfigureAwait(false);
         
         var jsonPayload = JsonConvert.SerializeObject(new { query, operationName, variables });
-        var requestContent = new StringContent(jsonPayload, Encoding.ASCII, "application/json");
+        var requestContent = new StringContent(jsonPayload, Encoding.ASCII, MediaTypeNames.Application.Json);
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, _graphQlEndpoint)
         {
             Content = requestContent
@@ -55,7 +55,7 @@ public class AppSyncOperations : IAppSyncOperations
         var awsRequest = new DefaultRequest(new AmazonAppSyncRequest(), "appsync")
         {
             Content = rawBytes,
-            HttpMethod = "POST",
+            HttpMethod = HttpMethod.Post.Method,
             Endpoint = _graphQlEndpoint,
             AlternateEndpoint = _awsRegion
         };
@@ -86,12 +86,6 @@ public class AppSyncOperations : IAppSyncOperations
         }
 
         var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
-        var content = await httpResponseMessage.Content.ReadAsStringAsync();
-        var response = JsonConvert.DeserializeObject<JObject>(content);
-
-        if (response["errors"] != null)
-        {
-            throw new Exception(JsonConvert.SerializeObject(response["errors"]));
-        }
+        httpResponseMessage.EnsureSuccessStatusCode();
     }
 }

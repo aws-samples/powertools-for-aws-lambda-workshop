@@ -21,11 +21,11 @@ namespace PowertoolsWorkshop
 {
     public class ThumbnailGeneratorFunction
     {
-        private readonly IAmazonS3 _s3Client;
-        private readonly IImageResizer _imageResizer;
-        private readonly IAmazonDynamoDB _dynamoDb;
-        private readonly IAppSyncOperations _appSyncOperations;
-        private readonly string _filesTableName;
+        private static IAmazonS3 _s3Client;
+        private static IImageResizer _imageResizer;
+        private static IAmazonDynamoDB _dynamoDb;
+        private static IAppSyncOperations _appSyncOperations;
+        private static string _filesTableName;
 
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
@@ -47,30 +47,6 @@ namespace PowertoolsWorkshop
             _dynamoDb = new AmazonDynamoDBClient();
             _appSyncOperations = new AppSyncOperations(appSyncEndpoint);
         }
-        
-        /// <summary>
-        /// Constructs an instance with a preconfigured S3 client. This can be used for testing the outside of the Lambda environment.
-        /// </summary>
-        /// <param name="s3Client"></param>
-        /// <param name="imageResizer"></param>
-        /// <param name="appSyncOperations"></param>
-        /// <param name="filesTableName"></param>
-        /// <param name="dynamoDb"></param>
-        public ThumbnailGeneratorFunction
-        (
-            IAmazonS3 s3Client,
-            IImageResizer imageResizer,
-            IAmazonDynamoDB dynamoDb,
-            IAppSyncOperations appSyncOperations,
-            string filesTableName
-        )
-        {
-            _s3Client = s3Client;
-            _imageResizer = imageResizer;
-            _dynamoDb = dynamoDb;
-            _appSyncOperations = appSyncOperations;
-            _filesTableName = filesTableName;
-        }
 
         /// <summary>
         /// This method is called for every Lambda invocation. This method takes in an S3 event object and can be used 
@@ -81,7 +57,7 @@ namespace PowertoolsWorkshop
         /// <returns></returns>
         [Metrics(CaptureColdStart = true)]
         [Tracing(CaptureMode = TracingCaptureMode.ResponseAndError)]
-        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.CamelCase)]
+        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.PascalCase)]
         public async Task FunctionHandler(S3ObjectCreateEvent evnt, ILambdaContext context)
         {
             Idempotency.RegisterLambdaContext(context);
