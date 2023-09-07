@@ -1,7 +1,6 @@
 import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as cdk from 'aws-cdk-lib';
+// import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
@@ -10,12 +9,15 @@ import {
   dynamoFilesTableName,
   environment,
 } from '../constants';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
 
 interface FunctionsConstructProps extends StackProps {
   landingZoneBucketName: string;
 }
 
 export class FunctionsConstruct extends Construct {
+  // public readonly imageDetectionFn: NodejsFunction;
   public readonly imageDetectionFn: lambda.Function;
 
   public constructor(
@@ -30,7 +32,23 @@ export class FunctionsConstruct extends Construct {
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
-    // The code that defines your stack goes here
+    /*
+    this.imageDetectionFn = new NodejsFunction(this, 'image-detection', {
+      ...commonFunctionSettings,
+      entry: '../functions/typescript/modules/module2/index.ts',
+      functionName: `image-detection-${environment}`,
+      environment: {
+        ...localEnvVars,
+        TABLE_NAME_FILES: dynamoFilesTableName,
+        BUCKET_NAME_FILES: props.landingZoneBucketName,
+      },
+      bundling: {
+        ...commonBundlingSettings,
+      },
+    });
+    */
+
+    // DotNet - Lambda Function
     this.imageDetectionFn = new lambda.Function(this, 'image-detection', {
       functionName: `image-detection-${environment}`,
       runtime: lambda.Runtime.DOTNET_6,

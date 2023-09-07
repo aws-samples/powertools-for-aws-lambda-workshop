@@ -1,7 +1,7 @@
 import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as cdk from 'aws-cdk-lib';
+//import { Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
+//import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
@@ -11,10 +11,13 @@ import {
   environment,
   landingZoneBucketNamePrefix,
 } from '../constants';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
 
 interface FunctionsConstructProps extends StackProps {}
 
 export class FunctionsConstruct extends Construct {
+  // public readonly thumbnailGeneratorFn: NodejsFunction;
   public readonly thumbnailGeneratorFn: lambda.Function;
 
   public constructor(
@@ -33,7 +36,38 @@ export class FunctionsConstruct extends Construct {
       }-${environment}`,
     };
 
-    // The code that defines your stack goes here
+    /*
+    const sharpLayer = new LayerVersion(this, 'sharp-layer', {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      compatibleRuntimes: [commonFunctionSettings.runtime!],
+      code: Code.fromAsset('../layers/sharp'),
+      description: 'Bundles Sharp lib for image processing',
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    this.thumbnailGeneratorFn = new NodejsFunction(
+      this,
+      'thumbnail-generator',
+      {
+        ...commonFunctionSettings,
+        entry: '../functions/typescript/modules/module1/index.ts',
+        functionName: `thumbnail-generator-${environment}`,
+        environment: {
+          ...localEnvVars,
+        },
+        layers: [sharpLayer],
+        bundling: {
+          ...commonBundlingSettings,
+          externalModules: [
+            ...(commonBundlingSettings.externalModules || []),
+            'sharp',
+          ],
+        },
+      }
+    );
+    */
+    
+    // DotNet - Lambda Function
     this.thumbnailGeneratorFn = new lambda.Function(this, 'thumbnail-generator', {
       functionName: `thumbnail-generator-${environment}`,
       runtime: lambda.Runtime.DOTNET_6,
