@@ -32,7 +32,7 @@ namespace PowertoolsWorkshop
         /// </summary>
         public ImageDetectionFunction()
         {
-            AWSSDKHandler.RegisterXRayForAllServices();
+            Tracing.RegisterForAllServices();
 
             _filesBucketName = Environment.GetEnvironmentVariable("BUCKET_NAME_FILES");
             _apiUrlParameterName = Environment.GetEnvironmentVariable("API_URL_PARAMETER_NAME");

@@ -34,7 +34,7 @@ namespace PowertoolsWorkshop
         /// </summary>
         public ThumbnailGeneratorFunction()
         {
-            AWSSDKHandler.RegisterXRayForAllServices();
+            Tracing.RegisterForAllServices();
 
             _filesTableName = Environment.GetEnvironmentVariable("TABLE_NAME_FILES");
             var idempotencyTableName = Environment.GetEnvironmentVariable("IDEMPOTENCY_TABLE_NAME");
