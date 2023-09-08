@@ -49,7 +49,7 @@ export class ThumbnailGenerator extends Construct {
             },
             object: {
               key: Match.anyOf(
-                Match.prefix('uploads/images/jpeg'),
+                Match.prefix('uploads/images/jpg'),
                 Match.prefix('uploads/images/png')
               ),
             },

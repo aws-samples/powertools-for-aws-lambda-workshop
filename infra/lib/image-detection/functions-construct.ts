@@ -1,6 +1,6 @@
 import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+// import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
@@ -9,13 +9,16 @@ import {
   dynamoFilesTableName,
   environment,
 } from '../constants';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cdk from 'aws-cdk-lib';
 
 interface FunctionsConstructProps extends StackProps {
   landingZoneBucketName: string;
 }
 
 export class FunctionsConstruct extends Construct {
-  public readonly imageDetectionFn: NodejsFunction;
+  // public readonly imageDetectionFn: NodejsFunction;
+  public readonly imageDetectionFn: lambda.Function;
 
   public constructor(
     scope: Construct,
@@ -29,6 +32,7 @@ export class FunctionsConstruct extends Construct {
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
 
+    /*
     this.imageDetectionFn = new NodejsFunction(this, 'image-detection', {
       ...commonFunctionSettings,
       entry: '../functions/typescript/modules/module2/index.ts',
@@ -41,6 +45,34 @@ export class FunctionsConstruct extends Construct {
       bundling: {
         ...commonBundlingSettings,
       },
+    });
+    */
+
+    // DotNet - Lambda Function
+    this.imageDetectionFn = new lambda.Function(this, 'image-detection', {
+      functionName: `image-detection-${environment}`,
+      runtime: lambda.Runtime.DOTNET_6,
+      environment: {
+        ...localEnvVars,
+        TABLE_NAME_FILES: dynamoFilesTableName,
+        BUCKET_NAME_FILES: props.landingZoneBucketName,
+      },
+      code: lambda.Code.fromAsset('../functions/dotnet/', {
+        bundling: {
+          image: lambda.Runtime.DOTNET_6.bundlingImage,
+          user: 'root',
+          outputType: cdk.BundlingOutput.ARCHIVED,
+          command: [
+            '/bin/sh', '-c',
+            ' dotnet tool install -g Amazon.Lambda.Tools' +
+            ' && dotnet build' +
+            ' && dotnet lambda package --output-package /asset-output/function.zip'
+          ],
+        },
+      }),
+      handler: 'PowertoolsWorkshop::PowertoolsWorkshop.ImageDetectionFunction::FunctionHandler',
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256
     });
 
     NagSuppressions.addResourceSuppressions(
