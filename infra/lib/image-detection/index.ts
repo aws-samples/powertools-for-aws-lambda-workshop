@@ -11,10 +11,12 @@ import type { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
+import { type Language } from '../constants';
 
 interface ImageDetectionProps {
   filesBucket: Bucket;
   filesTable: Table;
+  language: Language;
 }
 
 export class ImageDetection extends Construct {
@@ -24,10 +26,11 @@ export class ImageDetection extends Construct {
   public constructor(scope: Construct, id: string, props: ImageDetectionProps) {
     super(scope, id);
 
-    const { filesBucket, filesTable } = props;
+    const { filesBucket, filesTable, language } = props;
 
     this.functions = new FunctionsConstruct(this, 'functions-construct', {
       landingZoneBucketName: filesBucket.bucketName,
+      language,
     });
     this.functions.imageDetectionFn.addToRolePolicy(
       new PolicyStatement({

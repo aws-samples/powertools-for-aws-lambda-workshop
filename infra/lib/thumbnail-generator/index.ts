@@ -1,13 +1,19 @@
-import { Stack } from 'aws-cdk-lib';
+import { Stack, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
 import { FunctionsConstruct } from './functions-construct';
 import { QueuesConstruct } from './queues-construct';
 import { StorageConstruct } from './storage-construct';
-import { environment, landingZoneBucketNamePrefix } from '../constants';
+import {
+  type Language,
+  environment,
+  landingZoneBucketNamePrefix,
+} from '../constants';
 
-interface ThumbnailGeneratorProps {}
+interface ThumbnailGeneratorProps extends StackProps {
+  language: Language;
+}
 
 export class ThumbnailGenerator extends Construct {
   public readonly functions: FunctionsConstruct;
@@ -17,15 +23,19 @@ export class ThumbnailGenerator extends Construct {
   public constructor(
     scope: Construct,
     id: string,
-    _props: ThumbnailGeneratorProps
+    props: ThumbnailGeneratorProps
   ) {
     super(scope, id);
+
+    const { language } = props;
 
     const filesBucketName = `${landingZoneBucketNamePrefix}-${
       Stack.of(this).account
     }-${environment}`;
 
-    this.functions = new FunctionsConstruct(this, 'functions-construct', {});
+    this.functions = new FunctionsConstruct(this, 'functions-construct', {
+      language,
+    });
 
     this.queues = new QueuesConstruct(this, 'queues-construct', {});
 

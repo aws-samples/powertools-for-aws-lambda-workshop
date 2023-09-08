@@ -1,7 +1,7 @@
-import { Duration } from 'aws-cdk-lib';
+import { BundlingOptions, BundlingOutput, Duration } from 'aws-cdk-lib';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Runtime, Tracing, FunctionProps } from 'aws-cdk-lib/aws-lambda';
-import { BundlingOptions } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { BundlingOptions as NodeBundlingOptions } from 'aws-cdk-lib/aws-lambda-nodejs';
 
 export const environment =
   process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
@@ -30,10 +30,23 @@ export const commonFunctionSettings: Partial<FunctionProps> = {
   memorySize: 256,
 };
 
-export const commonBundlingSettings: Partial<BundlingOptions> = {
+export const commonNodeJsBundlingSettings: Partial<NodeBundlingOptions> = {
   minify: true,
   sourceMap: true,
   externalModules: ['@aws-sdk/*'],
+};
+
+export const commonDotnetBundlingSettings: BundlingOptions = {
+  image: Runtime.DOTNET_6.bundlingImage,
+  user: 'root',
+  outputType: BundlingOutput.ARCHIVED,
+  command: [
+    '/bin/sh',
+    '-c',
+    ' dotnet tool install -g Amazon.Lambda.Tools' +
+      ' && dotnet build' +
+      ' && dotnet lambda package --output-package /asset-output/function.zip',
+  ],
 };
 
 export const commonEnvVars = {
@@ -46,3 +59,12 @@ export const commonEnvVars = {
   POWERTOOLS_METRICS_NAMESPACE: powertoolsMetricsNamespace,
   NODE_OPTIONS: '--enable-source-maps',
 };
+
+const Language = {
+  NodeJS: 'nodejs',
+  DotNet: 'dotnet',
+  Python: 'python',
+  Java: 'java',
+} as const;
+
+export type Language = (typeof Language)[keyof typeof Language];
