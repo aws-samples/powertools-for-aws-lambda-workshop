@@ -9,15 +9,13 @@ import { ImageDetection } from './image-detection';
 import { ReportingService } from './reporting-service';
 import { TrafficGenerator } from './traffic-generator';
 import { MonitoringConstruct } from './monitoring';
-import {
-  landingZoneBucketNamePrefix,
-  powertoolsServiceName,
-  environment,
-} from './constants';
+import { powertoolsServiceName, environment, Language } from './constants';
 
 export class InfraStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+
+    const language = (process.env.LANGUAGE || 'nodejs') as Language;
 
     new CfnGroup(this, 'resource-group', {
       name: `lambda-powertools-workshop-${environment}`,
@@ -47,7 +45,9 @@ export class InfraStack extends Stack {
     const thumbnailGenerator = new ThumbnailGenerator(
       this,
       'thumbnail-generator',
-      {}
+      {
+        language,
+      }
     );
     contentHubRepo.storage.grantReadWrite(
       thumbnailGenerator.functions.thumbnailGeneratorFn
@@ -68,14 +68,13 @@ export class InfraStack extends Stack {
     const imageDetection = new ImageDetection(this, 'image-detection', {
       filesBucket: contentHubRepo.storage.landingZoneBucket,
       filesTable: contentHubRepo.storage.filesTable,
+      language,
     });
 
     // Reporting Service
-    const reportingService = new ReportingService(
-      this,
-      'reporting-service',
-      {}
-    );
+    const reportingService = new ReportingService(this, 'reporting-service', {
+      language,
+    });
 
     imageDetection.functions.imageDetectionFn.addEnvironment(
       'API_KEY_SECRET_NAME',

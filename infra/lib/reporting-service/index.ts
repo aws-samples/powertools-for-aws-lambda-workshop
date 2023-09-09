@@ -1,12 +1,13 @@
 import { Construct } from 'constructs';
 import { FunctionsConstruct } from './functions-construct';
 import { ApiConstruct } from './api-construct';
-import {
-  AuthorizationType,
-  LambdaIntegration,
-} from 'aws-cdk-lib/aws-apigateway';
+import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
+import { type StackProps } from 'aws-cdk-lib';
+import { type Language } from '../constants';
 
-interface ReportingServiceProps {}
+interface ReportingServiceProps extends StackProps {
+  language: Language;
+}
 
 export class ReportingService extends Construct {
   public readonly functions: FunctionsConstruct;
@@ -15,11 +16,15 @@ export class ReportingService extends Construct {
   public constructor(
     scope: Construct,
     id: string,
-    _props: ReportingServiceProps
+    props: ReportingServiceProps
   ) {
     super(scope, id);
 
-    this.functions = new FunctionsConstruct(this, 'functions-construct', {});
+    const { language } = props;
+
+    this.functions = new FunctionsConstruct(this, 'functions-construct', {
+      language,
+    });
 
     this.api = new ApiConstruct(this, 'api-construct', {});
 

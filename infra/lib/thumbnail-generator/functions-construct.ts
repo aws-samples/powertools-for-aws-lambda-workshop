@@ -1,21 +1,37 @@
-import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
+import {
+  StackProps,
+  Stack,
+  RemovalPolicy,
+  BundlingOutput,
+  Duration,
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Code, LayerVersion } from 'aws-cdk-lib/aws-lambda';
+import {
+  Function,
+  Code,
+  LayerVersion,
+  Runtime,
+  Tracing,
+} from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
-  commonBundlingSettings,
+  commonNodeJsBundlingSettings,
+  commonDotnetBundlingSettings,
   commonEnvVars,
   dynamoFilesTableName,
   environment,
   landingZoneBucketNamePrefix,
+  type Language,
 } from '../constants';
 
-interface FunctionsConstructProps extends StackProps {}
+interface FunctionsConstructProps extends StackProps {
+  language: Language;
+}
 
 export class FunctionsConstruct extends Construct {
-  public readonly thumbnailGeneratorFn: NodejsFunction;
+  public readonly thumbnailGeneratorFn: Function;
 
   public constructor(
     scope: Construct,
@@ -23,6 +39,8 @@ export class FunctionsConstruct extends Construct {
     props: FunctionsConstructProps
   ) {
     super(scope, id);
+
+    const { language } = props;
 
     const localEnvVars = {
       ...commonEnvVars,
@@ -32,35 +50,57 @@ export class FunctionsConstruct extends Construct {
         Stack.of(this).account
       }-${environment}`,
     };
+    const functionName = `thumbnail-generator-${environment}`;
+    const resourcePhysicalId = `thumbnail-generator`;
 
-    const sharpLayer = new LayerVersion(this, 'sharp-layer', {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      compatibleRuntimes: [commonFunctionSettings.runtime!],
-      code: Code.fromAsset('../layers/sharp'),
-      description: 'Bundles Sharp lib for image processing',
-      removalPolicy: RemovalPolicy.DESTROY,
-    });
+    if (language === 'nodejs') {
+      const sharpLayer = new LayerVersion(this, 'sharp-layer', {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        compatibleRuntimes: [commonFunctionSettings.runtime!],
+        code: Code.fromAsset('../layers/sharp'),
+        description: 'Bundles Sharp lib for image processing',
+        removalPolicy: RemovalPolicy.DESTROY,
+      });
 
-    this.thumbnailGeneratorFn = new NodejsFunction(
-      this,
-      'thumbnail-generator',
-      {
+      this.thumbnailGeneratorFn = new NodejsFunction(this, resourcePhysicalId, {
         ...commonFunctionSettings,
+        functionName,
         entry: '../functions/typescript/modules/module1/index.ts',
-        functionName: `thumbnail-generator-${environment}`,
         environment: {
           ...localEnvVars,
         },
         layers: [sharpLayer],
         bundling: {
-          ...commonBundlingSettings,
+          ...commonNodeJsBundlingSettings,
           externalModules: [
-            ...(commonBundlingSettings.externalModules || []),
+            ...(commonNodeJsBundlingSettings.externalModules || []),
             'sharp',
           ],
         },
-      }
-    );
+      });
+    } else if (language === 'python') {
+      throw new Error('Python not implemented yet');
+    } else if (language === 'dotnet') {
+      this.thumbnailGeneratorFn = new Function(this, resourcePhysicalId, {
+        ...commonFunctionSettings,
+        functionName,
+        runtime: Runtime.DOTNET_6,
+        environment: {
+          ...localEnvVars,
+        },
+        code: Code.fromAsset('../functions/dotnet/', {
+          bundling: {
+            ...commonDotnetBundlingSettings,
+          },
+        }),
+        handler:
+          'PowertoolsWorkshop::PowertoolsWorkshop.ThumbnailGeneratorFunction::FunctionHandler',
+      });
+    } else if (language === 'java') {
+      throw new Error('Java not implemented yet');
+    } else {
+      throw new Error(`Language ${language} not supported`);
+    }
 
     NagSuppressions.addResourceSuppressions(
       this.thumbnailGeneratorFn,

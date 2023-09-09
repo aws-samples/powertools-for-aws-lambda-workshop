@@ -4,7 +4,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
-  commonBundlingSettings,
+  commonNodeJsBundlingSettings,
   commonEnvVars,
   environment,
 } from '../constants';
@@ -32,7 +32,7 @@ export class FunctionsConstruct extends Construct {
         ...localEnvVars,
         // COGNITO_USER_POOL_CLIENT_ID - added at deploy time
       },
-      bundling: { ...commonBundlingSettings },
+      bundling: { ...commonNodeJsBundlingSettings },
     });
 
     NagSuppressions.addResourceSuppressions(
@@ -64,7 +64,7 @@ export class FunctionsConstruct extends Construct {
         // API_URL - added at deploy time
       },
       timeout: Duration.seconds(900),
-      bundling: { ...commonBundlingSettings },
+      bundling: { ...commonNodeJsBundlingSettings },
     });
 
     NagSuppressions.addResourceSuppressions(

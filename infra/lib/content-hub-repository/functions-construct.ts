@@ -6,7 +6,7 @@ import {
   dynamoFilesTableName,
   dynamoFilesByUserGsiName,
   commonFunctionSettings,
-  commonBundlingSettings,
+  commonNodeJsBundlingSettings,
   commonEnvVars,
   environment,
   landingZoneBucketNamePrefix,
@@ -48,7 +48,7 @@ export class FunctionsConstruct extends Construct {
           TABLE_NAME_FILES: dynamoFilesTableName,
           BUCKET_NAME_FILES: filesBucketName,
         },
-        bundling: { ...commonBundlingSettings },
+        bundling: { ...commonNodeJsBundlingSettings },
       }
     );
 
@@ -83,7 +83,7 @@ export class FunctionsConstruct extends Construct {
           INDEX_NAME_FILES_BY_USER: dynamoFilesByUserGsiName,
           BUCKET_NAME_FILES: filesBucketName,
         },
-        bundling: { ...commonBundlingSettings },
+        bundling: { ...commonNodeJsBundlingSettings },
       }
     );
 
@@ -112,7 +112,7 @@ export class FunctionsConstruct extends Construct {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
       },
-      bundling: { ...commonBundlingSettings },
+      bundling: { ...commonNodeJsBundlingSettings },
     });
 
     NagSuppressions.addResourceSuppressions(
@@ -140,7 +140,7 @@ export class FunctionsConstruct extends Construct {
         ...localEnvVars,
         TABLE_NAME_FILES: dynamoFilesTableName,
       },
-      bundling: { ...commonBundlingSettings },
+      bundling: { ...commonNodeJsBundlingSettings },
     });
 
     NagSuppressions.addResourceSuppressions(

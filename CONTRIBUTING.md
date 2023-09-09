@@ -97,6 +97,18 @@ The backend resources for this project are deployed via AWS CDK. To deploy the b
 npm run infra:deploy
 ```
 
+By default, the command above will deploy the backend stack using the Node.js AWS Lambda runtime for all modules of the workshop. If you want to deploy the stack using another runtime, you can do so by setting the `LANGUAGE` environment variable to the desired runtime.
+
+```sh
+LANGUAGE=python npm run infra:deploy
+```
+
+Available runtimes are:
+- `nodejs` - Node.js 18.x
+- `python` - Python 3.11
+- `java` - Java
+- `dotnet` - .NET 6.0
+
 ### Create Frontend Config
 
 In order for the Frontend application to be able to connect to your AWS environment you need to create a configuration file at `frontend/src/aws-exports.cjs`.

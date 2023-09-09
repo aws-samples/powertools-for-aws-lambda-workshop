@@ -1,21 +1,25 @@
-import { StackProps, Stack } from 'aws-cdk-lib';
+import { StackProps, Stack, BundlingOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
-  commonBundlingSettings,
+  commonNodeJsBundlingSettings,
+  commonDotnetBundlingSettings,
   commonEnvVars,
   dynamoFilesTableName,
   environment,
+  type Language,
 } from '../constants';
+import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 
 interface FunctionsConstructProps extends StackProps {
   landingZoneBucketName: string;
+  language: Language;
 }
 
 export class FunctionsConstruct extends Construct {
-  public readonly imageDetectionFn: NodejsFunction;
+  public readonly imageDetectionFn: Function;
 
   public constructor(
     scope: Construct,
@@ -24,24 +28,54 @@ export class FunctionsConstruct extends Construct {
   ) {
     super(scope, id);
 
+    const { language } = props;
+
     const localEnvVars = {
       ...commonEnvVars,
       AWS_ACCOUNT_ID: Stack.of(this).account,
     };
+    const functionName = `image-detection-${environment}`;
+    const resourcePhysicalId = `image-detection`;
 
-    this.imageDetectionFn = new NodejsFunction(this, 'image-detection', {
-      ...commonFunctionSettings,
-      entry: '../functions/typescript/modules/module2/index.ts',
-      functionName: `image-detection-${environment}`,
-      environment: {
-        ...localEnvVars,
-        TABLE_NAME_FILES: dynamoFilesTableName,
-        BUCKET_NAME_FILES: props.landingZoneBucketName,
-      },
-      bundling: {
-        ...commonBundlingSettings,
-      },
-    });
+    if (language === 'nodejs') {
+      this.imageDetectionFn = new NodejsFunction(this, resourcePhysicalId, {
+        ...commonFunctionSettings,
+        entry: '../functions/typescript/modules/module2/index.ts',
+        functionName,
+        environment: {
+          ...localEnvVars,
+          TABLE_NAME_FILES: dynamoFilesTableName,
+          BUCKET_NAME_FILES: props.landingZoneBucketName,
+        },
+        bundling: {
+          ...commonNodeJsBundlingSettings,
+        },
+      });
+    } else if (language === 'python') {
+      throw new Error('Python not implemented yet');
+    } else if (language === 'java') {
+      throw new Error('Java not implemented yet');
+    } else if (language === 'dotnet') {
+      this.imageDetectionFn = new Function(this, resourcePhysicalId, {
+        ...commonFunctionSettings,
+        functionName,
+        runtime: Runtime.DOTNET_6,
+        environment: {
+          ...localEnvVars,
+          TABLE_NAME_FILES: dynamoFilesTableName,
+          BUCKET_NAME_FILES: props.landingZoneBucketName,
+        },
+        code: Code.fromAsset('../functions/dotnet/', {
+          bundling: {
+            ...commonDotnetBundlingSettings,
+          },
+        }),
+        handler:
+          'PowertoolsWorkshop::PowertoolsWorkshop.ImageDetectionFunction::FunctionHandler',
+      });
+    } else {
+      throw new Error(`Language ${language} not supported`);
+    }
 
     NagSuppressions.addResourceSuppressions(
       this.imageDetectionFn,
