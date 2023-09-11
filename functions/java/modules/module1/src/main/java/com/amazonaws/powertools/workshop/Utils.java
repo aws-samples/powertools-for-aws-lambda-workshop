@@ -34,12 +34,12 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class Utils {
-    private static final Logger logger = LogManager.getLogger(Utils.class);
+    private static final Logger LOGGER = LogManager.getLogger(Utils.class);
     private static final String TABLE_NAME_FILES = System.getenv("TABLE_NAME_FILES");
     private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
     private static final String APPSYNC_ENDPOINT = System.getenv("APPSYNC_ENDPOINT");
-    private static final AwsCredentialsProvider credentialsProvider = EnvironmentVariableCredentialsProvider.create();
     private static final Region AWS_REGION = Region.of(System.getenv("AWS_REGION"));
+    private static final AwsCredentialsProvider credentialsProvider = EnvironmentVariableCredentialsProvider.create();
 
     private Utils() {}
     private static final S3Client s3Client = S3Client.builder()
@@ -113,14 +113,14 @@ public class Utils {
                     }
                 }""";
     public static void markFileAs(String fileId, String status, String transformedFileKey) {
-        logger.info("Task in status {}", status);
+        LOGGER.info("Task in status {}", status);
         String graphQLMutationResponse = performGraphQLMutation(APPSYNC_ENDPOINT, UPDATE_FILE_STATUS_QUERY.formatted(UPDATE_FILE_STATUS_MUTATION, fileId, status,
                 transformedFileKey != null ? ", \"transformedFileKey\": \"" + transformedFileKey + "\"" : ""));
-        logger.debug(graphQLMutationResponse);
+        LOGGER.debug(graphQLMutationResponse);
     }
 
     private static String performGraphQLMutation(String endpoint, String jsonQuery) {
-        logger.debug(jsonQuery);
+        LOGGER.debug(jsonQuery);
 
         String host;
         String path;

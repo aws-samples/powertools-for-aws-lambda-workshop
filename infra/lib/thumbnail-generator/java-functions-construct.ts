@@ -80,6 +80,6 @@ export class FunctionsConstruct extends Construct {
   }
 
     private getFunctionPackageCommand() {
-        return ["/bin/sh", "-c", "mvn package && cp /asset-input/target/thumbnail-generator.zip /asset-output/"];
+        return ["/bin/sh", "-c", "mvn package && cp /asset-input/target/thumbnail-generator.jar /asset-output/"];
     }
 }

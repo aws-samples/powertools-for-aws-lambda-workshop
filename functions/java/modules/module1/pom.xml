@@ -7,6 +7,7 @@
     <packaging>jar</packaging>
     <name>Thumbnail Generator</name>
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <powertools.version>1.17.0</powertools.version> <!-- TODO: upgrade when #1420 is released -->

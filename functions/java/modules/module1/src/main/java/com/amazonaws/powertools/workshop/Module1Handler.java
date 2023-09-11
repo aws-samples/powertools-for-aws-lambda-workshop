@@ -25,8 +25,9 @@ import software.amazon.lambda.powertools.logging.LoggingUtils;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.tracing.Tracing;
 
+import static com.amazonaws.powertools.workshop.Utils.getImageMetadata;
+import static com.amazonaws.powertools.workshop.Utils.markFileAs;
 import static software.amazon.lambda.powertools.metrics.MetricsUtils.metricsLogger;
-import static software.amazon.lambda.powertools.tracing.CaptureMode.*;
 
 /**
  * Handler for requests to Lambda function.
@@ -38,7 +39,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
     private static final String  TRANSFORMED_IMAGE_EXTENSION = ".jpeg";
     private static final int TRANSFORMED_IMAGE_WIDTH = 720;
     private static final int TRANSFORMED_IMAGE_HEIGHT = 480;
-    private static final Logger logger = LogManager.getLogger(Module1Handler.class);
+    private static final Logger LOGGER = LogManager.getLogger(Module1Handler.class);
 
     public Module1Handler() {
         // Configure Idempotency module
@@ -57,7 +58,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
     }
 
     @Logging(logEvent = true)
-    @Tracing(captureMode = DISABLED)
+    @Tracing
     @Metrics(captureColdStart = true)
     public String handleRequest(final S3EBEvent event, final Context context) {
         Idempotency.registerLambdaContext(context);
@@ -67,7 +68,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
         object.setEtag(event.getDetail().getObject().get("etag"));
 
         // Fetch additional metadata from DynamoDB
-        Map<String, String> metadata = Utils.getImageMetadata(object.getKey());
+        Map<String, String> metadata = getImageMetadata(object.getKey());
         object.setFileId(metadata.get("fileId"));
         object.setUserId(metadata.get("userId"));
 
@@ -76,15 +77,15 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
 
         try {
             // Mark file as working
-            Utils.markFileAs(object.getFileId(), "WORKING", null);
+            markFileAs(object.getFileId(), "in-progress", null);
 
             String newObjectKey = processOneIdempotently(object);
 
             // Mark file as done
-            Utils.markFileAs(object.getFileId(), "DONE", newObjectKey);
+            markFileAs(object.getFileId(), "completed", newObjectKey);
         } catch (Exception e) {
             // Mark file as failed
-            Utils.markFileAs(object.getFileId(), "FAIL", null);
+            markFileAs(object.getFileId(), "failed", null);
             throw e;
         } finally {
             // remove metadata for subsequent lambda executions
@@ -100,7 +101,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
 
         // Get the original image from S3
         byte[] originalImageBytes = Utils.getOriginalImageBytes(s3Object);
-        logger.info("Load image from S3: {} ({}kb)", s3Object.key, originalImageBytes.length / 1024);
+        LOGGER.info("Load image from S3: {} ({}kb)", s3Object.key, originalImageBytes.length / 1024);
 
         try {
             // Create thumbnail from the original image (you'll need to implement this method)
@@ -110,7 +111,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
             Utils.storeImageThumbnail(thumbnail, newObjectKey);
 
             // Log the result
-            logger.info("Saved image on S3: {} ({}kb)", newObjectKey, thumbnail.length / 1024);
+            LOGGER.info("Saved image on S3: {} ({}kb)", newObjectKey, thumbnail.length / 1024);
 
             // Add metric
             metricsLogger().putMetric("processedImages", 1, Unit.COUNT);
