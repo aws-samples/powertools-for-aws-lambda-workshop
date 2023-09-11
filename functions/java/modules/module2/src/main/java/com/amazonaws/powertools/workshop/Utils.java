@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -72,7 +73,10 @@ public class Utils {
         if (labels == null || labels.isEmpty()) {
             throw new NoLabelsFoundException(ImageMetadata.of(fileId, userId));
         }
-        LOGGER.debug(labels);
+
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(labels.stream().map(label -> format("%s (%.2f)", label.name(), label.confidence())).collect(Collectors.joining(",", "labels=[", "]")));
+        }
 
         boolean personLabel = labels.stream().anyMatch(label -> label.name().contains("Person") && label.confidence() != null && label.confidence() > 75);
         if (!personLabel) {
@@ -91,7 +95,7 @@ public class Utils {
             throw new IllegalStateException(format("Missing apiUrl or apiKey. apiUrl: %s, apiKey: %s", apiUrl, apiKey));
         }
 
-        LOGGER.debug("Sending report to the API");
+        LOGGER.info("Sending report to the API");
         try {
             URL url = new URL(apiUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -99,7 +103,7 @@ public class Utils {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("x-api-key", apiKey);
             connection.setDoOutput(true);
-            writeBody(fileId, userId, connection);
+            writeRequestBody(fileId, userId, connection);
             connection.connect();
             if (connection.getResponseCode() != 200) {
                 throw new IOException(format("HTTP error %d, %s", connection.getResponseCode(), connection.getResponseMessage()));
@@ -107,10 +111,10 @@ public class Utils {
         } catch (IOException e) {
             throw new RuntimeException(format("Unable to call the API for fileId %s and userId %s", fileId, userId), e);
         }
-        LOGGER.debug("Report sent to the API");
+        LOGGER.info("Report sent to the API");
     }
 
-    private static void writeBody(String fileId, String userId, HttpURLConnection connection) {
+    private static void writeRequestBody(String fileId, String userId, HttpURLConnection connection) {
         try (OutputStream os = connection.getOutputStream();
              OutputStreamWriter osw = new OutputStreamWriter(os, UTF_8)) {
             osw.write("""

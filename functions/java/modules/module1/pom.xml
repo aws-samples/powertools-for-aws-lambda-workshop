@@ -109,7 +109,7 @@
     </dependencies>
 
     <build>
-        <finalName>thumbnail-generator</finalName>
+        <finalName>function</finalName>
         <plugins>
             <plugin>
                 <groupId>dev.aspectj</groupId>

@@ -86,7 +86,7 @@
     </dependencies>
 
     <build>
-        <finalName>image-detection</finalName>
+        <finalName>function</finalName>
         <plugins>
             <plugin>
                 <groupId>dev.aspectj</groupId>

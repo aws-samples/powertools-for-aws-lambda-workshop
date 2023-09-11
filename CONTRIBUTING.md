@@ -106,7 +106,7 @@ LANGUAGE=python npm run infra:deploy
 Available runtimes are:
 - `nodejs` - Node.js 18.x
 - `python` - Python 3.11
-- `java` - Java
+- `java` - Java 17
 - `dotnet` - .NET 6.0
 
 ### Create Frontend Config

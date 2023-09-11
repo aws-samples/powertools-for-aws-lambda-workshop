@@ -2,6 +2,7 @@ import { BundlingOptions, BundlingOutput, Duration } from 'aws-cdk-lib';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Runtime, Tracing, FunctionProps } from 'aws-cdk-lib/aws-lambda';
 import { BundlingOptions as NodeBundlingOptions } from 'aws-cdk-lib/aws-lambda-nodejs';
+import os from "os";
 
 export const environment =
   process.env.NODE_ENV === 'production' ? 'prod' : 'dev';
@@ -42,6 +43,19 @@ export const commonJavaFunctionSettings: Partial<FunctionProps> = {
     logRetention: RetentionDays.FIVE_DAYS,
     timeout: Duration.seconds(30),
     memorySize: 512,
+};
+
+export const commonJavaBundlingSettings: BundlingOptions = {
+    image: Runtime.JAVA_17.bundlingImage,
+    command: ["/bin/sh", "-c", "mvn package && cp /asset-input/target/function.jar /asset-output/"],
+    user: 'root',
+    outputType: BundlingOutput.ARCHIVED,
+    volumes: [
+      {
+        hostPath: `${os.homedir()}/.m2'`,
+        containerPath: '/root/.m2/'
+      }
+    ]
 };
 
 export const commonDotnetBundlingSettings: BundlingOptions = {
