@@ -10,7 +10,7 @@ import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.tracing.Tracing;
 
 /**
- * Handler for requests to Lambda function.
+ * Lambda function Handler for the reporting API
  */
 public class Module3Handler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 

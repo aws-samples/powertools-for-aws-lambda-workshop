@@ -30,7 +30,7 @@ import static com.amazonaws.powertools.workshop.Utils.markFileAs;
 import static software.amazon.lambda.powertools.metrics.MetricsUtils.metricsLogger;
 
 /**
- * Handler for requests to Lambda function.
+ * Lambda function handler for thumbnail generation
  */
 public class Module1Handler implements RequestHandler<S3EBEvent, String> {
     private static final String IDEMPOTENCY_TABLE_NAME = System.getenv("IDEMPOTENCY_TABLE_NAME");

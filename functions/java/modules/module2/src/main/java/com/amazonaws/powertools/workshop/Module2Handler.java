@@ -19,7 +19,7 @@ import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.tracing.Tracing;
 
 /**
- * Handler for requests to Lambda function.
+ * Lambda function handler for image (person) detection
  */
 public class Module2Handler implements RequestHandler<DynamodbEvent, StreamsEventResponse> {
     private static final Logger LOGGER = LogManager.getLogger(Module2Handler.class);

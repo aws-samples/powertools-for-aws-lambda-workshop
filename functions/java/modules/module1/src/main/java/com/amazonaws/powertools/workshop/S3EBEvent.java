@@ -95,9 +95,11 @@ public class S3EBEvent {
         private String version;
         private Map<String, String> bucket;
         private Map<String, String> object;
+
         @JsonProperty("request-id")
         private String requestId;
         private String requester;
+
         @JsonProperty("source-ip-address")
         private String sourceIpAddress;
         private String reason;

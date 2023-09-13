@@ -45,7 +45,8 @@ public class Utils {
             .credentialsProvider(credentialsProvider)
             .build();
 
-    private Utils() {}
+    private Utils() {
+    }
 
     /**
      * Utility function that calls the Rekognition API to get the labels of an image.
@@ -75,10 +76,14 @@ public class Utils {
         }
 
         if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(labels.stream().map(label -> format("%s (%.2f)", label.name(), label.confidence())).collect(Collectors.joining(",", "labels=[", "]")));
+            LOGGER.info(labels.stream().map(label -> format("%s (%.2f)", label.name(), label.confidence()))
+                    .collect(Collectors.joining(",", "labels=[", "]")));
         }
 
-        boolean personLabel = labels.stream().anyMatch(label -> label.name().contains("Person") && label.confidence() != null && label.confidence() > 75);
+        boolean personLabel = labels.stream().anyMatch(
+                label ->
+                        label.name() != null && label.name().contains("Person")
+                                && label.confidence() != null && label.confidence() > 75);
         if (!personLabel) {
             throw new NoPersonFoundException(ImageMetadata.of(fileId, userId));
         }
@@ -106,7 +111,8 @@ public class Utils {
             writeRequestBody(fileId, userId, connection);
             connection.connect();
             if (connection.getResponseCode() != 200) {
-                throw new IOException(format("HTTP error %d, %s", connection.getResponseCode(), connection.getResponseMessage()));
+                throw new IOException(
+                        format("HTTP error %d, %s", connection.getResponseCode(), connection.getResponseMessage()));
             }
         } catch (IOException e) {
             throw new RuntimeException(format("Unable to call the API for fileId %s and userId %s", fileId, userId), e);
