@@ -1,14 +1,17 @@
-import { StackProps, Stack, BundlingOutput } from 'aws-cdk-lib';
+import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
+  commonJavaFunctionSettings,
   commonNodeJsBundlingSettings,
+  commonJavaBundlingSettings,
   commonDotnetBundlingSettings,
   commonEnvVars,
   dynamoFilesTableName,
   environment,
+  powertoolsLoggerLogLevel,
   type Language,
 } from '../constants';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
@@ -54,7 +57,23 @@ export class FunctionsConstruct extends Construct {
     } else if (language === 'python') {
       throw new Error('Python not implemented yet');
     } else if (language === 'java') {
-      throw new Error('Java not implemented yet');
+      this.imageDetectionFn = new Function(this, resourcePhysicalId, {
+        ...commonJavaFunctionSettings,
+        functionName,
+        runtime: Runtime.JAVA_17,
+        environment: {
+          ...localEnvVars,
+          TABLE_NAME_FILES: dynamoFilesTableName,
+          BUCKET_NAME_FILES: props.landingZoneBucketName,
+          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel // different from typescript
+        },
+        code: Code.fromAsset("../functions/java/modules/module2/", {
+          bundling: {
+            ...commonJavaBundlingSettings
+          }
+        }),
+        handler: 'com.amazonaws.powertools.workshop.Module2Handler',
+      });
     } else if (language === 'dotnet') {
       this.imageDetectionFn = new Function(this, resourcePhysicalId, {
         ...commonFunctionSettings,
