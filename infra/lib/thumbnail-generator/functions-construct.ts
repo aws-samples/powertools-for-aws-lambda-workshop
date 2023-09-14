@@ -1,15 +1,6 @@
-import {
-  StackProps,
-  Stack,
-  RemovalPolicy,
-} from 'aws-cdk-lib';
+import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {
-  Function,
-  Code,
-  LayerVersion,
-  Runtime,
-} from 'aws-cdk-lib/aws-lambda';
+import { Function, Code, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
@@ -82,21 +73,20 @@ export class FunctionsConstruct extends Construct {
       throw new Error('Python not implemented yet');
     } else if (language === 'java') {
       this.thumbnailGeneratorFn = new Function(this, resourcePhysicalId, {
-            ...commonJavaFunctionSettings,
-            functionName,
-            runtime: Runtime.JAVA_17,
-            environment: {
-              ...localEnvVars,
-              POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel // different from typescript
-            },
-            code: Code.fromAsset("../functions/java/modules/module1/", {
-              bundling: {
-                ...commonJavaBundlingSettings
-              }
-            }),
-            handler: 'com.amazonaws.powertools.workshop.Module1Handler',
-          }
-      );
+        ...commonJavaFunctionSettings,
+        functionName,
+        runtime: Runtime.JAVA_17,
+        environment: {
+          ...localEnvVars,
+          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel, // different from typescript
+        },
+        code: Code.fromAsset('../functions/java/modules/module1/', {
+          bundling: {
+            ...commonJavaBundlingSettings,
+          },
+        }),
+        handler: 'com.amazonaws.powertools.workshop.Module1Handler',
+      });
     } else if (language === 'dotnet') {
       this.thumbnailGeneratorFn = new Function(this, resourcePhysicalId, {
         ...commonFunctionSettings,

@@ -36,6 +36,8 @@ export class FunctionsConstruct extends Construct {
     const localEnvVars = {
       ...commonEnvVars,
       AWS_ACCOUNT_ID: Stack.of(this).account,
+      TABLE_NAME_FILES: dynamoFilesTableName,
+      BUCKET_NAME_FILES: props.landingZoneBucketName,
     };
     const functionName = `image-detection-${environment}`;
     const resourcePhysicalId = `image-detection`;
@@ -47,8 +49,6 @@ export class FunctionsConstruct extends Construct {
         functionName,
         environment: {
           ...localEnvVars,
-          TABLE_NAME_FILES: dynamoFilesTableName,
-          BUCKET_NAME_FILES: props.landingZoneBucketName,
         },
         bundling: {
           ...commonNodeJsBundlingSettings,
@@ -63,14 +63,12 @@ export class FunctionsConstruct extends Construct {
         runtime: Runtime.JAVA_17,
         environment: {
           ...localEnvVars,
-          TABLE_NAME_FILES: dynamoFilesTableName,
-          BUCKET_NAME_FILES: props.landingZoneBucketName,
-          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel // different from typescript
+          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel, // different from typescript
         },
-        code: Code.fromAsset("../functions/java/modules/module2/", {
+        code: Code.fromAsset('../functions/java/modules/module2/', {
           bundling: {
-            ...commonJavaBundlingSettings
-          }
+            ...commonJavaBundlingSettings,
+          },
         }),
         handler: 'com.amazonaws.powertools.workshop.Module2Handler',
       });
@@ -81,8 +79,6 @@ export class FunctionsConstruct extends Construct {
         runtime: Runtime.DOTNET_6,
         environment: {
           ...localEnvVars,
-          TABLE_NAME_FILES: dynamoFilesTableName,
-          BUCKET_NAME_FILES: props.landingZoneBucketName,
         },
         code: Code.fromAsset('../functions/dotnet/', {
           bundling: {

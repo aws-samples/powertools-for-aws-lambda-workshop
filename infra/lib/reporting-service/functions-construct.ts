@@ -58,12 +58,12 @@ export class FunctionsConstruct extends Construct {
         runtime: Runtime.JAVA_17,
         environment: {
           ...localEnvVars,
-          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel // different from typescript
+          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel, // different from typescript
         },
-        code: Code.fromAsset("../functions/java/modules/module3/", {
+        code: Code.fromAsset('../functions/java/modules/module3/', {
           bundling: {
-            ...commonJavaBundlingSettings
-          }
+            ...commonJavaBundlingSettings,
+          },
         }),
         handler: 'com.amazonaws.powertools.workshop.Module3Handler',
       });
