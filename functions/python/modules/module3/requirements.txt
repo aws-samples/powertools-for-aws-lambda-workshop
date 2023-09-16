@@ -1,0 +1,5 @@
+requests
+aws-lambda-powertools[tracer]
+urllib3<2
+pillow
+requests_aws_sign
