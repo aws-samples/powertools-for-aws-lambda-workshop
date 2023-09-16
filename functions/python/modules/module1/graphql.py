@@ -4,10 +4,7 @@ from requests_aws_sign import AWSV4Sign
 from constants import REGION_NAME
 import requests
 
-graphql_endpoint = os.getenv(
-    "APPSYNC_ENDPOINT",
-    "https://uvkdn43lzfdatbtj6fsw4kolle.appsync-api.us-east-1.amazonaws.com/graphql",
-)
+graphql_endpoint = os.getenv("APPSYNC_ENDPOINT", "")
 
 
 def mark_file_as(file_id, status, transformed_file_key=None):
