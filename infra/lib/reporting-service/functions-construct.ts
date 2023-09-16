@@ -6,8 +6,11 @@ import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
   commonNodeJsBundlingSettings,
+  commonJavaFunctionSettings,
+  commonJavaBundlingSettings,
   commonEnvVars,
   environment,
+  powertoolsLoggerLogLevel,
   type Language,
 } from '../constants';
 
@@ -49,7 +52,21 @@ export class FunctionsConstruct extends Construct {
     } else if (language === 'python') {
       throw new Error('Python not implemented yet');
     } else if (language === 'java') {
-      throw new Error('Java not implemented yet');
+      this.apiEndpointHandlerFn = new Function(this, resourcePhysicalId, {
+        ...commonJavaFunctionSettings,
+        functionName,
+        runtime: Runtime.JAVA_17,
+        environment: {
+          ...localEnvVars,
+          POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel, // different from typescript
+        },
+        code: Code.fromAsset('../functions/java/modules/module3/', {
+          bundling: {
+            ...commonJavaBundlingSettings,
+          },
+        }),
+        handler: 'com.amazonaws.powertools.workshop.Module3Handler',
+      });
     } else if (language === 'dotnet') {
       // TODO: replace with a Hello World .NET Lambda
       // This was added here only to make the CDK deploy work when using .NET

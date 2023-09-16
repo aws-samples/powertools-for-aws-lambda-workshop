@@ -131,12 +131,12 @@ export class InfraStack extends Stack {
     });
 
     [
-      'InfraStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
-      'InfraStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
-      'InfraStack/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/Resource',
-      'InfraStack/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
-      'InfraStack/traffic-generator/DummyUsersProvider/framework-onEvent/Resource',
-      'InfraStack/frontend/auth-construct/pre-signup-cognito-trigger/ServiceRole/Resource',
+      'PowerToolsWorkshop/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
+      'PowerToolsWorkshop/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
+      'PowerToolsWorkshop/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/Resource',
+      'PowerToolsWorkshop/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+      'PowerToolsWorkshop/traffic-generator/DummyUsersProvider/framework-onEvent/Resource',
+      'PowerToolsWorkshop/frontend/auth-construct/pre-signup-cognito-trigger/ServiceRole/Resource',
     ].forEach((resourcePath: string) => {
       let id = 'AwsSolutions-L1';
       let reason = 'Resource created and managed by CDK.';
@@ -156,9 +156,9 @@ export class InfraStack extends Stack {
     });
 
     [
-      'InfraStack/content-hub-repo/api-construct/graphql-api/lambda-get-presigned-download-url/ServiceRole/DefaultPolicy/Resource',
-      'InfraStack/content-hub-repo/api-construct/graphql-api/files-table/ServiceRole/DefaultPolicy/Resource',
-      'InfraStack/content-hub-repo/api-construct/graphql-api/lambda-get-presigned-upload-url/ServiceRole/DefaultPolicy/Resource',
+      'PowerToolsWorkshop/content-hub-repo/api-construct/graphql-api/lambda-get-presigned-download-url/ServiceRole/DefaultPolicy/Resource',
+      'PowerToolsWorkshop/content-hub-repo/api-construct/graphql-api/files-table/ServiceRole/DefaultPolicy/Resource',
+      'PowerToolsWorkshop/content-hub-repo/api-construct/graphql-api/lambda-get-presigned-upload-url/ServiceRole/DefaultPolicy/Resource',
     ].forEach((resourcePath: string) => {
       NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
         {
@@ -169,8 +169,8 @@ export class InfraStack extends Stack {
     });
 
     [
-      'InfraStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
-      'InfraStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource',
+      'PowerToolsWorkshop/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
+      'PowerToolsWorkshop/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource',
     ].forEach((resourcePath: string) => {
       NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
         {

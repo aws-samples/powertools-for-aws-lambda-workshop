@@ -89,8 +89,8 @@ const getParams = async (path) => {
   try {
     const fileContent = await readFile(path);
     const paramsObject = JSON.parse(fileContent);
-    const paramsKeys = Object.keys(paramsObject.InfraStack);
-    const paramsValues = paramsObject.InfraStack;
+    const paramsKeys = Object.keys(paramsObject.PowerToolsWorkshop);
+    const paramsValues = paramsObject.PowerToolsWorkshop;
 
     return { keys: paramsKeys, vals: paramsValues };
   } catch (err) {
@@ -131,7 +131,7 @@ const main = async () => {
   } catch (err) {
     console.info('Unable to find output file locally, trying remotely.');
     try {
-      const stackName = 'InfraStack';
+      const stackName = 'PowerToolsWorkshop';
       console.info(`Trying to find stack with ${stackName}`);
       const stack = await getStackName(stackName);
       const params = await getStackOutputs(stack.StackName);
