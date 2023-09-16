@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import os
 from PIL import Image
 import io
 
 # Should we add stubs to make easy typing?
+
+s3_bucket_files = os.getenv("BUCKET_NAME_FILES", "aaaabbcccdddd")
+files_table_name = os.getenv("TABLE_NAME_FILES", "store_images")
+idempotency_table_name = os.getenv("IDEMPOTENCY_TABLE_NAME", "ddbtimeout")
+region_name = os.getenv("AWS_REGION", "us-east-1")
 
 
 def extract_file_id(object_key: str) -> str:
@@ -38,6 +44,8 @@ def get_original_object(s3_client, object_key: str, bucket_name: str):
             if not data:
                 break
             chunks.append(data)
+
+        print("AQUI")
         return b"".join(chunks)
     except Exception as e:
         raise Exception(

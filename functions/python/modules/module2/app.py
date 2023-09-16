@@ -5,17 +5,15 @@ from utils import (
     get_original_object,
     create_thumbnail,
     write_thumbnail_to_s3,
+    s3_bucket_files,
+    files_table_name,
+    idempotency_table_name,
+    region_name,
 )
-from graphql import mark_file_as
 from constants import (
     TRANSFORMED_IMAGE_PREFIX,
     TRANSFORMED_IMAGE_EXTENSION,
     TRANSFORM_SIZE,
-    FILES_TABLE_NAME,
-    IDEMPOTENCY_TABLE_NAME,
-    REGION_NAME,
-    S3_BUCKET_FILES,
-    FileStatus,
 )
 from aws_lambda_powertools import Logger, Metrics, Tracer
 from aws_lambda_powertools.metrics import MetricUnit
@@ -26,17 +24,21 @@ from aws_lambda_powertools.utilities.idempotency import (
     IdempotencyConfig,
 )
 
+# Data class - Use this?
+# from aws_lambda_powertools.utilities.data_classes import event_source, EventBridgeEvent
+
 # DynamoDB client
-dynamodb_client = boto3.client("dynamodb", region_name=REGION_NAME)
-s3_client = boto3.client("s3", region_name=REGION_NAME)
+dynamodb_client = boto3.client("dynamodb", region_name=region_name)
+s3_client = boto3.client("s3", region_name=region_name)
 
 logger = Logger()
 metrics = Metrics(namespace="workshop-opn301")
 tracer = Tracer()
 
 # Change table name? Get from ENV?
-persistence_layer = DynamoDBPersistenceLayer(table_name=IDEMPOTENCY_TABLE_NAME)
+persistence_layer = DynamoDBPersistenceLayer(table_name=idempotency_table_name)
 idempotency_config = IdempotencyConfig(
+    event_key_jmespath="detail.object.[etag,userId]",
     raise_on_no_idempotency_key=True,
     expires_after_seconds=60 * 60 * 2,  # 2 hours
 )
@@ -45,9 +47,9 @@ idempotency_config = IdempotencyConfig(
 @idempotent_function(
     persistence_store=persistence_layer,
     config=idempotency_config,
-    data_keyword_argument="object_etag",
+    data_keyword_argument="event",
 )
-def process_thumbnail(object_key: str, object_etag: str):
+def process_thumbnail(event: dict, object_key: str, object_etag: str):
     new_thumbnail_key: str = (
         f"{TRANSFORMED_IMAGE_PREFIX}/{uuid.uuid4()}{TRANSFORMED_IMAGE_EXTENSION}"
     )
@@ -57,7 +59,7 @@ def process_thumbnail(object_key: str, object_etag: str):
     )
 
     original_image: bytes = get_original_object(
-        s3_client=s3_client, object_key=object_key, bucket_name=S3_BUCKET_FILES
+        s3_client=s3_client, object_key=object_key, bucket_name=s3_bucket_files
     )
 
     thumbnail_size = TRANSFORM_SIZE.get("SMALL")
@@ -71,7 +73,7 @@ def process_thumbnail(object_key: str, object_etag: str):
     write_thumbnail_to_s3(
         s3_client=s3_client,
         object_key=new_thumbnail_key,
-        bucket_name=S3_BUCKET_FILES,
+        bucket_name=s3_bucket_files,
         body=thumbnail_image,
     )
 
@@ -91,26 +93,28 @@ def lambda_handler(event, context: LambdaContext):
     idempotency_config.register_lambda_context(context)
 
     # Extract file info from the event and fetch additional metadata from DynamoDB
+    # Use data class?
     object_key: str = event.get("detail", {}).get("object", {}).get("key")
     object_etag: str = event.get("detail", {}).get("object", {}).get("etag")
 
     image_metadata = get_image_metadata(
         dynamodb_client=dynamodb_client,
-        table_name=FILES_TABLE_NAME,
+        table_name=files_table_name,
         object_key=object_key,
     )
     file_id = image_metadata["fileId"]["S"]
-    # user_id = image_metadata["userId"]["S"]
+    user_id = image_metadata["userId"]["S"]
 
-    mark_file_as(file_id, FileStatus.WORKING.value)
+    # Add GraphQL API
+    # Mark file as working, this will notify subscribers that the file is being processed
 
     # try to process file using idempotency
     try:
-        process_thumbnail(object_key=object_key, object_etag=object_etag)
+        thumbnail_object_key = process_thumbnail(
+            event=event, object_key=object_key, object_etag=object_etag
+        )
 
-        mark_file_as(file_id, FileStatus.DONE.value)
-
+        # ADD GRAPHQL API
     except Exception as exc:
-        mark_file_as(file_id, FileStatus.FAIL.value)
         logger.exception("An unexpected error occurred", log=exc)
         raise Exception(exc)
