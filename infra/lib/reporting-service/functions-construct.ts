@@ -2,6 +2,7 @@ import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Function, Runtime, Code } from 'aws-cdk-lib/aws-lambda';
+import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha'
 import { NagSuppressions } from 'cdk-nag';
 import {
   commonFunctionSettings,
@@ -50,7 +51,17 @@ export class FunctionsConstruct extends Construct {
         },
       });
     } else if (language === 'python') {
-      throw new Error('Python not implemented yet');
+      this.apiEndpointHandlerFn = new PythonFunction(this, resourcePhysicalId, {
+        ...commonFunctionSettings,
+        entry: '../functions/python/modules/module2/',
+        functionName,
+        index: 'app.py',
+        runtime: Runtime.PYTHON_3_11,
+        handler: 'lambda_handler',
+        environment: {
+          ...localEnvVars,
+        },
+      });
     } else if (language === 'java') {
       this.apiEndpointHandlerFn = new Function(this, resourcePhysicalId, {
         ...commonJavaFunctionSettings,

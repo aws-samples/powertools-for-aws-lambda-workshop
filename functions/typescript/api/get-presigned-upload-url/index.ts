@@ -57,7 +57,7 @@ export const handler = middy(
         },
       });
 
-      logger.info('ile', {
+      logger.info('File', {
         details: { url: uploadUrl, id: fileId },
       });
 
