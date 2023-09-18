@@ -106,9 +106,9 @@ def lambda_handler(event, context: LambdaContext):
 
     # try to process file using idempotency
     try:
-        process_thumbnail(object_key=object_key, object_etag=object_etag)
+        processed_image = process_thumbnail(object_key=object_key, object_etag=object_etag)
 
-        mark_file_as(file_id, FileStatus.DONE.value)
+        mark_file_as(file_id, FileStatus.DONE.value, processed_image)
 
     except Exception as exc:
         mark_file_as(file_id, FileStatus.FAIL.value)

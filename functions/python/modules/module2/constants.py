@@ -1,8 +1,6 @@
-TRANSFORMED_IMAGE_PREFIX = "transformed/image/jpg"
-TRANSFORMED_IMAGE_EXTENSION = ".jpeg"
+from enum import Enum
+import os
 
-TRANSFORM_SIZE = {
-    "SMALL": {"width": 720, "height": 480},
-    "MEDIUM": {"width": 1280, "height": 720},
-    "LARGE": {"width": 1920, "height": 1080},
-}
+S3_BUCKET_FILES = os.getenv("BUCKET_NAME_FILES", "")
+APIURL = os.getenv("API_URL_PARAMETER_NAME", "")
+APIKEY = os.getenv("API_KEY_SECRET_NAME", "")

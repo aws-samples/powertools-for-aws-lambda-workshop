@@ -1,83 +1,65 @@
-from __future__ import annotations
+import boto3
+from exceptions import NoLabelsFoundError, NoPersonFoundError, ImageDetectionError
+import requests
+import json
+from aws_lambda_powertools.utilities import parameters
+from aws_lambda_powertools import Logger
+from constants import APIKEY, APIURL
+from botocore import errorfactory
 
-import os
-from PIL import Image
-import io
+logger = Logger()
 
-# Should we add stubs to make easy typing?
+rekognition_client = boto3.client('rekognition')
 
-s3_bucket_files = os.getenv("BUCKET_NAME_FILES", "aaaabbcccdddd")
-files_table_name = os.getenv("TABLE_NAME_FILES", "store_images")
-idempotency_table_name = os.getenv("IDEMPOTENCY_TABLE_NAME", "ddbtimeout")
-region_name = os.getenv("AWS_REGION", "us-east-1")
-
-
-def extract_file_id(object_key: str) -> str:
-    return object_key.split("/")[-1].split(".")[0]
-
-
-def get_image_metadata(dynamodb_client, table_name: str, object_key: str):
+def get_labels(bucket_name, file_id, user_id, transformed_file_key):
     try:
-        response = dynamodb_client.get_item(
-            TableName=table_name,
-            Key={"id": {"S": extract_file_id(object_key)}},
-            ProjectionExpression="id, userId",
+        response = rekognition_client.detect_labels(
+            Image={
+                'S3Object': {
+                    'Bucket': bucket_name,
+                    'Name': transformed_file_key,
+                },
+            }
         )
 
-        if "Item" not in response:
-            raise Exception("File metadata not found")
+        labels = response['Labels']
 
-        return {"fileId": response["Item"]["id"], "userId": response["Item"]["userId"]}
-    except Exception as e:
-        raise e
+        if not labels or len(labels) == 0:
+            raise NoLabelsFoundError
 
+        person_label = next(
+            (label for label in labels if label.get('Name', '') == 'Person' and label.get('Confidence', 0) > 75),
+            None
+        )
+        if not person_label:
+            raise NoPersonFoundError
 
-def get_original_object(s3_client, object_key: str, bucket_name: str):
-
-    try:
-        response = s3_client.get_object(Bucket=bucket_name, Key=object_key)
-        body = response["Body"]
-
-        chunks = []
-        while True:
-            data = body.read(1024)  # 1kb I think it's ok
-            if not data:
-                break
-            chunks.append(data)
-
-        print("AQUI")
-        return b"".join(chunks)
-    except Exception as e:
-        raise Exception(
-            f"Error getting file from S3 -> {str(e)}"
-        )  # Handle or log the exception as needed
+    except errorfactory.ClientError:
+        raise ImageDetectionError("Object not found in S3")
 
 
-def create_thumbnail(original_image: bytes, width: int, height: int) -> bytes | None:
-    try:
-        # Create a PIL Image object from the image bytes
-        image = Image.open(io.BytesIO(original_image))
+def report_image_issue(file_id: str, user_id: str):
+    # Get the apiUrl and apiKey
+    # You can replace these with the actual values or retrieve them from a secret manager.
+    api_url = parameters.get_parameter(APIURL)
+    api_key = parameters.get_secret(APIKEY)
 
-        # Resize the image to the specified width and height
-        image.thumbnail((width, height))
+    if not api_url or not api_key:
+        raise Exception(f"Missing apiUrl or apiKey. apiUrl: {api_url}, apiKey: {api_key}")
 
-        # Convert the image to JPEG format and return the bytes
-        buffer = io.BytesIO()
-        image.save(buffer, format="JPEG")
-        return buffer.getvalue()
-    except Exception as e:
-        # Handle any exceptions that may occur during image processing
-        print(f"Error creating thumbnail: {str(e)}")
-        return None
+    # Send the report to the API
+    headers = {
+        'Content-Type': 'application/json',
+        'x-api-key': api_key,
+    }
+    data = {
+        'fileId': file_id,
+        'userId': user_id,
+    }
 
+    logger.debug('Sending report to the API')
 
-def write_thumbnail_to_s3(
-    s3_client, object_key: str, bucket_name: str, body: bytes = None
-):
-    try:
-        file_body = body
-        # Upload the object to the specified S3 bucket
-        s3_client.put_object(Bucket=bucket_name, Key=object_key, Body=file_body)
-    except Exception as e:
-        # Handle any exceptions that may occur during the S3 upload
-        print(f"Error writing to S3: {str(e)}")
+    requests.post(api_url, headers=headers, data=json.dumps(data))
+
+    logger.debug('report sent to the API')
+
