@@ -1,5 +1,6 @@
 import boto3
 import uuid
+from dataclasses import dataclass
 from utils import (
     get_image_metadata,
     get_original_object,
@@ -26,6 +27,9 @@ from aws_lambda_powertools.utilities.idempotency import (
     IdempotencyConfig,
 )
 
+# Data class - Use this?
+# from aws_lambda_powertools.utilities.data_classes import event_source, EventBridgeEvent
+
 # DynamoDB client
 dynamodb_client = boto3.client("dynamodb", region_name=REGION_NAME)
 s3_client = boto3.client("s3", region_name=REGION_NAME)
@@ -34,9 +38,19 @@ logger = Logger()
 metrics = Metrics(namespace="workshop-opn301")
 tracer = Tracer()
 
+
+@dataclass
+class TransformImage:
+    file_id: str
+    user_id: str
+    object_key: str
+    object_etag: str
+
+
 # Change table name? Get from ENV?
 persistence_layer = DynamoDBPersistenceLayer(table_name=IDEMPOTENCY_TABLE_NAME)
 idempotency_config = IdempotencyConfig(
+    event_key_jmespath="[user_id, object_etag]",
     raise_on_no_idempotency_key=True,
     expires_after_seconds=60 * 60 * 2,  # 2 hours
 )
@@ -45,9 +59,13 @@ idempotency_config = IdempotencyConfig(
 @idempotent_function(
     persistence_store=persistence_layer,
     config=idempotency_config,
-    data_keyword_argument="object_etag",
+    data_keyword_argument="transform_image",
 )
-def process_thumbnail(object_key: str, object_etag: str):
+def process_thumbnail(transform_image: TransformImage):
+
+    object_key = transform_image.object_key
+    object_etag = transform_image.object_etag
+
     new_thumbnail_key: str = (
         f"{TRANSFORMED_IMAGE_PREFIX}/{uuid.uuid4()}{TRANSFORMED_IMAGE_EXTENSION}"
     )
@@ -91,6 +109,7 @@ def lambda_handler(event, context: LambdaContext):
     idempotency_config.register_lambda_context(context)
 
     # Extract file info from the event and fetch additional metadata from DynamoDB
+    # Use data class?
     object_key: str = event.get("detail", {}).get("object", {}).get("key")
     object_etag: str = event.get("detail", {}).get("object", {}).get("etag")
 
@@ -100,16 +119,24 @@ def lambda_handler(event, context: LambdaContext):
         object_key=object_key,
     )
     file_id = image_metadata["fileId"]["S"]
-    # user_id = image_metadata["userId"]["S"]
+    user_id = image_metadata["userId"]["S"]
 
     mark_file_as(file_id, FileStatus.WORKING.value)
 
     # try to process file using idempotency
     try:
-        processed_image = process_thumbnail(object_key=object_key, object_etag=object_etag)
+        transform_image = TransformImage(
+            file_id=file_id,
+            user_id=user_id,
+            object_key=object_key,
+            object_etag=object_etag,
+        )
 
-        mark_file_as(file_id, FileStatus.DONE.value, processed_image)
+        process_thumbnail(transform_image=transform_image)
 
+        mark_file_as(file_id, FileStatus.DONE.value)
+
+        # ADD GRAPHQL API
     except Exception as exc:
         mark_file_as(file_id, FileStatus.FAIL.value)
         logger.exception("An unexpected error occurred", log=exc)
