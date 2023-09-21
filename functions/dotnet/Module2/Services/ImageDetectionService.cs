@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Amazon.Lambda.DynamoDBEvents;
 using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
 using AWS.Lambda.Powertools.Logging;
@@ -13,14 +12,16 @@ using AWS.Lambda.Powertools.Parameters.SecretsManager;
 using AWS.Lambda.Powertools.Parameters.SimpleSystemsManagement;
 using AWS.Lambda.Powertools.Tracing;
 
-namespace PowertoolsWorkshop;
+namespace PowertoolsWorkshop.Module2.Services;
 
-public interface IImageDetectionProcessor
+public interface IImageDetectionService
 {
-    Task ProcessRecord(DynamoDBEvent.DynamodbStreamRecord record);
+    Task<bool> HasPersonLabel(string fileId, string userId, string objectKey);
+    
+    Task ReportImageIssue(string fileId, string userId);
 }
 
-public class ImageDetectionProcessor : IImageDetectionProcessor
+public class ImageDetectionService : IImageDetectionService
 {
     private static string _filesBucketName;
     private static string _apiUrlParameterName;
@@ -28,34 +29,23 @@ public class ImageDetectionProcessor : IImageDetectionProcessor
     private static IAmazonRekognition _rekognitionClient;
     private static ISsmProvider _ssmProvider;
     private static ISecretsProvider _secretsProvider;
-    private static IApiOperations _apiOperations;
+    private static IApiService _apiService;
 
-    public ImageDetectionProcessor()
+    public ImageDetectionService()
     {
         _filesBucketName = Environment.GetEnvironmentVariable("BUCKET_NAME_FILES");
         _apiUrlParameterName = Environment.GetEnvironmentVariable("API_URL_PARAMETER_NAME");
         _apiKeySecretName = Environment.GetEnvironmentVariable("API_KEY_SECRET_NAME");
 
+        _apiService = new ApiService();
         _rekognitionClient = new AmazonRekognitionClient();
-        _apiOperations = new ApiOperations();
 
         _ssmProvider = ParametersManager.SsmProvider;
         _secretsProvider = ParametersManager.SecretsProvider;
     }
 
     [Tracing]
-    public async Task ProcessRecord(DynamoDBEvent.DynamodbStreamRecord record)
-    {
-        var fileId = record.Dynamodb.NewImage["id"].S;
-        var userId = record.Dynamodb.NewImage["userId"].S;
-        var transformedFileKey = record.Dynamodb.NewImage["transformedFileKey"].S;
-
-        if (!await HasPersonLabel(fileId, userId, transformedFileKey).ConfigureAwait(false))
-            await ReportImageIssue(fileId, userId).ConfigureAwait(false);
-    }
-
-    [Tracing]
-    private async Task<bool> HasPersonLabel(string fileId, string userId, string transformedFileKey)
+    public async Task<bool> HasPersonLabel(string fileId, string userId, string objectKey)
     {
         Logger.LogInformation($"Get labels for File Id: {fileId}");
         Tracing.AddAnnotation("FileId", fileId);
@@ -67,7 +57,7 @@ public class ImageDetectionProcessor : IImageDetectionProcessor
                 S3Object = new S3Object
                 {
                     Bucket = _filesBucketName,
-                    Name = transformedFileKey
+                    Name = objectKey
                 },
             }
         }).ConfigureAwait(false);
@@ -91,7 +81,7 @@ public class ImageDetectionProcessor : IImageDetectionProcessor
     }
 
     [Tracing]
-    private async Task ReportImageIssue(string fileId, string userId)
+    public async Task ReportImageIssue(string fileId, string userId)
     {
         var apiUrl = await _ssmProvider.GetAsync(_apiUrlParameterName).ConfigureAwait(false);
         var apiKey = await _secretsProvider.GetAsync(_apiKeySecretName).ConfigureAwait(false);
@@ -101,7 +91,7 @@ public class ImageDetectionProcessor : IImageDetectionProcessor
 
         Logger.LogInformation("Sending report to the API");
 
-        await _apiOperations.PosAsJsonAsync(apiUrl, apiKey, new { fileId, userId }).ConfigureAwait(false);
+        await _apiService.PosAsJsonAsync(apiUrl, apiKey, new { fileId, userId }).ConfigureAwait(false);
 
         Logger.LogInformation("Report sent to the API");
     }

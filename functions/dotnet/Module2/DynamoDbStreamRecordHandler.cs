@@ -6,21 +6,27 @@ using System.Threading.Tasks;
 using Amazon.Lambda.DynamoDBEvents;
 using AWS.Lambda.Powertools.BatchProcessing;
 using AWS.Lambda.Powertools.BatchProcessing.DynamoDb;
+using PowertoolsWorkshop.Module2.Services;
 
 namespace PowertoolsWorkshop;
 
 public class DynamoDbStreamRecordHandler : IDynamoDbStreamRecordHandler
 {
-    private static IImageDetectionProcessor _imageDetectionProcessor;
+    private static IImageDetectionService _imageDetectionService;
 
     public DynamoDbStreamRecordHandler()
     {
-        _imageDetectionProcessor = new ImageDetectionProcessor();
+        _imageDetectionService = new ImageDetectionService();
     }
 
     public async Task<RecordHandlerResult> HandleAsync(DynamoDBEvent.DynamodbStreamRecord record, CancellationToken cancellationToken)
     {
-        await _imageDetectionProcessor.ProcessRecord(record);
+        var fileId = record.Dynamodb.NewImage["id"].S;
+        var userId = record.Dynamodb.NewImage["userId"].S;
+        var transformedFileKey = record.Dynamodb.NewImage["transformedFileKey"].S;
+
+        if (!await _imageDetectionService.HasPersonLabel(fileId, userId, transformedFileKey).ConfigureAwait(false))
+            await _imageDetectionService.ReportImageIssue(fileId, userId).ConfigureAwait(false);
         return await Task.FromResult(RecordHandlerResult.None);
     }
 }

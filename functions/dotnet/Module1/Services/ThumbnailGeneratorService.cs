@@ -3,109 +3,53 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using Amazon.Lambda.CloudWatchEvents.S3Events;
-using Amazon.Lambda.Core;
 using Amazon.S3;
 using Amazon.S3.Model;
 using AWS.Lambda.Powertools.Idempotency;
 using AWS.Lambda.Powertools.Logging;
-using AWS.Lambda.Powertools.Metrics;
 using AWS.Lambda.Powertools.Tracing;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
-
-namespace PowertoolsWorkshop
+namespace PowertoolsWorkshop.Module1.Services
 {
-    public class ThumbnailGeneratorFunction
+    public interface IThumbnailGeneratorService
     {
-        private static IAmazonS3 _s3Client;
-        private static IImageResizer _imageResizer;
-        private static IAmazonDynamoDB _dynamoDb;
-        private static IAppSyncOperations _appSyncOperations;
+        Task<string> GenerateThumbnailAsync(string objectKey, string fileBucket, string etag);
+
+        Task MarkFileAsAsync(string fileId, string status, string newObjectKey = null);
+    }
+    
+    public class ThumbnailGeneratorService : IThumbnailGeneratorService
+    {
         private static string _filesTableName;
+        private static IAmazonS3 _s3Client;
+        private static IImageManipulationService _imageManipulationService;
+        private static IAmazonDynamoDB _dynamoDb;
+        private static IAppSyncService _appSyncService;
 
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
         /// the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
         /// region the Lambda function is executed in.
         /// </summary>
-        public ThumbnailGeneratorFunction()
+        public ThumbnailGeneratorService()
         {
             Tracing.RegisterForAllServices();
 
             _filesTableName = Environment.GetEnvironmentVariable("TABLE_NAME_FILES");
-            var idempotencyTableName = Environment.GetEnvironmentVariable("IDEMPOTENCY_TABLE_NAME");
             var appSyncEndpoint = Environment.GetEnvironmentVariable("APPSYNC_ENDPOINT");
-            
-            Idempotency.Configure(builder => builder.UseDynamoDb(idempotencyTableName));
 
             _s3Client = new AmazonS3Client();
-            _imageResizer = new ImageResizer();
+            _imageManipulationService = new ImageManipulationService();
             _dynamoDb = new AmazonDynamoDBClient();
-            _appSyncOperations = new AppSyncOperations(appSyncEndpoint);
+            _appSyncService = new AppSyncService(appSyncEndpoint);
         }
-
-        /// <summary>
-        /// This method is called for every Lambda invocation. This method takes in an S3 event object and can be used 
-        /// to respond to S3 notifications.
-        /// </summary>
-        /// <param name="evnt"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        [Metrics(CaptureColdStart = true)]
-        [Tracing(CaptureMode = TracingCaptureMode.ResponseAndError)]
-        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.PascalCase)]
-        public async Task FunctionHandler(S3ObjectCreateEvent evnt, ILambdaContext context)
-        {
-            Idempotency.RegisterLambdaContext(context);
-
-            var etag = evnt.Detail.Object.ETag;
-            var objectKey = evnt.Detail.Object.Key;
-            var filesBucket = evnt.Detail.Bucket.Name;
-            var fileId = GetFileId(objectKey);
-
-            // Mark file as working, this will notify subscribers that the file is being processed.
-            await MarkFileAs(fileId, FileStatus.Working).ConfigureAwait(false);
-
-            try
-            {
-                // Generate a thumbnail from uploaded images, and store it on S3
-                var newObjectKey = await GenerateThumbnail(objectKey, filesBucket, etag).ConfigureAwait(false);
-
-                Logger.LogInformation($"Transformed key {newObjectKey} is created for object key {objectKey}");
-
-                // Mark file as completed, this will notify subscribers that the file is processed.
-                await MarkFileAs(fileId, FileStatus.Completed, newObjectKey).ConfigureAwait(false);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e);
-
-                // Mark file as failed, this will notify subscribers that the file processing is failed.
-                await MarkFileAs(fileId, FileStatus.Failed).ConfigureAwait(false);
-            }
-        }
-
-        private static string GetFileId(string objectKey)
-        {
-            if (string.IsNullOrWhiteSpace(objectKey))
-                return string.Empty;
-
-            return objectKey
-                .Split('/')
-                .Last()
-                .Split('.')
-                .First();
-        }
-
+        
         [Tracing]
         [Idempotent]
-        private async Task<string> GenerateThumbnail(string objectKey, string fileBucket, [IdempotencyKey] string etag)
+        public async Task<string> GenerateThumbnailAsync(string objectKey, string fileBucket, [IdempotencyKey] string etag)
         {
             Logger.LogInformation($"Generate Thumbnail for Object Key: {objectKey} and Etag: {etag}");
 
@@ -120,7 +64,7 @@ namespace PowertoolsWorkshop
                 .ConfigureAwait(false);
 
             // Create thumbnail from original image
-            var thumbnailStream = await _imageResizer
+            var thumbnailStream = await _imageManipulationService
                 .ResizeAsync(getOriginalImageResponse.ResponseStream, TransformSize.Small)
                 .ConfigureAwait(false);
 
@@ -144,7 +88,7 @@ namespace PowertoolsWorkshop
         }
 
         [Tracing]
-        private async Task MarkFileAs(string fileId, string status, string newObjectKey = null)
+        public async Task MarkFileAsAsync(string fileId, string status, string newObjectKey = null)
         {
             Logger.LogInformation($"Marking file as {status}...");
 
@@ -191,7 +135,7 @@ namespace PowertoolsWorkshop
                 },
             };
 
-            await _appSyncOperations.RunGraphql
+            await _appSyncService.RunGraphql
                 (
                     Mutations.UpdateFileStatus,
                     "UpdateFileStatus",

@@ -19,12 +19,12 @@
     <PackageReference Include="AWS.Lambda.Powertools.Metrics" Version="1.4.2" />
     <PackageReference Include="AWS.Lambda.Powertools.Parameters" Version="1.1.2" />
     <PackageReference Include="AWS.Lambda.Powertools.Tracing" Version="1.3.2" />
-    <PackageReference Include="AWSSDK.AppSync" Version="3.7.200.42" />
-    <PackageReference Include="AWSSDK.Core" Version="3.7.202.11" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.201.13" />
-    <PackageReference Include="AWSSDK.Rekognition" Version="3.7.200.42" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.203.17" />
+    <PackageReference Include="AWSSDK.AppSync" Version="3.7.200.43" />
+    <PackageReference Include="AWSSDK.Core" Version="3.7.202.12" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.201.14" />
+    <PackageReference Include="AWSSDK.Rekognition" Version="3.7.200.43" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.204" />
     <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.12.0" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.5" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.6" />
   </ItemGroup>
 </Project>

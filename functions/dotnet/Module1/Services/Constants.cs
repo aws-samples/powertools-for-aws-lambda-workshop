@@ -3,7 +3,7 @@
 
 using System.Drawing;
 
-namespace PowertoolsWorkshop;
+namespace PowertoolsWorkshop.Module1.Services;
 
 public static class Constants
 {
