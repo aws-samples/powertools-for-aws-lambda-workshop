@@ -9,6 +9,7 @@ import {
   commonNodeJsBundlingSettings,
   commonJavaFunctionSettings,
   commonJavaBundlingSettings,
+  commonDotnetBundlingSettings,
   commonEnvVars,
   environment,
   powertoolsLoggerLogLevel,
@@ -79,24 +80,20 @@ export class FunctionsConstruct extends Construct {
         handler: 'com.amazonaws.powertools.workshop.Module3Handler',
       });
     } else if (language === 'dotnet') {
-      // TODO: replace with a Hello World .NET Lambda
-      // This was added here only to make the CDK deploy work when using .NET
       this.apiEndpointHandlerFn = new Function(this, resourcePhysicalId, {
         ...commonFunctionSettings,
         functionName,
-        runtime: Runtime.NODEJS_18_X,
-        code: Code.fromInline(`
-          module.exports = (event, context) => {
-            console.log('event', event);
-            return {
-              statusCode: 200,
-              body: JSON.stringify({
-                message: 'Hello from Lambda!'
-              })
-            };
-          };
-        `),
-        handler: 'index.handler',
+        runtime: Runtime.DOTNET_6,
+        environment: {
+          ...localEnvVars,
+        },
+        code: Code.fromAsset('../functions/dotnet/', {
+          bundling: {
+            ...commonDotnetBundlingSettings,
+          },
+        }),
+        handler:
+          'PowertoolsWorkshop::PowertoolsWorkshop.ApiEndpointHandlerFunction::FunctionHandler',
       });
     } else {
       throw new Error(`Language ${language} not supported`);
