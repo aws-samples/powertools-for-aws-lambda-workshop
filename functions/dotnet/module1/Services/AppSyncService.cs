@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,19 +15,19 @@ using Amazon.Runtime.Internal.Auth;
 using Amazon.Util;
 using Newtonsoft.Json;
 
-namespace PowertoolsWorkshop;
+namespace PowertoolsWorkshop.Module1.Services;
 
-public interface IAppSyncOperations
+public interface IAppSyncService
 {
     Task RunGraphql(string query, string operationName, Dictionary<string, object> variables);
 }
 
-public class AppSyncOperations : IAppSyncOperations
+public class AppSyncService : IAppSyncService
 {
     private readonly Uri _graphQlEndpoint;
     private readonly Amazon.RegionEndpoint _awsRegion;
 
-    public AppSyncOperations(string graphQlEndpoint, string awsRegion = null)
+    public AppSyncService(string graphQlEndpoint, string awsRegion = null)
     {
         _graphQlEndpoint = new Uri(graphQlEndpoint);
         if (string.IsNullOrWhiteSpace(awsRegion))

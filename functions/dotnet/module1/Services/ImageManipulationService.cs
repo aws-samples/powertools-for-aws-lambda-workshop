@@ -1,17 +1,20 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 using System;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using SkiaSharp;
 
-namespace PowertoolsWorkshop;
+namespace PowertoolsWorkshop.Module1.Services;
 
-public interface IImageResizer
+public interface IImageManipulationService
 {
     Task<Stream> ResizeAsync(Stream stream, Size size);
 }
 
-public class ImageResizer : IImageResizer
+public class ImageManipulationService : IImageManipulationService
 {
     public async Task<Stream> ResizeAsync(Stream stream, Size maxSize)
     {

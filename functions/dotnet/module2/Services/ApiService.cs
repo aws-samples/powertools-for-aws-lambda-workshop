@@ -1,3 +1,6 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 using System;
 using System.Net.Http;
 using System.Net.Mime;
@@ -6,14 +9,14 @@ using System.Threading.Tasks;
 using Amazon.Util;
 using Newtonsoft.Json;
 
-namespace PowertoolsWorkshop;
+namespace PowertoolsWorkshop.Module2.Services;
 
-public interface IApiOperations
+public interface IApiService
 {
     Task PosAsJsonAsync(string apiUrl, string apiKey, object content);
 }
 
-public class ApiOperations : IApiOperations
+public class ApiService : IApiService
 {
     public async Task PosAsJsonAsync(string apiUrl, string apiKey, object content)
     {

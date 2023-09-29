@@ -1,6 +1,10 @@
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 using System.Drawing;
 
-namespace PowertoolsWorkshop;
+namespace PowertoolsWorkshop.Module1.Services;
+
 public static class Constants
 {
     public const string TransformedImagePrefix = "transformed/image/jpg";
@@ -42,5 +46,4 @@ public static class Mutations
             }
         }
     ";
-
 }
