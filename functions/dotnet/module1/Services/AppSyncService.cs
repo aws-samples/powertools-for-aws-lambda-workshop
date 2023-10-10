@@ -19,7 +19,7 @@ namespace PowertoolsWorkshop.Module1.Services;
 
 public interface IAppSyncService
 {
-    Task RunGraphql(string query, string operationName, Dictionary<string, object> variables);
+    Task NotifySubscribersAsync(string fileId, string status, string newObjectKey);
 }
 
 public class AppSyncService : IAppSyncService
@@ -27,15 +27,40 @@ public class AppSyncService : IAppSyncService
     private readonly Uri _graphQlEndpoint;
     private readonly Amazon.RegionEndpoint _awsRegion;
 
-    public AppSyncService(string graphQlEndpoint, string awsRegion = null)
+    public AppSyncService(string graphQlEndpoint = null, string awsRegion = null)
     {
+        if (string.IsNullOrWhiteSpace(graphQlEndpoint))
+            graphQlEndpoint = Environment.GetEnvironmentVariable("APPSYNC_ENDPOINT");
+        if (string.IsNullOrWhiteSpace(graphQlEndpoint))
+            throw new ArgumentNullException(nameof(graphQlEndpoint), "GraphQLEndpoint is required");
         _graphQlEndpoint = new Uri(graphQlEndpoint);
         if (string.IsNullOrWhiteSpace(awsRegion))
             awsRegion = Environment.GetEnvironmentVariable("AWS_REGION");
         _awsRegion = Amazon.RegionEndpoint.GetBySystemName(awsRegion);
     }
 
-    public async Task RunGraphql(string query, string operationName, Dictionary<string, object> variables)
+    public async Task NotifySubscribersAsync(string fileId, string status, string newObjectKey)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            {
+                "input", new
+                {
+                    id = fileId, status,
+                    transformedFileKey = newObjectKey,
+                }
+            },
+        };
+
+        await RunGraphqlAsync
+            (
+                Mutations.UpdateFileStatus,
+                "UpdateFileStatus",
+                variables)
+            .ConfigureAwait(false);
+    }
+
+    private async Task RunGraphqlAsync(string query, string operationName, Dictionary<string, object> variables)
     {
         var immutableCredentials =
             await FallbackCredentialsFactory

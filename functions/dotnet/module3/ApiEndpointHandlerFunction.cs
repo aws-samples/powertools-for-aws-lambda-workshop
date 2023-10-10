@@ -10,7 +10,6 @@ using Amazon.Util;
 using AWS.Lambda.Powertools.Logging;
 using AWS.Lambda.Powertools.Metrics;
 using AWS.Lambda.Powertools.Tracing;
-using Microsoft.AspNetCore.Http;
 
 namespace PowertoolsWorkshop
 {
@@ -34,7 +33,7 @@ namespace PowertoolsWorkshop
             return new APIGatewayProxyResponse
             {
                 Body = JsonSerializer.Serialize(body),
-                StatusCode = StatusCodes.Status200OK,
+                StatusCode = 200,
                 Headers = new Dictionary<string, string>
                 {
                     { HeaderKeys.ContentTypeHeader, MediaTypeNames.Application.Json }

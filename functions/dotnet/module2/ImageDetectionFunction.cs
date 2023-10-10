@@ -27,8 +27,8 @@ namespace PowertoolsWorkshop
         }
 
         /// <summary>
-        /// This method is called for every Lambda invocation. This method takes in an S3 event object and can be used 
-        /// to respond to S3 notifications.
+        /// This method is called for every Lambda invocation. This method takes in a DynamoDB event object 
+        /// and can be used to respond to DynamoDB stream notifications.
         /// </summary>
         /// <param name="dynamoEvent"></param>
         /// <param name="context"></param>
