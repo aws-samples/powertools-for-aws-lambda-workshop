@@ -1,14 +1,9 @@
-import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
-import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { DetectLabelsCommand } from '@aws-sdk/client-rekognition';
 import { rekognitionClient } from '@commons/clients/rekognition';
 import { tracer } from '@commons/powertools';
 import { Headers, fetch } from 'undici';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import { logger } from './index';
-
-const apiUrlParameterName = process.env.API_URL_PARAMETER_NAME || '';
-const apiKeySecretName = process.env.API_KEY_SECRET_NAME || '';
+import { logger } from '@commons/powertools';
 
 const isError = (error: unknown): error is Error => {
   return error instanceof Error;
@@ -80,13 +75,13 @@ const getLabels = async (
  */
 const reportImageIssue = async (
   fileId: string,
-  userId: string
+  userId: string,
+  options: {
+    apiUrl?: string;
+    apiKey?: string;
+  } = {}
 ): Promise<void> => {
-  // Get the apiUrl and apiKey from SSM and Secrets Manager respectively
-  const apiUrl = await getParameter<string>(apiUrlParameterName, {
-    maxAge: 900,
-  });
-  const apiKey = await getSecret<string>(apiKeySecretName, { maxAge: 900 });
+  const { apiUrl, apiKey } = options;
   if (!apiUrl || !apiKey) {
     throw new Error(
       `Missing apiUrl or apiKey. apiUrl: ${apiUrl}, apiKey: ${apiKey}`

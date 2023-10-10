@@ -1,6 +1,12 @@
-import { logger, tracer } from '@commons/powertools';
+import { logger, metrics, tracer } from '@commons/powertools';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { MetricUnits, logMetrics } from '@aws-lambda-powertools/metrics';
+import {
+  IdempotencyConfig,
+  makeIdempotent,
+} from '@aws-lambda-powertools/idempotency';
+import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
 import {
   FileStatus,
   ImageSize,
@@ -22,6 +28,16 @@ import {
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const filesTableName = process.env.TABLE_NAME_FILES || '';
+const idempotencyTableName = process.env.IDEMPOTENCY_TABLE_NAME || '';
+
+const persistenceStore = new DynamoDBPersistenceLayer({
+  tableName: idempotencyTableName,
+});
+const idempotencyConfig = new IdempotencyConfig({
+  eventKeyJmesPath: '[etag,userId]',
+  throwOnNoIdempotencyKey: true,
+  expiresAfterSeconds: 60 * 60 * 2, // 2 hours
+});
 
 const processOne = async ({
   objectKey,
@@ -53,13 +69,23 @@ const processOne = async ({
   subsegment?.addAnnotation('newObjectKey', newObjectKey);
   subsegment?.close();
 
+  metrics.addMetric('ThumbnailGenerated', MetricUnits.Count, 1);
+
   return newObjectKey;
 };
 
+const processOneIdempotently = makeIdempotent(processOne, {
+  persistenceStore,
+  config: idempotencyConfig,
+});
+
 const lambdaHandler = async (
   event: EventBridgeEvent<DetailType, Detail>,
-  _context: Context
+  context: Context
 ): Promise<void> => {
+  // Register Lambda context to handle potential timeouts
+  idempotencyConfig.registerLambdaContext(context);
+
   // Extract file info from the event and fetch additional metadata from DynamoDB
   const objectKey = event.detail.object.key;
   const etag = event.detail.object.etag;
@@ -69,16 +95,18 @@ const lambdaHandler = async (
   await markFileAs(fileId, FileStatus.WORKING);
 
   try {
-    const newObjectKey = await processOne({
+    const newObjectKey = await processOneIdempotently({
       fileId,
       objectKey,
       userId,
       etag,
     });
 
+    metrics.addMetric('ImageProcessed', MetricUnits.Count, 1);
+
     await markFileAs(fileId, FileStatus.DONE, newObjectKey);
   } catch (error) {
-    console.error('An unexpected error occurred', error);
+    logger.error('An unexpected error occurred', error as Error);
 
     await markFileAs(fileId, FileStatus.FAIL);
 
@@ -88,4 +116,5 @@ const lambdaHandler = async (
 
 export const handler = middy(lambdaHandler)
   .use(captureLambdaHandler(tracer))
-  .use(injectLambdaContext(logger, { logEvent: true }));
+  .use(injectLambdaContext(logger, { logEvent: true }))
+  .use(logMetrics(metrics));
