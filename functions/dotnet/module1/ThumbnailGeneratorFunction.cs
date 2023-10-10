@@ -19,8 +19,8 @@ namespace PowertoolsWorkshop
 {
     public class ThumbnailGeneratorFunction
     {
-        private static IThumbnailGeneratorService _thumbnailGeneratorService;
         private static IAppSyncService _appSyncService;
+        private static IThumbnailGeneratorService _thumbnailGeneratorService;
 
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
