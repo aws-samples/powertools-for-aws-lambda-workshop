@@ -11,6 +11,8 @@ using Amazon.S3.Model;
 using AWS.Lambda.Powertools.Idempotency;
 using AWS.Lambda.Powertools.Logging;
 using AWS.Lambda.Powertools.Tracing;
+using AWS.Lambda.Powertools.Metrics;
+using Metrics = AWS.Lambda.Powertools.Metrics.Metrics;
 
 namespace PowertoolsWorkshop.Module1.Services
 {
@@ -81,6 +83,8 @@ namespace PowertoolsWorkshop.Module1.Services
                 .ConfigureAwait(false);
 
             Logger.LogInformation($"Thumbnail is generated with new Object Key: {newObjectKey}");
+            
+            Metrics.AddMetric("ThumbnailGenerated", 1, MetricUnit.Count);
 
             return newObjectKey;
         }

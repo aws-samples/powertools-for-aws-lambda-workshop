@@ -68,6 +68,8 @@ namespace PowertoolsWorkshop
 
                 Logger.LogInformation($"Transformed key {newObjectKey} is created for object key {objectKey}");
 
+                Metrics.AddMetric("ImageProcessed", 1, MetricUnit.Count);
+                
                 // Mark file as completed, this will notify subscribers that the file is processed.
                 await _thumbnailGeneratorService
                     .MarkFileAsAsync(fileId, FileStatus.Completed, newObjectKey)
