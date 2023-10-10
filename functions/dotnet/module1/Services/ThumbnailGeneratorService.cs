@@ -8,11 +8,6 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
-using AWS.Lambda.Powertools.Idempotency;
-using AWS.Lambda.Powertools.Logging;
-using AWS.Lambda.Powertools.Tracing;
-using AWS.Lambda.Powertools.Metrics;
-using Metrics = AWS.Lambda.Powertools.Metrics.Metrics;
 
 namespace PowertoolsWorkshop.Module1.Services
 {
@@ -29,7 +24,6 @@ namespace PowertoolsWorkshop.Module1.Services
         private static IAmazonS3 _s3Client;
         private static IImageManipulationService _imageManipulationService;
         private static IAmazonDynamoDB _dynamoDb;
-        private static IAppSyncService _appSyncService;
 
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
@@ -39,20 +33,13 @@ namespace PowertoolsWorkshop.Module1.Services
         public ThumbnailGeneratorService()
         {
             _filesTableName = Environment.GetEnvironmentVariable("TABLE_NAME_FILES");
-            var appSyncEndpoint = Environment.GetEnvironmentVariable("APPSYNC_ENDPOINT");
-
             _s3Client = new AmazonS3Client();
             _imageManipulationService = new ImageManipulationService();
             _dynamoDb = new AmazonDynamoDBClient();
-            _appSyncService = new AppSyncService(appSyncEndpoint);
         }
         
-        [Tracing]
-        [Idempotent]
-        public async Task<string> GenerateThumbnailAsync(string objectKey, string fileBucket, [IdempotencyKey] string etag)
+        public async Task<string> GenerateThumbnailAsync(string objectKey, string fileBucket, string etag)
         {
-            Logger.LogInformation($"Generate Thumbnail for Object Key: {objectKey} and Etag: {etag}");
-
             // Get the original image from S3
             var getOriginalImageResponse = await _s3Client
                 .GetObjectAsync(
@@ -82,18 +69,11 @@ namespace PowertoolsWorkshop.Module1.Services
                     })
                 .ConfigureAwait(false);
 
-            Logger.LogInformation($"Thumbnail is generated with new Object Key: {newObjectKey}");
-            
-            Metrics.AddMetric("ThumbnailGenerated", 1, MetricUnit.Count);
-
             return newObjectKey;
         }
-
-        [Tracing]
+        
         public async Task MarkFileAsAsync(string fileId, string status, string newObjectKey = null)
         {
-            Logger.LogInformation($"Marking file as {status}...");
-
             var request = new UpdateItemRequest
             {
                 TableName = _filesTableName,
@@ -123,28 +103,6 @@ namespace PowertoolsWorkshop.Module1.Services
             await _dynamoDb
                 .UpdateItemAsync(request)
                 .ConfigureAwait(false);
-
-            Logger.LogInformation($"File marked as {status}. Sending file status change notification...");
-
-            var variables = new Dictionary<string, object>
-            {
-                {
-                    "input", new
-                    {
-                        id = fileId, status,
-                        transformedFileKey = newObjectKey,
-                    }
-                },
-            };
-
-            await _appSyncService.RunGraphql
-                (
-                    Mutations.UpdateFileStatus,
-                    "UpdateFileStatus",
-                    variables)
-                .ConfigureAwait(false);
-
-            Logger.LogInformation($"File status change to {status} notification sent successfully.");
         }
     }
 }

@@ -20,6 +20,7 @@ namespace PowertoolsWorkshop
     public class ThumbnailGeneratorFunction
     {
         private static IThumbnailGeneratorService _thumbnailGeneratorService;
+        private static IAppSyncService _appSyncService;
 
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
@@ -29,6 +30,7 @@ namespace PowertoolsWorkshop
         public ThumbnailGeneratorFunction()
         {
             Tracing.RegisterForAllServices();
+            _appSyncService = new AppSyncService();
             _thumbnailGeneratorService = new ThumbnailGeneratorService();
 
             var idempotencyTableName = Environment.GetEnvironmentVariable("IDEMPOTENCY_TABLE_NAME");
@@ -55,35 +57,58 @@ namespace PowertoolsWorkshop
             var fileId = GetFileId(objectKey);
 
             // Mark file as working, this will notify subscribers that the file is being processed.
-            await _thumbnailGeneratorService
-                .MarkFileAsAsync(fileId, FileStatus.Working)
-                .ConfigureAwait(false);
+            await UpdateStatus(fileId, FileStatus.Working).ConfigureAwait(false);
 
             try
             {
                 // Generate a thumbnail from uploaded images, and store it on S3
-                var newObjectKey = await _thumbnailGeneratorService
-                    .GenerateThumbnailAsync(objectKey, filesBucket, etag)
-                    .ConfigureAwait(false);
+                var newObjectKey = await GenerateThumbnail(objectKey, filesBucket, etag).ConfigureAwait(false);
 
                 Logger.LogInformation($"Transformed key {newObjectKey} is created for object key {objectKey}");
 
                 Metrics.AddMetric("ImageProcessed", 1, MetricUnit.Count);
-                
+
                 // Mark file as completed, this will notify subscribers that the file is processed.
-                await _thumbnailGeneratorService
-                    .MarkFileAsAsync(fileId, FileStatus.Completed, newObjectKey)
-                    .ConfigureAwait(false);
+                await UpdateStatus(fileId, FileStatus.Completed, newObjectKey).ConfigureAwait(false);
             }
             catch (Exception e)
             {
                 Logger.LogError(e);
 
                 // Mark file as failed, this will notify subscribers that the file processing is failed.
-                await _thumbnailGeneratorService
-                    .MarkFileAsAsync(fileId, FileStatus.Failed)
-                    .ConfigureAwait(false);
+                await UpdateStatus(fileId, FileStatus.Failed).ConfigureAwait(false);
             }
+        }
+
+        [Idempotent]
+        [Tracing(SegmentName = "Generate Thumbnail")]
+        private async Task<string> GenerateThumbnail(string objectKey, string filesBucket, [IdempotencyKey] string etag)
+        {
+            Logger.LogInformation($"Generate Thumbnail for Object Key: {objectKey} and Etag: {etag}");
+            
+            var newObjectKey = await _thumbnailGeneratorService
+                .GenerateThumbnailAsync(objectKey, filesBucket, etag)
+                .ConfigureAwait(false);
+            
+            Metrics.AddMetric("ThumbnailGenerated", 1, MetricUnit.Count);
+
+            return newObjectKey;
+        }
+
+        [Tracing(SegmentName = "Update Status")]
+        private async Task UpdateStatus(string fileId, string status, string newObjectKey = null)
+        {
+            Logger.LogInformation($"Marking file as {status}...");
+
+            await _thumbnailGeneratorService
+                .MarkFileAsAsync(fileId, FileStatus.Completed, newObjectKey)
+                .ConfigureAwait(false);
+
+            Logger.LogInformation($"Sending notification to subscribers...");
+
+            await _appSyncService
+                .NotifySubscribersAsync(fileId, status, newObjectKey)
+                .ConfigureAwait(false);
         }
 
         private static string GetFileId(string objectKey)
