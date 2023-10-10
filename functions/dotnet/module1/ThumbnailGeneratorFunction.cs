@@ -55,18 +55,22 @@ namespace PowertoolsWorkshop
             var fileId = GetFileId(objectKey);
 
             // Mark file as working, this will notify subscribers that the file is being processed.
-            await _thumbnailGeneratorService.MarkFileAsAsync(fileId, FileStatus.Working).ConfigureAwait(false);
+            await _thumbnailGeneratorService
+                .MarkFileAsAsync(fileId, FileStatus.Working)
+                .ConfigureAwait(false);
 
             try
             {
                 // Generate a thumbnail from uploaded images, and store it on S3
-                var newObjectKey = await _thumbnailGeneratorService.GenerateThumbnailAsync(objectKey, filesBucket, etag)
+                var newObjectKey = await _thumbnailGeneratorService
+                    .GenerateThumbnailAsync(objectKey, filesBucket, etag)
                     .ConfigureAwait(false);
 
                 Logger.LogInformation($"Transformed key {newObjectKey} is created for object key {objectKey}");
 
                 // Mark file as completed, this will notify subscribers that the file is processed.
-                await _thumbnailGeneratorService.MarkFileAsAsync(fileId, FileStatus.Completed, newObjectKey)
+                await _thumbnailGeneratorService
+                    .MarkFileAsAsync(fileId, FileStatus.Completed, newObjectKey)
                     .ConfigureAwait(false);
             }
             catch (Exception e)
@@ -74,7 +78,9 @@ namespace PowertoolsWorkshop
                 Logger.LogError(e);
 
                 // Mark file as failed, this will notify subscribers that the file processing is failed.
-                await _thumbnailGeneratorService.MarkFileAsAsync(fileId, FileStatus.Failed).ConfigureAwait(false);
+                await _thumbnailGeneratorService
+                    .MarkFileAsAsync(fileId, FileStatus.Failed)
+                    .ConfigureAwait(false);
             }
         }
 

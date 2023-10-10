@@ -36,8 +36,6 @@ namespace PowertoolsWorkshop.Module1.Services
         /// </summary>
         public ThumbnailGeneratorService()
         {
-            Tracing.RegisterForAllServices();
-
             _filesTableName = Environment.GetEnvironmentVariable("TABLE_NAME_FILES");
             var appSyncEndpoint = Environment.GetEnvironmentVariable("APPSYNC_ENDPOINT");
 
