@@ -33,7 +33,7 @@ export class ApiConstruct extends Construct {
 
     this.apiUrlParameter = new StringParameter(this, 'api-url-parameter', {
       parameterName: `/${environment}/reporting-service/api-url`,
-      stringValue: this.restApi.url,
+      stringValue: JSON.stringify({ url: this.restApi.url }),
     });
 
     const key = this.restApi.addApiKey('api-key', {
