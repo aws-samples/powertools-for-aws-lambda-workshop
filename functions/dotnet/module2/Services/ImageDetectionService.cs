@@ -10,6 +10,7 @@ using AWS.Lambda.Powertools.Logging;
 using AWS.Lambda.Powertools.Parameters;
 using AWS.Lambda.Powertools.Parameters.SecretsManager;
 using AWS.Lambda.Powertools.Parameters.SimpleSystemsManagement;
+using AWS.Lambda.Powertools.Parameters.Transform;
 using AWS.Lambda.Powertools.Tracing;
 
 namespace PowertoolsWorkshop.Module2.Services;
@@ -83,15 +84,21 @@ public class ImageDetectionService : IImageDetectionService
     [Tracing]
     public async Task ReportImageIssue(string fileId, string userId)
     {
-        var apiUrl = await _ssmProvider.GetAsync(_apiUrlParameterName).ConfigureAwait(false);
-        var apiKey = await _secretsProvider.GetAsync(_apiKeySecretName).ConfigureAwait(false);
+        var apiUrlParameter = await _ssmProvider
+            .WithTransformation(Transformation.Json)
+            .GetAsync<ApiUrlParameter>(_apiUrlParameterName)
+            .ConfigureAwait(false);
+        
+        var apiKey = await _secretsProvider
+            .GetAsync(_apiKeySecretName)
+            .ConfigureAwait(false);
 
-        if (string.IsNullOrWhiteSpace(apiUrl) || string.IsNullOrWhiteSpace(apiKey))
-            throw new Exception($"Missing apiUrl or apiKey. apiUrl: ${apiUrl}, apiKey: ${apiKey}");
+        if (string.IsNullOrWhiteSpace(apiUrlParameter?.Url) || string.IsNullOrWhiteSpace(apiKey))
+            throw new Exception($"Missing apiUrl or apiKey. apiUrl: ${apiUrlParameter?.Url}, apiKey: ${apiKey}");
 
         Logger.LogInformation("Sending report to the API");
 
-        await _apiService.PostAsJsonAsync(apiUrl, apiKey, new { fileId, userId }).ConfigureAwait(false);
+        await _apiService.PostAsJsonAsync(apiUrlParameter.Url, apiKey, new { fileId, userId }).ConfigureAwait(false);
 
         Logger.LogInformation("Report sent to the API");
     }

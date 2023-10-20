@@ -101,7 +101,7 @@ namespace PowertoolsWorkshop
             Logger.LogInformation($"Marking file as {status}...");
 
             await _thumbnailGeneratorService
-                .MarkFileAsAsync(fileId, FileStatus.Completed, newObjectKey)
+                .MarkFileAsAsync(fileId, status, newObjectKey)
                 .ConfigureAwait(false);
 
             Logger.LogInformation($"Sending notification to subscribers...");

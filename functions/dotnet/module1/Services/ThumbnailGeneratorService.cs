@@ -15,7 +15,7 @@ namespace PowertoolsWorkshop.Module1.Services
     {
         Task<string> GenerateThumbnailAsync(string objectKey, string fileBucket, string etag);
 
-        Task MarkFileAsAsync(string fileId, string status, string newObjectKey = null);
+        Task MarkFileAsAsync(string fileId, string status, string newObjectKey);
     }
     
     public class ThumbnailGeneratorService : IThumbnailGeneratorService
@@ -72,7 +72,7 @@ namespace PowertoolsWorkshop.Module1.Services
             return newObjectKey;
         }
         
-        public async Task MarkFileAsAsync(string fileId, string status, string newObjectKey = null)
+        public async Task MarkFileAsAsync(string fileId, string status, string newObjectKey)
         {
             var request = new UpdateItemRequest
             {
