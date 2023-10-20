@@ -91,7 +91,7 @@ public class ImageDetectionService : IImageDetectionService
 
         Logger.LogInformation("Sending report to the API");
 
-        await _apiService.PosAsJsonAsync(apiUrl, apiKey, new { fileId, userId }).ConfigureAwait(false);
+        await _apiService.PostAsJsonAsync(apiUrl, apiKey, new { fileId, userId }).ConfigureAwait(false);
 
         Logger.LogInformation("Report sent to the API");
     }

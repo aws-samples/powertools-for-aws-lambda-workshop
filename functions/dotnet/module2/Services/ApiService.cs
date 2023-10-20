@@ -13,12 +13,12 @@ namespace PowertoolsWorkshop.Module2.Services;
 
 public interface IApiService
 {
-    Task PosAsJsonAsync(string apiUrl, string apiKey, object content);
+    Task PostAsJsonAsync(string apiUrl, string apiKey, object content);
 }
 
 public class ApiService : IApiService
 {
-    public async Task PosAsJsonAsync(string apiUrl, string apiKey, object content)
+    public async Task PostAsJsonAsync(string apiUrl, string apiKey, object content)
     {
         if (string.IsNullOrWhiteSpace(apiUrl))
             throw new ArgumentNullException(nameof(apiUrl));
