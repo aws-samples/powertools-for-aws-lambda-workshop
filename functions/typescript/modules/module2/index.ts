@@ -11,14 +11,12 @@ import {
   SecretsManagerClient,
   GetSecretValueCommand,
 } from '@aws-sdk/client-secrets-manager';
-import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
-const apiUrlParameterName = process.env.API_URL_PARAMETER_NAME || '';
+const apiUrlHost = process.env.API_URL_HOST || '';
 const apiKeySecretName = process.env.API_KEY_SECRET_NAME || '';
 
 const secretsClient = new SecretsManagerClient({});
-const ssmClient = new SSMClient({});
 
 const getSecret = async (secretName: string): Promise<string | undefined> => {
   const command = new GetSecretValueCommand({
@@ -30,22 +28,7 @@ const getSecret = async (secretName: string): Promise<string | undefined> => {
     throw new Error(`Unable to get secret ${secretName}`);
   }
 
-  return JSON.parse(secret)[secretName];
-};
-
-const getParameter = async (
-  parameterPath: string
-): Promise<string | undefined> => {
-  const command = new GetParameterCommand({
-    Name: parameterPath,
-  });
-  const response = await ssmClient.send(command);
-  const parameter = response.Parameter?.Value;
-  if (!parameter) {
-    throw new Error(`Unable to get parameter ${parameterPath}`);
-  }
-
-  return JSON.parse(parameter)[parameterPath];
+  return secret;
 };
 
 const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
@@ -67,7 +50,7 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
     ) {
       logger.warn('No person found in the image');
       await reportImageIssue(fileId, userId, {
-        apiUrl: await getParameter(apiUrlParameterName),
+        apiUrl: JSON.parse(apiUrlHost).url,
         apiKey: await getSecret(apiKeySecretName),
       });
 
@@ -83,11 +66,7 @@ export const handler = middy(
     const records = event.Records;
 
     for (const record of records) {
-      try {
-        await recordHandler(record);
-      } catch (error) {
-        throw new Error('Error processing record');
-      }
+      await recordHandler(record);
     }
   }
 )

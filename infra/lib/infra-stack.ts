@@ -87,6 +87,10 @@ export class InfraStack extends Stack {
       'API_URL_PARAMETER_NAME',
       reportingService.api.apiUrlParameter.parameterName
     );
+    imageDetection.functions.imageDetectionFn.addEnvironment(
+      'API_URL_HOST',
+      JSON.stringify({ url: reportingService.api.restApi.url })
+    );
     reportingService.api.apiUrlParameter.grantRead(
       imageDetection.functions.imageDetectionFn
     );
