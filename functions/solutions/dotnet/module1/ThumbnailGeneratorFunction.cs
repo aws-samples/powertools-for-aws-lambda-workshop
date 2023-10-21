@@ -6,7 +6,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.CloudWatchEvents.S3Events;
 using Amazon.Lambda.Core;
-using Amazon.XRay.Recorder.Handlers.AwsSdk;
+using AWS.Lambda.Powertools.Idempotency;
+using AWS.Lambda.Powertools.Logging;
+using AWS.Lambda.Powertools.Metrics;
+using AWS.Lambda.Powertools.Tracing;
 using PowertoolsWorkshop.Module1.Services;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -26,9 +29,12 @@ namespace PowertoolsWorkshop
         /// </summary>
         public ThumbnailGeneratorFunction()
         {
-            AWSSDKHandler.RegisterXRayForAllServices();
+            Tracing.RegisterForAllServices();
             _appSyncService = new AppSyncService();
             _thumbnailGeneratorService = new ThumbnailGeneratorService();
+            
+            var idempotencyTableName = Environment.GetEnvironmentVariable("IDEMPOTENCY_TABLE_NAME");
+            Idempotency.Configure(builder => builder.UseDynamoDb(idempotencyTableName));
         }
 
         /// <summary>
@@ -38,8 +44,13 @@ namespace PowertoolsWorkshop
         /// <param name="evnt"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        [Metrics(CaptureColdStart = true)]
+        [Tracing(CaptureMode = TracingCaptureMode.ResponseAndError)]
+        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.PascalCase)]
         public async Task FunctionHandler(S3ObjectCreateEvent evnt, ILambdaContext context)
         {
+            Idempotency.RegisterLambdaContext(context);
+            
             var etag = evnt.Detail.Object.ETag;
             var objectKey = evnt.Detail.Object.Key;
             var filesBucket = evnt.Detail.Bucket.Name;
@@ -53,40 +64,47 @@ namespace PowertoolsWorkshop
                 // Generate a thumbnail from uploaded images, and store it on S3
                 var newObjectKey = await GenerateThumbnail(objectKey, filesBucket, etag).ConfigureAwait(false);
 
-                Console.WriteLine($"Transformed key {newObjectKey} is created for object key {objectKey}");
+                Logger.LogInformation($"Transformed key {newObjectKey} is created for object key {objectKey}");
 
+                Metrics.AddMetric("ImageProcessed", 1, MetricUnit.Count);
+                
                 // Mark file as completed, this will notify subscribers that the file is processed.
                 await UpdateStatus(fileId, FileStatus.Completed, newObjectKey).ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                Logger.LogError(e);
 
                 // Mark file as failed, this will notify subscribers that the file processing is failed.
                 await UpdateStatus(fileId, FileStatus.Failed).ConfigureAwait(false);
             }
         }
         
-        private async Task<string> GenerateThumbnail(string objectKey, string filesBucket, string etag)
+        [Idempotent]
+        [Tracing(SegmentName = "Generate Thumbnail")]
+        private async Task<string> GenerateThumbnail(string objectKey, string filesBucket, [IdempotencyKey] string etag)
         {
-            Console.WriteLine($"Generate Thumbnail for Object Key: {objectKey} and Etag: {etag}");
+            Logger.LogInformation($"Generate Thumbnail for Object Key: {objectKey} and Etag: {etag}");
             
             var newObjectKey = await _thumbnailGeneratorService
                 .GenerateThumbnailAsync(objectKey, filesBucket, etag)
                 .ConfigureAwait(false);
 
+            Metrics.AddMetric("ThumbnailGenerated", 1, MetricUnit.Count);
+            
             return newObjectKey;
         }
         
+        [Tracing(SegmentName = "Update Status")]
         private async Task UpdateStatus(string fileId, string status, string newObjectKey = null)
         {
-            Console.WriteLine($"Marking file as {status}...");
+            Logger.LogInformation($"Marking file as {status}...");
 
             await _thumbnailGeneratorService
                 .MarkFileAsAsync(fileId, status, newObjectKey)
                 .ConfigureAwait(false);
 
-            Console.WriteLine($"Sending notification to subscribers...");
+            Logger.LogInformation($"Sending notification to subscribers...");
 
             await _appSyncService
                 .NotifySubscribersAsync(fileId, status, newObjectKey)
