@@ -60,7 +60,7 @@ public class ImageDetectionService : IImageDetectionService
 
         if (response?.Labels is null || !response.Labels.Any())
         {
-            Logger.LogInformation("No labels found in image");
+            Logger.LogWarning("No labels found in image");
             return false;
         }
 
@@ -68,7 +68,7 @@ public class ImageDetectionService : IImageDetectionService
                 string.Equals(l.Name, "Person", StringComparison.InvariantCultureIgnoreCase) &&
                 l.Confidence > 75))
         {
-            Logger.LogInformation("No person found in image");
+            Logger.LogWarning("No person found in image");
             return false;
         }
 
