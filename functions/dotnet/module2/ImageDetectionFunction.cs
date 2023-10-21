@@ -4,7 +4,8 @@
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.DynamoDBEvents;
-using Amazon.XRay.Recorder.Handlers.AwsSdk;
+using AWS.Lambda.Powertools.Logging;
+using AWS.Lambda.Powertools.Tracing;
 using PowertoolsWorkshop.Module2.Services;
 
 namespace PowertoolsWorkshop
@@ -20,7 +21,7 @@ namespace PowertoolsWorkshop
         /// </summary>
         public ImageDetectionFunction()
         {
-            AWSSDKHandler.RegisterXRayForAllServices();
+            Tracing.RegisterForAllServices();
             _imageDetectionService = new ImageDetectionService();
         }
 
@@ -31,6 +32,8 @@ namespace PowertoolsWorkshop
         /// <param name="dynamoEvent"></param>
         /// <param name="context"></param>
         /// <returns></returns>
+        [Tracing(CaptureMode = TracingCaptureMode.ResponseAndError)]
+        [Logging(LogEvent = true, LoggerOutputCase = LoggerOutputCase.PascalCase)]
         public async Task FunctionHandler(DynamoDBEvent dynamoEvent, ILambdaContext context)
         {
             foreach (var record in dynamoEvent.Records)

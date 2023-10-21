@@ -11,6 +11,7 @@ using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using AWS.Lambda.Powertools.Logging;
 
 namespace PowertoolsWorkshop.Module2.Services;
 
@@ -43,7 +44,7 @@ public class ImageDetectionService : IImageDetectionService
     
     public async Task<bool> HasPersonLabel(string fileId, string userId, string objectKey)
     {
-        Console.WriteLine($"Get labels for File Id: {fileId}");
+        Logger.LogInformation($"Get labels for File Id: {fileId}");
        
         var response = await _rekognitionClient.DetectLabelsAsync(new DetectLabelsRequest
         {
@@ -59,7 +60,7 @@ public class ImageDetectionService : IImageDetectionService
 
         if (response?.Labels is null || !response.Labels.Any())
         {
-            Console.WriteLine("No labels found in image");
+            Logger.LogInformation("No labels found in image");
             return false;
         }
 
@@ -67,11 +68,11 @@ public class ImageDetectionService : IImageDetectionService
                 string.Equals(l.Name, "Person", StringComparison.InvariantCultureIgnoreCase) &&
                 l.Confidence > 75))
         {
-            Console.WriteLine("No person found in image");
+            Logger.LogInformation("No person found in image");
             return false;
         }
 
-        Console.WriteLine("Person found in image");
+        Logger.LogInformation("Person found in image");
         return true;
     }
     
@@ -83,11 +84,11 @@ public class ImageDetectionService : IImageDetectionService
         if (string.IsNullOrWhiteSpace(apiUrlParameter?.Url) || string.IsNullOrWhiteSpace(apiKey))
             throw new Exception($"Missing apiUrl or apiKey. apiUrl: ${apiUrlParameter?.Url}, apiKey: ${apiKey}");
 
-        Console.WriteLine("Sending report to the API");
+        Logger.LogInformation("Sending report to the API");
 
         await _apiService.PostAsJsonAsync(apiUrlParameter.Url, apiKey, new { fileId, userId }).ConfigureAwait(false);
 
-        Console.WriteLine("Report sent to the API");
+        Logger.LogInformation("Report sent to the API");
     }
     
     private async Task<string> GetSecret(string secretId)
