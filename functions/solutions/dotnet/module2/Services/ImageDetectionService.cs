@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: MIT-0
 
 using System;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon.Rekognition;
 using Amazon.Rekognition.Model;
-using Amazon.SecretsManager;
-using Amazon.SecretsManager.Model;
+using AWS.Lambda.Powertools.Logging;
+using AWS.Lambda.Powertools.Parameters;
+using AWS.Lambda.Powertools.Parameters.SecretsManager;
+using AWS.Lambda.Powertools.Parameters.SimpleSystemsManagement;
+using AWS.Lambda.Powertools.Parameters.Transform;
 
 namespace PowertoolsWorkshop.Module2.Services;
 
@@ -24,26 +24,29 @@ public interface IImageDetectionService
 public class ImageDetectionService : IImageDetectionService
 {
     private static string _filesBucketName;
-    private static string _apiUrlHost;
+    private static string _apiUrlParameterName;
     private static string _apiKeySecretName;
     private static IAmazonRekognition _rekognitionClient;
-    private static IAmazonSecretsManager _secretsClient;
     private static IApiService _apiService;
+    private static ISsmProvider _ssmProvider;
+    private static ISecretsProvider _secretsProvider;
 
     public ImageDetectionService()
     {
         _filesBucketName = Environment.GetEnvironmentVariable("BUCKET_NAME_FILES");
-        _apiUrlHost = Environment.GetEnvironmentVariable("API_URL_HOST");
+        _apiUrlParameterName = Environment.GetEnvironmentVariable("API_URL_PARAMETER_NAME");
         _apiKeySecretName = Environment.GetEnvironmentVariable("API_KEY_SECRET_NAME");
 
         _apiService = new ApiService();
         _rekognitionClient = new AmazonRekognitionClient();
-        _secretsClient = new AmazonSecretsManagerClient();
+
+        _ssmProvider = ParametersManager.SsmProvider;
+        _secretsProvider = ParametersManager.SecretsProvider;
     }
     
     public async Task<bool> HasPersonLabel(string fileId, string userId, string objectKey)
     {
-        Console.WriteLine($"Get labels for File Id: {fileId}");
+        Logger.LogInformation($"Get labels for File Id: {fileId}");
        
         var response = await _rekognitionClient.DetectLabelsAsync(new DetectLabelsRequest
         {
@@ -59,7 +62,7 @@ public class ImageDetectionService : IImageDetectionService
 
         if (response?.Labels is null || !response.Labels.Any())
         {
-            Console.WriteLine("No labels found in image");
+            Logger.LogWarning("No labels found in image");
             return false;
         }
 
@@ -67,45 +70,32 @@ public class ImageDetectionService : IImageDetectionService
                 string.Equals(l.Name, "Person", StringComparison.InvariantCultureIgnoreCase) &&
                 l.Confidence > 75))
         {
-            Console.WriteLine("No person found in image");
+            Logger.LogWarning("No person found in image");
             return false;
         }
 
-        Console.WriteLine("Person found in image");
+        Logger.LogInformation("Person found in image");
         return true;
     }
     
     public async Task ReportImageIssue(string fileId, string userId)
     {
-        var apiUrlParameter = JsonSerializer.Deserialize<ApiUrlParameter>(_apiUrlHost);
-        var apiKey = await GetSecret(_apiKeySecretName).ConfigureAwait(false);
+        var apiUrlParameter = await _ssmProvider
+            .WithTransformation(Transformation.Json)
+            .GetAsync<ApiUrlParameter>(_apiUrlParameterName)
+            .ConfigureAwait(false);
+        
+        var apiKey = await _secretsProvider
+            .GetAsync(_apiKeySecretName)
+            .ConfigureAwait(false);
 
         if (string.IsNullOrWhiteSpace(apiUrlParameter?.Url) || string.IsNullOrWhiteSpace(apiKey))
             throw new Exception($"Missing apiUrl or apiKey. apiUrl: ${apiUrlParameter?.Url}, apiKey: ${apiKey}");
 
-        Console.WriteLine("Sending report to the API");
+        Logger.LogInformation("Sending report to the API");
 
         await _apiService.PostAsJsonAsync(apiUrlParameter.Url, apiKey, new { fileId, userId }).ConfigureAwait(false);
 
-        Console.WriteLine("Report sent to the API");
-    }
-    
-    private async Task<string> GetSecret(string secretId)
-    {
-        var response = await _secretsClient.GetSecretValueAsync(
-            new GetSecretValueRequest
-            {
-                SecretId = secretId,
-                VersionStage = "AWSCURRENT"
-            }).ConfigureAwait(false);
-
-        if (response.SecretString is not null)
-            return response.SecretString;
-
-        var memoryStream = response.SecretBinary;
-        var reader = new StreamReader(memoryStream);
-        var base64String = await reader.ReadToEndAsync();
-        var decodedBinarySecret = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
-        return decodedBinarySecret;
+        Logger.LogInformation("Report sent to the API");
     }
 }
