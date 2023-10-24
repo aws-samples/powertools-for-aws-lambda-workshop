@@ -12,7 +12,6 @@
     "ts-node": "ts-node",
     "lint": "eslint --ext .ts --no-error-on-unmatched-pattern infra layers functions",
     "lint-fix": "eslint --fix --ext .ts --no-error-on-unmatched-pattern infra layers functions",
-    "bootstrap": "sh scripts/bootstrap_env.sh",
     "clean": "rm -rf node_modules infra/node_modules infra/cdk.out frontend/node_modules frontend/src/aws-exports.cjs functions/typescript/node_modules layers/*/nodejs/node_modules",
     "frontend:start": "npm start -w frontend",
     "frontend:build": "npm run build -w frontend",
