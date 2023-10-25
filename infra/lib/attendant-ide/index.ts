@@ -48,7 +48,10 @@ export class AttendantIde extends Construct {
       `su - ec2-user -c 'exso port PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm default v18'`,
       `su - ec2-user -c 'export PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm use v18'`,
       // Install .NET
-      "su - ec2-user -c 'curl -fsSL https://dot.net/v1/dotnet-install.sh | zsh -s -c 6.0'",
+      "rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm",
+      "yum install -y aspnetcore-runtime-6.0 dotnet-sdk-6.0",
+      "echo 'export DOTNET_ROOT=/home/ec2-user/.dotnet'                  >> /home/ec2-user/.bash_profile",
+      "echo 'export PATH=\"$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH\"'        >> /home/ec2-user/.bash_profile"
       // Install Java
       'wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo',
       'sed -i s/$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo',
