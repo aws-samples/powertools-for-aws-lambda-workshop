@@ -51,9 +51,12 @@ export class AttendantIde extends Construct {
       'rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm',
       'yum install -y aspnetcore-runtime-6.0 dotnet-sdk-6.0',
       // Install Java
-      'wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo',
-      'sed -i s/$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo',
-      'yum install -y apache-maven',
+      'wget https://dlcdn.apache.org/maven/maven-3/3.9.5/binaries/apache-maven-3.9.5-bin.zip',
+      'unzip apache-maven-3.9.5-bin.zip -d /opt',
+      'ln -s /opt/apache-maven-3.9.5/ /opt/maven',
+      'echo "export M2_HOME=/opt/maven" | tee /etc/profile.d/mvn.sh',
+      'echo "export PATH=${M2_HOME}/bin:${PATH}" | tee -a /etc/profile.d/mvn.sh',
+      'chmod a+x /etc/profile.d/mvn.sh'
       // Install AWS CLI
       "su - ec2-user -c 'curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o $HOME/awscliv2.zip'",
       "su - ec2-user -c 'unzip $HOME/awscliv2.zip'",
