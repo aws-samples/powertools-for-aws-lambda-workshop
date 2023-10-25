@@ -31,4 +31,5 @@ export PATH="/home/ec2-user/.local/share/fnm:$PATH"
 eval "`fnm env`"
 
 # .NET
-export PATH="$HOME/.dotnet:%HOME/.dotnet/tools:$PATH"
+export DOTNET_ROOT=/home/ec2-user/.dotnet
+export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"

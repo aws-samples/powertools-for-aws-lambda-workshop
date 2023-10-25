@@ -35,7 +35,7 @@ export class AttendantIde extends Construct {
       'chsh -s $(which zsh) ec2-user',
       `su - ec2-user -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'`,
       // Download .zshrc
-      `su - ec2-user -c 'curl -fsSL https://raw.githubusercontent.com/chronicled/attendant-ide/main/.zshrc -o $HOME/.zshrc'`,
+      `su - ec2-user -c 'curl -fsSL https://raw.githubusercontent.com/aws-samples/powertools-for-aws-lambda-workshop/main/infa/lib/attendant-ide/zshrc-sample.txt -o $HOME/.zshrc'`,
       // Install Pyenv
       `su - ec2-user -c 'curl -s https://pyenv.run | zsh'`,
       // Install fnm (Node.js)
@@ -48,10 +48,8 @@ export class AttendantIde extends Construct {
       `su - ec2-user -c 'exso port PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm default v18'`,
       `su - ec2-user -c 'export PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm use v18'`,
       // Install .NET
-      "rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm",
-      "yum install -y aspnetcore-runtime-6.0 dotnet-sdk-6.0",
-      "echo 'export DOTNET_ROOT=/home/ec2-user/.dotnet'                  >> /home/ec2-user/.bash_profile",
-      "echo 'export PATH=\"$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH\"'        >> /home/ec2-user/.bash_profile"
+      'rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm',
+      'yum install -y aspnetcore-runtime-6.0 dotnet-sdk-6.0',
       // Install Java
       'wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo',
       'sed -i s/$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo',
