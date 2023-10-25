@@ -27,28 +27,28 @@ export class AttendantIde extends Construct {
     const userData = UserData.forLinux();
     userData.addCommands(
       // Install general dependencies
-      'yum install -y git docker jq zsh util-linux-user gcc make gcc-c++ libunwind java-17-amazon-corretto-headless unzip zip',
+      'yum install -y git docker jq zsh util-linux-user gcc make gcc-c++ libunwind java-17-amazon-corretto-headless unzip zip zlib zlib-devel openssl-devel ncurses-devel readline-devel bzip2-devel libffi-devel sqlite-devel xz-devel',
       // Setup docker
       'service docker start',
       'usermod -aG docker ec2-user',
       // Setup zsh and oh-my-zsh
       'chsh -s $(which zsh) ec2-user',
       `su - ec2-user -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'`,
+      // Download .zshrc
+      `su - ec2-user -c 'curl -fsSL https://raw.githubusercontent.com/chronicled/attendant-ide/main/.zshrc -o $HOME/.zshrc'`,
       // Install Pyenv
       `su - ec2-user -c 'curl -s https://pyenv.run | zsh'`,
-      `su - ec2-user -c 'echo "export PYENV_ROOT="$HOME/.pyenv"" >> $HOME/.zshrc'`,
-      `su - ec2-user -c 'echo "command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"" >> $HOME/.zshrc'`,
-      `su - ec2-user -c 'echo "eval \"\$(pyenv init -)\"" >> $HOME/.zshrc'`,
+      // Install fnm (Node.js)
+      "su - ec2-user -c 'curl -fsSL https://fnm.vercel.app/install | zsh'",
+      // Setup Python
       `su - ec2-user -c 'export PATH="/home/ec2-user/.pyenv/bin:$PATH" && eval "$(pyenv init --path)" && pyenv install 3.11.0'`,
       `su - ec2-user -c 'export PATH="/home/ec2-user/.pyenv/bin:$PATH" && eval "$(pyenv init --path)" && pyenv global 3.11.0'`,
-      // Install Node
-      "su - ec2-user -c 'curl -fsSL https://fnm.vercel.app/install | zsh'",
+      // Setup Node
       `su - ec2-user -c 'export PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm install v18'`,
-      `su - ec2-user -c 'export PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm default v18'`,
+      `su - ec2-user -c 'exso port PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm default v18'`,
       `su - ec2-user -c 'export PATH="/home/ec2-user/.local/share/fnm:$PATH" && eval "\`fnm env\`" && fnm use v18'`,
       // Install .NET
       "su - ec2-user -c 'curl -fsSL https://dot.net/v1/dotnet-install.sh | zsh -s -c 6.0'",
-      'su - ec2-user -c \'echo "export PATH="$HOME/.dotnet:%HOME/.dotnet/tools:$PATH"" >> $HOME/.zshrc\'',
       // Install Java
       'wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo',
       'sed -i s/$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo',

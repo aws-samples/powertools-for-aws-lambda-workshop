@@ -16,6 +16,7 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
+# Pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
@@ -28,3 +29,6 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # fnm
 export PATH="/home/ec2-user/.local/share/fnm:$PATH"
 eval "`fnm env`"
+
+# .NET
+export PATH="$HOME/.dotnet:%HOME/.dotnet/tools:$PATH"
