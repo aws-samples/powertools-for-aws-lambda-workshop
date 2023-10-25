@@ -50,7 +50,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
             // Mark file as working
             markFileAs(object.getFileId(), "in-progress", null);
 
-            String newObjectKey = processImage(object);
+            String newObjectKey = processOne(object);
 
             // Mark file as done
             markFileAs(object.getFileId(), "completed", newObjectKey);
@@ -66,7 +66,7 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
         return "ok";
     }
 
-    private String processImage(S3Object s3Object) {
+    private String processOne(S3Object s3Object) {
         String newObjectKey = TRANSFORMED_IMAGE_PREFIX + "/" + UUID.randomUUID() + TRANSFORMED_IMAGE_EXTENSION;
 
         // Get the original image from S3
