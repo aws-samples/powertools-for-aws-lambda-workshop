@@ -471,4 +471,8 @@ ASALocalRun/
 .localhistory/
 
 
-# End of https://www.gitignore.io/api/csharp
+# End of https://www.gitignore.io/api/csharptarget
+
+# Java output
+target
+
