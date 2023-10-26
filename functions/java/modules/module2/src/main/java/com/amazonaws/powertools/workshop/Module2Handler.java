@@ -2,43 +2,55 @@ package com.amazonaws.powertools.workshop;
 
 import static com.amazonaws.powertools.workshop.Utils.getLabels;
 import static com.amazonaws.powertools.workshop.Utils.reportImageIssue;
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
-import com.amazonaws.services.lambda.runtime.events.StreamsEventResponse;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import software.amazon.lambda.powertools.batch.BatchMessageHandlerBuilder;
-import software.amazon.lambda.powertools.batch.handler.BatchMessageHandler;
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.lambda.powertools.logging.Logging;
-import software.amazon.lambda.powertools.logging.LoggingUtils;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.tracing.Tracing;
 
 /**
  * Lambda function handler for image (person) detection
  */
-public class Module2Handler implements RequestHandler<DynamodbEvent, StreamsEventResponse> {
+public class Module2Handler implements RequestHandler<DynamodbEvent, Void> {
     private static final Logger LOGGER = LogManager.getLogger(Module2Handler.class);
 
     private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
+    private static final String API_URL_HOST = System.getenv("API_URL_HOST");
+    private static final String API_KEY_SECRET_NAME = System.getenv("API_KEY_SECRET_NAME");
+    private final ObjectMapper objectMapper;
+    private final SecretsManagerClient secretsManagerClient;
 
-    private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler;
 
     public Module2Handler() {
-        handler = new BatchMessageHandlerBuilder()
-                .withDynamoDbBatchHandler()
-                .buildWithRawMessageHandler(this::processMessage);
+        secretsManagerClient =
+                (SecretsManagerClient.builder().httpClientBuilder(UrlConnectionHttpClient.builder()))
+                        .region(Region.of(System.getenv(
+                                SdkSystemSetting.AWS_REGION.environmentVariable())))
+                        .build();
+        objectMapper = new ObjectMapper();
     }
 
     @Logging(logEvent = true)
     @Tracing
     @Metrics(captureColdStart = true)
-    public StreamsEventResponse handleRequest(final DynamodbEvent event, final Context context) {
-        return handler.processBatch(event, context);
+    public Void handleRequest(final DynamodbEvent event, final Context context) {
+        List<DynamodbEvent.DynamodbStreamRecord> records = event.getRecords();
+        records.forEach(record -> processMessage(record, context));
+        return null;
     }
 
     /**
@@ -52,21 +64,40 @@ public class Module2Handler implements RequestHandler<DynamodbEvent, StreamsEven
         String userId = data.get("userId").getS();
         String transformedFileKey = data.get("transformedFileKey").getS();
 
-        // Add the file id and user id to the logger so that all the logs after this
-        // will have these attributes and we can correlate them
-        LoggingUtils.appendKey("fileId", fileId);
-        LoggingUtils.appendKey("userId", userId);
         try {
             // Get the labels from Rekognition
             getLabels(BUCKET_NAME_FILES, fileId, userId, transformedFileKey);
         } catch (ImageDetectionException e) {
             // If no person was found in the image, report the issue to the API for further investigation
             LOGGER.warn("No person found in the image");
-            reportImageIssue(fileId, userId);
-        } finally {
-            // Remove the file id and user id from the logger
-            LoggingUtils.removeKey("fileId");
-            LoggingUtils.removeKey("userId");
+
+            // Get the apiUrl and apiKey
+            String apiUrl = getApiUrl(API_URL_HOST);
+            String apiKey = getSecret(API_KEY_SECRET_NAME);
+
+            reportImageIssue(fileId, userId, apiUrl, apiKey);
+        }
+    }
+
+    private String getSecret(String secretId) {
+        GetSecretValueRequest request = GetSecretValueRequest.builder().secretId(secretId).build();
+        String secretValue = this.secretsManagerClient.getSecretValue(request).secretString();
+        if (secretValue == null) {
+            throw new RuntimeException("Secret value is null");
+        }
+        return secretValue;
+    }
+
+    private String getApiUrl(String apiUrlHost) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(apiUrlHost);
+            if(jsonNode.has("url")){
+                return jsonNode.get("url").asText();
+            }else{
+                throw new RuntimeException("API URL is not defined");
+            }
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
