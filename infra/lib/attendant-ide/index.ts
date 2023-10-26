@@ -77,7 +77,7 @@ export class AttendantIde extends Construct {
 
     const idePasswordParameter = new StringParameter(this, 'ide-password', {
       dataType: ParameterDataType.TEXT,
-      stringValue: randomUUID(),
+      stringValue: 'placeholder-changed-at-deploy-time-by-ec2-user-data',
       parameterName: 'vscode-password',
     });
 
@@ -92,7 +92,8 @@ export class AttendantIde extends Construct {
       'chsh -s $(which zsh) ec2-user',
       `su - ec2-user -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'`,
       // Download .zshrc
-      `su - ec2-user -c 'curl -fsSL https://raw.githubusercontent.com/aws-samples/powertools-for-aws-lambda-workshop/main/infa/lib/attendant-ide/zshrc-sample.txt -o $HOME/.zshrc'`,
+      // TODO: change to main branch once merged
+      `su - ec2-user -c 'curl -fsSL https://raw.githubusercontent.com/aws-samples/powertools-for-aws-lambda-workshop/ec2-ide/infra/lib/attendant-ide/zshrc-sample.txt -o $HOME/.zshrc'`,
       // Install Pyenv
       `su - ec2-user -c 'curl -s https://pyenv.run | zsh'`,
       // Install fnm (Node.js)
@@ -123,12 +124,12 @@ export class AttendantIde extends Construct {
       `su - ec2-user -c 'aws configure set region ${Stack.of(this).region}'`,
       // Configure git
       `su - ec2-user -c 'git config --global init.defaultBranch main'`,
-      // Read parameter & write to config.yaml
-      `password_value=$(aws ssm get-parameter --name vscode-password --query "Parameter.Value" --output text) && sed -i "s/password:.*/password: $password_value/" /home/ec2-user/.config/code-server/config.yaml`,
-      "sed -i 's/127.0.0.1/0.0.0.0/g' /home/ec2-user/.config/code-server/config.yaml",
       // Install VSCode
       "su - ec2-user -c 'curl -fsSL https://code-server.dev/install.sh | sh'",
       'systemctl enable --now code-server@ec2-user',
+      // Read parameter & write to config.yaml
+      `password_value=$(aws ssm get-parameter --name vscode-password --query "Parameter.Value" --output text) && sed -i "s/password:.*/password: $password_value/" /home/ec2-user/.config/code-server/config.yaml`,
+      "sed -i 's/127.0.0.1/0.0.0.0/g' /home/ec2-user/.config/code-server/config.yaml",
       'reboot'
     );
 
