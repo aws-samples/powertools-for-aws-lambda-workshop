@@ -9,6 +9,9 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.amazonaws.services.lambda.runtime.events.StreamsEventResponse;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,11 +37,13 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
     private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
 
     private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler;
+    private final ObjectMapper objectMapper;
 
     public Module2HandlerComplete() {
         handler = new BatchMessageHandlerBuilder()
                 .withDynamoDbBatchHandler()
                 .buildWithRawMessageHandler(this::processMessage);
+        objectMapper = new ObjectMapper();
     }
 
     @Logging(logEvent = true)
@@ -70,7 +75,7 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
             // If no person was found in the image, report the issue to the API for further investigation
             LOGGER.warn("No person found in the image");
             // Get the apiUrl and apiKey from SSM and Secrets Manager respectively
-            String apiUrl = ssmProvider.withMaxAge(900, SECONDS).get(API_URL_PARAMETER_NAME);
+            String apiUrl = getApiUrl(ssmProvider.withMaxAge(900, SECONDS).get(API_URL_PARAMETER_NAME));
             String apiKey = secretsProvider.withMaxAge(900, SECONDS).get(API_KEY_SECRET_NAME);
             reportImageIssue(fileId, userId, apiUrl, apiKey);
         } finally {
@@ -79,5 +84,19 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
             LoggingUtils.removeKey("userId");
         }
     }
+
+    private String getApiUrl(String apiUrlSecret) {
+        try {
+            JsonNode jsonNode = objectMapper.readTree(apiUrlSecret);
+            if(jsonNode.has("url")){
+                return jsonNode.get("url").asText();
+            }else{
+                throw new RuntimeException("API URL is not defined");
+            }
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 
 }
