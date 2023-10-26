@@ -18,6 +18,13 @@ import {
   LoadBalancer,
   LoadBalancingProtocol,
 } from 'aws-cdk-lib/aws-elasticloadbalancing';
+import {
+  ApplicationLoadBalancer,
+  ApplicationProtocol,
+  ListenerAction,
+  ListenerCondition,
+  Protocol,
+} from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
 import { ManagedPolicy, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import {
@@ -124,12 +131,11 @@ export class AttendantIde extends Construct {
       `su - ec2-user -c 'aws configure set region ${Stack.of(this).region}'`,
       // Configure git
       `su - ec2-user -c 'git config --global init.defaultBranch main'`,
+      // Create parameter & write to config.yaml + SSM
+      `su - ec2-user -c 'PASSWORD=$(uuidgen) && mkdir -p /home/ec2-user/.config/code-server && echo -e "bind-addr: 0.0.0.0:8080\nauth: password\npassword: $PASSWORD\ncert: false" > /home/ec2-user/.config/code-server/config.yaml && aws ssm put-parameter --name "vscode-password" --type "String" --value "$PASSWORD" --overwrite'`,
       // Install VSCode
       "su - ec2-user -c 'curl -fsSL https://code-server.dev/install.sh | sh'",
       'systemctl enable --now code-server@ec2-user',
-      // Read parameter & write to config.yaml
-      "sed -i 's/127.0.0.1/0.0.0.0/g' /home/ec2-user/.config/code-server/config.yaml",
-      `su - ec2-user -c 'PASSWORD=$(uuidgen) && sed -i "s/password:./password: $PASSWORD" /home/ec2-user/.config/code-server/config.yaml && aws ssm put-parameter --name "${idePasswordParameter.parameterName}" --type "String" --value "$PASSWORD" --overwrite'`,
       'reboot'
     );
 
@@ -141,8 +147,8 @@ export class AttendantIde extends Construct {
         ),
       ],
     });
-    idePasswordParameter.grantRead(vscodeInstanceRole);
-    // TODO: grant to deploy Lambda + other stuff (AdminAccess / PowerUser ?)
+    idePasswordParameter.grantWrite(vscodeInstanceRole);
+    // TODO: grant to deploy Lambda + other stuff
 
     const vscodeInstance = new Instance(this, 'instance', {
       vpc,
@@ -166,42 +172,43 @@ export class AttendantIde extends Construct {
     Tags.of(vscodeInstance).add('chronicled', 'true');
     Tags.of(vscodeInstance).add('Name', 'VSCode');
 
-    // const target = new InstanceIdTarget(vscodeInstance.instanceId, 8080);
-
-    /* const loadBalancer = new LoadBalancer(this, 'vscode-lb', {
+    const target = new InstanceIdTarget(vscodeInstance.instanceId, 8080);
+    const loadBalancer = new ApplicationLoadBalancer(this, 'vscode-lb', {
       vpc,
       internetFacing: true,
-      healthCheck: {
-        port: 8080,
-        path: '/healthz',
-      },
-      listeners: [
-        {
-          externalPort: 80,
-          externalProtocol: LoadBalancingProtocol.HTTP,
-        },
-      ],
-      targets: [
-        new AutoScalingGroup(this, 'vscode-asg', {
-          vpc,
-          maxCapacity: 1,
-          minCapacity: 1,
-          instanceType: new InstanceType('c6g.large'),
-          machineImage: MachineImage.fromSsmParameter(
-            '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
-          ),
-          userData,
-          securityGroup: instanceSecurityGroup,
-          keyName: 'ee-default-keypair',
-          role: vscodeInstanceRole,
-          vpcSubnets: vpc.selectSubnets({
-            subnetType: SubnetType.PRIVATE_WITH_EGRESS,
-          }),
-        }),
-      ],
-    }); */
+    });
 
-    /* const distribution = new Distribution(this, 'distribution', {
+    vscodeInstance.connections.allowFrom(
+      loadBalancer,
+      Port.tcp(8080),
+      'Allow inbound HTTP from load balancer'
+    );
+
+    const listener = loadBalancer.addListener('vscode-listener', {
+      port: 80,
+      protocol: ApplicationProtocol.HTTP,
+    });
+
+    listener.addTargets('vscode-target', {
+      port: 80,
+      targets: [target],
+      healthCheck: {
+        path: '/healthz',
+        port: '8080',
+        protocol: Protocol.HTTP,
+      },
+      priority: 10,
+      conditions: [
+        ListenerCondition.httpHeader('X-VscodeServer', ['PowertoolsForAWS']),
+      ],
+    });
+    listener.addAction('vscode-redirect', {
+      action: ListenerAction.fixedResponse(403, {
+        messageBody: 'Forbidden',
+      }),
+    });
+
+    const distribution = new Distribution(this, 'distribution', {
       defaultBehavior: {
         origin: new HttpOrigin(loadBalancer.loadBalancerDnsName, {
           protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
@@ -218,12 +225,8 @@ export class AttendantIde extends Construct {
           maxTtl: Duration.seconds(86400),
           defaultTtl: Duration.seconds(86400),
           cookieBehavior: CacheCookieBehavior.all(),
-          enableAcceptEncodingGzip: true,
           headerBehavior: CacheHeaderBehavior.allowList(
             'Accept',
-            'Accept-Charset',
-            'Accept-Language',
-            'Accept-Datetime',
             'Accept-Encoding',
             'Authorization',
             'Host',
@@ -237,11 +240,11 @@ export class AttendantIde extends Construct {
       },
       enableIpv6: true,
       enabled: true,
-    }); */
+    });
 
-    /* new CfnOutput(this, 'IDEWorkspace', {
+    new CfnOutput(this, 'IDEWorkspace', {
       value: distribution.distributionDomainName,
       description: 'The domain name where the website is hosted',
-    }); */
+    });
   }
 }
