@@ -128,8 +128,8 @@ export class AttendantIde extends Construct {
       "su - ec2-user -c 'curl -fsSL https://code-server.dev/install.sh | sh'",
       'systemctl enable --now code-server@ec2-user',
       // Read parameter & write to config.yaml
-      `password_value=$(aws ssm get-parameter --name vscode-password --query "Parameter.Value" --output text) && sed -i "s/password:.*/password: $password_value/" /home/ec2-user/.config/code-server/config.yaml`,
       "sed -i 's/127.0.0.1/0.0.0.0/g' /home/ec2-user/.config/code-server/config.yaml",
+      `su - ec2-user -c 'PASSWORD=$(uuidgen) && sed -i "s/password:./password: $PASSWORD" /home/ec2-user/.config/code-server/config.yaml && aws ssm put-parameter --name "${idePasswordParameter.parameterName}" --type "String" --value "$PASSWORD" --overwrite'`,
       'reboot'
     );
 
