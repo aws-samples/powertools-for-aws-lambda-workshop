@@ -20,23 +20,27 @@ import {
 } from 'aws-cdk-lib/aws-elasticloadbalancing';
 import { AutoScalingGroup } from 'aws-cdk-lib/aws-autoscaling';
 import { ManagedPolicy, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   AllowedMethods,
   CacheCookieBehavior,
+  CacheHeaderBehavior,
   CachePolicy,
+  CacheQueryStringBehavior,
   CachedMethods,
   Distribution,
+  OriginProtocolPolicy,
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import {
+  HttpOrigin,
   LoadBalancerV2Origin,
   S3Origin,
 } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { ParameterDataType, StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { environment } from '../constants';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
+import { InstanceIdTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets';
 
 interface AttendantIdeProps {}
 
@@ -46,12 +50,17 @@ export class AttendantIde extends Construct {
 
     // const defaultVpc = Vpc.fromLookup(this, 'defaultVpc', { isDefault: true });
     const vpc = new Vpc(this, 'VPC', {
-      maxAzs: 1,
+      maxAzs: 2,
       subnetConfiguration: [
         {
           cidrMask: 24,
-          name: 'Private',
+          name: 'Public',
           subnetType: SubnetType.PUBLIC,
+        },
+        {
+          cidrMask: 24,
+          name: 'Private',
+          subnetType: SubnetType.PRIVATE_WITH_EGRESS,
         },
       ],
       flowLogs: {
@@ -69,6 +78,7 @@ export class AttendantIde extends Construct {
     const idePasswordParameter = new StringParameter(this, 'ide-password', {
       dataType: ParameterDataType.TEXT,
       stringValue: randomUUID(),
+      parameterName: 'vscode-password',
     });
 
     const userData = UserData.forLinux();
@@ -113,10 +123,12 @@ export class AttendantIde extends Construct {
       `su - ec2-user -c 'aws configure set region ${Stack.of(this).region}'`,
       // Configure git
       `su - ec2-user -c 'git config --global init.defaultBranch main'`,
+      // Read parameter & write to config.yaml
+      `password_value=$(aws ssm get-parameter --name vscode-password --query "Parameter.Value" --output text) && sed -i "s/password:.*/password: $password_value/" /home/ec2-user/.config/code-server/config.yaml`,
+      "sed -i 's/127.0.0.1/0.0.0.0/g' /home/ec2-user/.config/code-server/config.yaml",
       // Install VSCode
       "su - ec2-user -c 'curl -fsSL https://code-server.dev/install.sh | sh'",
       'systemctl enable --now code-server@ec2-user',
-      "sed -i 's/127.0.0.1/0.0.0.0/g' /home/ec2-user/.config/code-server/config.yaml",
       'reboot'
     );
 
@@ -129,8 +141,33 @@ export class AttendantIde extends Construct {
       ],
     });
     idePasswordParameter.grantRead(vscodeInstanceRole);
+    // TODO: grant to deploy Lambda + other stuff (AdminAccess / PowerUser ?)
 
-    const vscodeLoadBalancer = new LoadBalancer(this, 'vscode-lb', {
+    const vscodeInstance = new Instance(this, 'instance', {
+      vpc,
+      vpcSubnets: { subnetType: SubnetType.PUBLIC },
+      instanceType: new InstanceType('c6g.large'),
+      machineImage: MachineImage.fromSsmParameter(
+        '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64'
+      ),
+      securityGroup: instanceSecurityGroup,
+      keyName: 'ee-default-keypair',
+      blockDevices: [
+        {
+          deviceName: '/dev/xvda',
+          volume: BlockDeviceVolume.ebs(50),
+        },
+      ],
+      userDataCausesReplacement: true,
+      userData: userData,
+      role: vscodeInstanceRole,
+    });
+    Tags.of(vscodeInstance).add('chronicled', 'true');
+    Tags.of(vscodeInstance).add('Name', 'VSCode');
+
+    // const target = new InstanceIdTarget(vscodeInstance.instanceId, 8080);
+
+    /* const loadBalancer = new LoadBalancer(this, 'vscode-lb', {
       vpc,
       internetFacing: true,
       healthCheck: {
@@ -139,11 +176,8 @@ export class AttendantIde extends Construct {
       },
       listeners: [
         {
-          externalPort: 443,
-          externalProtocol: LoadBalancingProtocol.HTTPS,
-          sslCertificateArn: new Certificate(this, 'vscode-cert', {
-            domainName: 'vscode.chronicled.com',
-          }).certificateArn,
+          externalPort: 80,
+          externalProtocol: LoadBalancingProtocol.HTTP,
         },
       ],
       targets: [
@@ -156,74 +190,57 @@ export class AttendantIde extends Construct {
             '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
           ),
           userData,
-          /* blockDevices: [
-            {
-              deviceName: '/dev/xvda',
-              volume: BlockDeviceVolume.ebs(50),
-            },
-          ], */
           securityGroup: instanceSecurityGroup,
-          // keyName: TODO: check WS key name
+          keyName: 'ee-default-keypair',
           role: vscodeInstanceRole,
+          vpcSubnets: vpc.selectSubnets({
+            subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+          }),
         }),
       ],
-    });
+    }); */
 
-    instanceSecurityGroup.addIngressRule(
-      Peer.securityGroupId(
-        vscodeLoadBalancer.loadBalancerSourceSecurityGroupGroupName
-      ),
-      Port.tcp(8080),
-      'allows lb'
-    );
-
-    const distribution = new Distribution(this, 'distribution', {
+    /* const distribution = new Distribution(this, 'distribution', {
       defaultBehavior: {
-        // TODO set origin
-        // origin: new LoadBalancerOrigin(vscodeLoadBalancer),
+        origin: new HttpOrigin(loadBalancer.loadBalancerDnsName, {
+          protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,
+          customHeaders: {
+            'X-VscodeServer': 'PowertoolsForAWS',
+          },
+        }),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
-        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-        cachePolicy: new CachePolicy(this, 's3-cache', {
+        allowedMethods: AllowedMethods.ALLOW_ALL,
+        cachePolicy: new CachePolicy(this, 'ide-cache', {
           cachePolicyName: `ide-cache-${environment}`,
           minTtl: Duration.seconds(0),
           maxTtl: Duration.seconds(86400),
           defaultTtl: Duration.seconds(86400),
-          cookieBehavior: CacheCookieBehavior.none(),
+          cookieBehavior: CacheCookieBehavior.all(),
           enableAcceptEncodingGzip: true,
+          headerBehavior: CacheHeaderBehavior.allowList(
+            'Accept',
+            'Accept-Charset',
+            'Accept-Language',
+            'Accept-Datetime',
+            'Accept-Encoding',
+            'Authorization',
+            'Host',
+            'Origin',
+            'Referrer',
+            'Access-Control-Request-Method',
+            'Access-Control-Request-Headers'
+          ),
+          queryStringBehavior: CacheQueryStringBehavior.all(),
         }),
       },
-      defaultRootObject: 'index.html',
-      errorResponses: [
-        {
-          httpStatus: 403,
-          responseHttpStatus: 200,
-          responsePagePath: '/index.html',
-        },
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: '/index.html',
-        },
-      ],
       enableIpv6: true,
       enabled: true,
-    });
+    }); */
 
-    new CfnOutput(this, 'IDEWorkspace', {
+    /* new CfnOutput(this, 'IDEWorkspace', {
       value: distribution.distributionDomainName,
       description: 'The domain name where the website is hosted',
-    });
-
-    /* new CfnOutput(this, 'instanceId', {
-      value: vscodeInstance.instanceId,
-    });
-
-    new CfnOutput(this, 'publicIP', {
-      value: vscodeInstance.instancePublicIp,
     }); */
-    new CfnOutput(this, 'loadBalancerIp', {
-      value: vscodeLoadBalancer.loadBalancerDnsName,
-    });
   }
 }
