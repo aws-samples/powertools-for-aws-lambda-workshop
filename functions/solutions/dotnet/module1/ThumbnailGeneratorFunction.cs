@@ -89,6 +89,8 @@ namespace PowertoolsWorkshop
             var newObjectKey = await _thumbnailGeneratorService
                 .GenerateThumbnailAsync(objectKey, filesBucket, etag)
                 .ConfigureAwait(false);
+            
+            Logger.LogInformation($"Saved image on S3: {newObjectKey}");
 
             Metrics.AddMetric("ThumbnailGenerated", 1, MetricUnit.Count);
             

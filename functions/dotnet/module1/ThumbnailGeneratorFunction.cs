@@ -75,6 +75,8 @@ namespace PowertoolsWorkshop
                 .GenerateThumbnailAsync(objectKey, filesBucket, etag)
                 .ConfigureAwait(false);
 
+            Console.WriteLine($"Saved image on S3: {newObjectKey}");
+            
             return newObjectKey;
         }
         
