@@ -26,8 +26,6 @@ const filesTableName = process.env.TABLE_NAME_FILES || '';
 const processOne = async ({
   objectKey,
 }: ProcessOneOptions): Promise<string> => {
-  // Open a new subsegment to trace the execution of the function
-  const subsegment = tracer.getSegment()?.addNewSubsegment('### processOne');
   const newObjectKey = `${transformedImagePrefix}/${randomUUID()}${transformedImageExtension}`;
   // Get the original image from S3
   const originalImage = await getOriginalObject(objectKey, s3BucketFiles);
@@ -44,14 +42,6 @@ const processOne = async ({
     bucketName: s3BucketFiles,
     body: processedImage,
   });
-  // Add structured logging to the function
-  logger.info(`Saved image on S3`, {
-    details: newObjectKey,
-  });
-
-  // Annotate the subsegment with the new object key and then close it
-  subsegment?.addAnnotation('newObjectKey', newObjectKey);
-  subsegment?.close();
 
   return newObjectKey;
 };

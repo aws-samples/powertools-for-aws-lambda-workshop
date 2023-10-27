@@ -32,12 +32,25 @@ const getSecret = async (secretName: string): Promise<string | undefined> => {
 };
 
 const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
+  // Create a segment to trace the execution of the function and add the file id and user id as annotations
+  const recordSegment = tracer
+    .getSegment()
+    ?.addNewSubsegment('### recordHandler');
   // Since we are applying the filter at the DynamoDB Stream level,
   // we know that the record has a NewImage otherwise the record would not be here
   const data = unmarshall(
     record.dynamodb!.NewImage! as Record<string, AttributeValue>
   );
   const { id: fileId, userId, transformedFileKey } = data;
+  // Add the file id and user id to the logger so that all the logs after this
+  // will have these attributes and we can correlate them
+  logger.appendKeys({
+    fileId,
+    userId,
+  });
+  // Add the file id and user id as annotations to the segment so that we can correlate the logs with the traces
+  recordSegment?.addAnnotation('fileId', fileId);
+  recordSegment?.addAnnotation('userId', userId);
 
   try {
     // Get the labels from Rekognition
@@ -58,6 +71,11 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
     }
 
     throw error;
+  } finally {
+    // Remove the file id and user id from the logger
+    logger.removeKeys(['fileId', 'userId']);
+    // Close the segment
+    recordSegment?.close();
   }
 };
 

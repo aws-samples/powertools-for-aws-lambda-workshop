@@ -5,7 +5,7 @@ import { dynamodbClient } from '@commons/clients/dynamodb';
 import { readFile } from 'node:fs/promises';
 import { updateFileStatus } from '@graphql/mutations';
 import { makeGraphQlOperation } from '@commons/appsync-signed-operation';
-import sharp from 'sharp';
+import Jimp from 'jimp';
 import type {
   CreateThumbnailParams,
   FileStatusValue,
@@ -79,10 +79,11 @@ const createThumbnail = async ({
   width,
   height,
 }: CreateThumbnailParams): Promise<Buffer> => {
-  const resizedImg = await sharp(imageBuffer)
+  const img = await Jimp.read(imageBuffer);
+  const resizedImg = await img
     .resize(width, height)
-    .toFormat('jpg')
-    .toBuffer();
+    .quality(60)
+    .getBufferAsync(Jimp.MIME_JPEG);
 
   return resizedImg;
 };
