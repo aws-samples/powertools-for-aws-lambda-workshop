@@ -15,8 +15,7 @@ import {
   type Language,
 } from '../constants';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha'
-
+import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 
 interface FunctionsConstructProps extends StackProps {
   landingZoneBucketName: string;

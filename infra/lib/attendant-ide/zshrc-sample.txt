@@ -33,3 +33,5 @@ eval "`fnm env`"
 # .NET
 export DOTNET_ROOT=/home/ec2-user/.dotnet
 export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
+
+# AWS Region & Account ID (populated at deploy time)
