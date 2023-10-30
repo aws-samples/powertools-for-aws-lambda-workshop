@@ -1,7 +1,8 @@
 import { logger, metrics, tracer } from '@commons/powertools';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
-import { MetricUnits, logMetrics } from '@aws-lambda-powertools/metrics';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import {
   IdempotencyConfig,
   makeIdempotent,
@@ -69,7 +70,7 @@ const processOne = async ({
   subsegment?.addAnnotation('newObjectKey', newObjectKey);
   subsegment?.close();
 
-  metrics.addMetric('ThumbnailGenerated', MetricUnits.Count, 1);
+  metrics.addMetric('ThumbnailGenerated', MetricUnit.Count, 1);
 
   return newObjectKey;
 };
@@ -102,7 +103,7 @@ const lambdaHandler = async (
       etag,
     });
 
-    metrics.addMetric('ImageProcessed', MetricUnits.Count, 1);
+    metrics.addMetric('ImageProcessed', MetricUnit.Count, 1);
 
     await markFileAs(fileId, FileStatus.DONE, newObjectKey);
   } catch (error) {

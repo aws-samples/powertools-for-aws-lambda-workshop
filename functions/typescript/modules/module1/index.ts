@@ -1,6 +1,3 @@
-import { logger, tracer } from '@commons/powertools';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
 import {
   FileStatus,
   ImageSize,
@@ -42,6 +39,7 @@ const processOne = async ({
     bucketName: s3BucketFiles,
     body: processedImage,
   });
+  console.log(`Saved image on S3: ${newObjectKey}`);
 
   return newObjectKey;
 };
@@ -76,6 +74,4 @@ const lambdaHandler = async (
   }
 };
 
-export const handler = middy(lambdaHandler)
-  .use(captureLambdaHandler(tracer))
-  .use(injectLambdaContext(logger, { logEvent: true }));
+export const handler = middy(lambdaHandler);

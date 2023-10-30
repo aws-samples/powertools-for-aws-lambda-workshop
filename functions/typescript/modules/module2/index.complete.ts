@@ -1,4 +1,4 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logger, tracer } from '@commons/powertools';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import middy from '@middy/core';
@@ -9,7 +9,7 @@ import type {
   DynamoDBStreamEvent,
 } from 'aws-lambda';
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import {
   BatchProcessor,
   EventType,
@@ -17,8 +17,8 @@ import {
 } from '@aws-lambda-powertools/batch';
 import { getLabels, reportImageIssue } from './utils';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
+import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const apiUrlParameterName = process.env.API_URL_PARAMETER_NAME || '';
@@ -73,9 +73,12 @@ const recordHandler = async (
     ) {
       logger.warn('No person found in the image');
       await reportImageIssue(fileId, userId, {
-        apiUrl: await getParameter<string>(apiUrlParameterName, {
-          maxAge: 900,
-        }),
+        apiUrl: (
+          await getParameter<{ url: string }>(apiUrlParameterName, {
+            transform: 'json',
+            maxAge: 900,
+          })
+        )?.url,
         apiKey: await getSecret<string>(apiKeySecretName, { maxAge: 900 }),
       });
 

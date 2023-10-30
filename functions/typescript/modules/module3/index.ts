@@ -1,4 +1,4 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logger } from '@commons/powertools';
 import middy from '@middy/core';
 import type { APIGatewayProxyEvent } from 'aws-lambda';

@@ -1,8 +1,8 @@
 import type middy from '@middy/core';
 
 import type { Metrics } from '@aws-lambda-powertools/metrics';
-import { MetricUnits } from '@aws-lambda-powertools/metrics';
-import { MiddyLikeRequest } from '@aws-lambda-powertools/commons';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import type { MiddyLikeRequest } from '@aws-lambda-powertools/commons/types';
 
 interface Options {
   graphqlOperation: string;
@@ -24,7 +24,7 @@ const requestResponseMetric = (
 
   const addTimeElapsedMetric = (startTime: number): void => {
     const timeElapsed = Date.now() - startTime;
-    metrics.addMetric('latencyInMs', MetricUnits.Milliseconds, timeElapsed);
+    metrics.addMetric('latencyInMs', MetricUnit.Milliseconds, timeElapsed);
   };
 
   const addOperation = (): void => {

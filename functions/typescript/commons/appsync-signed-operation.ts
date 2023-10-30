@@ -1,14 +1,41 @@
-import { logger as loggerMain } from './powertools';
-import { Sha256 } from '@aws-crypto/sha256-js';
-import { defaultProvider } from '@aws-sdk/credential-provider-node';
+import { logger } from './powertools';
 import { HttpRequest } from '@aws-sdk/protocol-http';
 import { SignatureV4 } from '@aws-sdk/signature-v4';
-import { URL } from 'url';
-import { Headers, fetch } from 'undici';
+import { URL } from 'node:url';
+import {
+  createHash,
+  createHmac,
+  type BinaryLike,
+  type Hmac,
+  type KeyObject,
+} from 'node:crypto';
 
-const logger = loggerMain.createChild();
+class Sha256 {
+  private readonly hash: Hmac;
+
+  public constructor(secret?: unknown) {
+    this.hash = secret
+      ? createHmac('sha256', secret as BinaryLike | KeyObject)
+      : createHash('sha256');
+  }
+
+  public digest(): Promise<Uint8Array> {
+    const buffer = this.hash.digest();
+
+    return Promise.resolve(new Uint8Array(buffer.buffer));
+  }
+
+  public update(array: Uint8Array): void {
+    this.hash.update(array);
+  }
+}
+
 const signer = new SignatureV4({
-  credentials: defaultProvider(),
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    sessionToken: process.env.AWS_SESSION_TOKEN!,
+  },
   service: 'appsync',
   region: process.env.AWS_REGION ?? '',
   sha256: Sha256,

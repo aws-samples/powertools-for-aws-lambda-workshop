@@ -1,6 +1,7 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { logMetrics, MetricUnits } from '@aws-lambda-powertools/metrics';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { FileStatus } from '@constants';
 import middy from '@middy/core';
 import { logger as loggerMain, metrics, tracer } from '@powertools';
@@ -27,7 +28,7 @@ const lambdaHandler = async (
   logger.debug('Marked File as queued', {
     details: fileId,
   });
-  metrics.addMetric('filesUploaded', MetricUnits.Count, 1);
+  metrics.addMetric('filesUploaded', MetricUnit.Count, 1);
 };
 
 const handler = middy(lambdaHandler)
