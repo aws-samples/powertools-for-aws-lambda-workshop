@@ -24,6 +24,7 @@ import software.amazon.lambda.powertools.parameters.ParamManager;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
 import software.amazon.lambda.powertools.parameters.SecretsProvider;
 import software.amazon.lambda.powertools.tracing.Tracing;
+import software.amazon.lambda.powertools.tracing.TracingUtils;
 
 /**
  * Lambda function handler for image (person) detection
@@ -66,6 +67,7 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
     /**
      * Process each dynamoDB stream record, automatically handle partial batch failure
      */
+    @Tracing
     private void recordHandler(DynamodbEvent.DynamodbStreamRecord dynamodbStreamRecord, Context context) {
         // Since we are applying the filter at the DynamoDB Stream level,
         // we know that the record has a NewImage otherwise the record would not be here
@@ -78,6 +80,10 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
         // will have these attributes, and we can correlate them
         LoggingUtils.appendKey("fileId", fileId);
         LoggingUtils.appendKey("userId", userId);
+
+        // Add the file id and user id to the segment, so that it can be
+        TracingUtils.putAnnotation("fileId", fileId);
+        TracingUtils.putAnnotation("userId", userId);
         try {
             // Get the labels from Rekognition
             getLabels(BUCKET_NAME_FILES, fileId, userId, transformedFileKey);
