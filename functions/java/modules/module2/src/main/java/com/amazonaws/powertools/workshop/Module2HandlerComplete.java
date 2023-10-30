@@ -37,26 +37,36 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
     private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
 
     private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Module2HandlerComplete() {
         handler = new BatchMessageHandlerBuilder()
                 .withDynamoDbBatchHandler()
-                .buildWithRawMessageHandler(this::processMessage);
-        objectMapper = new ObjectMapper();
+                .buildWithRawMessageHandler(this::recordHandler);
     }
 
-    @Logging(logEvent = true)
-    @Tracing
-    @Metrics(captureColdStart = true)
-    public StreamsEventResponse handleRequest(final DynamodbEvent event, final Context context) {
-        return handler.processBatch(event, context);
+    private String getSecret(String secretName) {
+        return secretsProvider.withMaxAge(900, SECONDS).get(secretName);
+    }
+
+    private String getApiUrl(String apiParameterName) {
+        String parameterContent = ssmProvider.withMaxAge(900, SECONDS).get(apiParameterName);
+        try {
+            JsonNode jsonNode = objectMapper.readTree(parameterContent);
+            if(jsonNode.has("url")){
+                return jsonNode.get("url").asText();
+            }else{
+                throw new RuntimeException("API URL is not defined");
+            }
+        } catch (JsonProcessingException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
      * Process each dynamoDB stream record, automatically handle partial batch failure
      */
-    private void processMessage(DynamodbEvent.DynamodbStreamRecord dynamodbStreamRecord, Context context) {
+    private void recordHandler(DynamodbEvent.DynamodbStreamRecord dynamodbStreamRecord, Context context) {
         // Since we are applying the filter at the DynamoDB Stream level,
         // we know that the record has a NewImage otherwise the record would not be here
         Map<String, AttributeValue> data = dynamodbStreamRecord.getDynamodb().getNewImage();
@@ -75,8 +85,8 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
             // If no person was found in the image, report the issue to the API for further investigation
             LOGGER.warn("No person found in the image");
             // Get the apiUrl and apiKey from SSM and Secrets Manager respectively
-            String apiUrl = getApiUrl(ssmProvider.withMaxAge(900, SECONDS).get(API_URL_PARAMETER_NAME));
-            String apiKey = secretsProvider.withMaxAge(900, SECONDS).get(API_KEY_SECRET_NAME);
+            String apiUrl = getApiUrl(API_URL_PARAMETER_NAME);
+            String apiKey = getSecret(API_KEY_SECRET_NAME);
             reportImageIssue(fileId, userId, apiUrl, apiKey);
         } finally {
             // Remove the file id and user id from the logger
@@ -85,18 +95,11 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
         }
     }
 
-    private String getApiUrl(String apiUrlSecret) {
-        try {
-            JsonNode jsonNode = objectMapper.readTree(apiUrlSecret);
-            if(jsonNode.has("url")){
-                return jsonNode.get("url").asText();
-            }else{
-                throw new RuntimeException("API URL is not defined");
-            }
-        } catch (JsonProcessingException ex) {
-            throw new RuntimeException(ex);
-        }
+    @Logging(logEvent = true)
+    @Tracing
+    @Metrics(captureColdStart = true)
+    public StreamsEventResponse handleRequest(final DynamodbEvent event, final Context context) {
+        return handler.processBatch(event, context);
     }
-
 
 }
