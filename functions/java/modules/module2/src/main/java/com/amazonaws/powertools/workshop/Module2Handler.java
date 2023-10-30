@@ -25,8 +25,10 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 
 import software.amazon.lambda.powertools.logging.Logging;
+import software.amazon.lambda.powertools.logging.LoggingUtils;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.tracing.Tracing;
+import software.amazon.lambda.powertools.tracing.TracingUtils;
 
 /**
  * Lambda function handler for image (person) detection
@@ -88,7 +90,6 @@ public class Module2Handler implements RequestHandler<DynamodbEvent, Void> {
             // Get the apiUrl and apiKey
             String apiUrl = getApiUrl(API_URL_HOST);
             String apiKey = getSecret(API_KEY_SECRET_NAME);
-
             reportImageIssue(fileId, userId, apiUrl, apiKey);
         }
     }
