@@ -83,7 +83,7 @@ const createThumbnail = async ({
   const resizedImg = await img
     .resize(width, height)
     .quality(60)
-    .getBufferAsync(Jimp.MIME_JPEG);
+    .getBufferAsync('image/jpeg');
 
   return resizedImg;
 };

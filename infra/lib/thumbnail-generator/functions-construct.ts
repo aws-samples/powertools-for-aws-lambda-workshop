@@ -55,10 +55,6 @@ export class FunctionsConstruct extends Construct {
         },
         bundling: {
           ...commonNodeJsBundlingSettings,
-          externalModules: [
-            ...(commonNodeJsBundlingSettings.externalModules || []),
-            'sharp',
-          ],
         },
       });
     } else if (language === 'python') {

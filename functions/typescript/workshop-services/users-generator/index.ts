@@ -3,8 +3,8 @@ import { SignUpCommand } from '@aws-sdk/client-cognito-identity-provider';
 import type { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { setTimeout } from 'node:timers/promises';
 
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { cognitoClient } from '@commons/clients/cognito';
 import middy from '@middy/core';
 import { logger, tracer } from '@powertools';
