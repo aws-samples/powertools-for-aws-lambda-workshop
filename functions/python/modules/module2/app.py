@@ -43,6 +43,7 @@ def record_handler(record: DynamoDBRecord):
         report_image_issue(file_id=file_id, user_id=user_id, api_key=api_key, api_url=api_url, logger=logger)
     except ImageDetectionError as error:
         logger.error(error)
+        raise Exception("Error detecting image")
 
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context(log_event=True)
