@@ -2,10 +2,7 @@ import boto3
 from exceptions import NoLabelsFoundError, NoPersonFoundError, ImageDetectionError
 import requests
 import json
-from aws_lambda_powertools import Logger
 from botocore import errorfactory
-
-logger = Logger()
 
 rekognition_client = boto3.client("rekognition")
 
@@ -34,6 +31,7 @@ def get_labels(bucket_name, file_id, user_id, transformed_file_key):
             ),
             None,
         )
+
         if not person_label:
             raise NoPersonFoundError
 
@@ -41,7 +39,7 @@ def get_labels(bucket_name, file_id, user_id, transformed_file_key):
         raise ImageDetectionError("Object not found in S3")
 
 
-def report_image_issue(file_id: str, user_id: str, api_url: str, api_key: str):
+def report_image_issue(file_id: str, user_id: str, api_url: str, api_key: str, logger):
     if not api_url or not api_key:
         raise Exception(f"Missing apiUrl or apiKey. apiUrl: {api_url}, apiKey: {api_key}")
 
