@@ -1,5 +1,4 @@
 import { Stack, type StackProps, CfnParameter, Fn } from 'aws-cdk-lib';
-import * as cfn from 'aws-cdk-lib/aws-cloudformation';
 import { Construct } from 'constructs';
 import {
   NetworkConstruct,
