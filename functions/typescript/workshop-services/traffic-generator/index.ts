@@ -1,5 +1,5 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { AdminInitiateAuthCommand } from '@aws-sdk/client-cognito-identity-provider';
 import { cognitoClient } from '@commons/clients/cognito';
 import { generatePresignedUploadUrl } from '@graphql/mutations';

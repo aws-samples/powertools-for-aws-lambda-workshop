@@ -1,6 +1,5 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
-import { transformedImageExtension, transformedImagePrefix } from '@constants';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { requestResponseMetric } from '@middlewares/requestResponseMetric';
 import middy from '@middy/core';
 import { logger as loggerMain, metrics, tracer } from '@powertools';

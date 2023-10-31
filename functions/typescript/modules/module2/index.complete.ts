@@ -1,4 +1,4 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logger, tracer } from '@commons/powertools';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import middy from '@middy/core';
@@ -9,7 +9,7 @@ import type {
   DynamoDBStreamEvent,
 } from 'aws-lambda';
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import {
   BatchProcessor,
   EventType,
@@ -17,8 +17,8 @@ import {
 } from '@aws-lambda-powertools/batch';
 import { getLabels, reportImageIssue } from './utils';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
 import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
+import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const apiUrlParameterName = process.env.API_URL_PARAMETER_NAME || '';
@@ -26,7 +26,26 @@ const apiKeySecretName = process.env.API_KEY_SECRET_NAME || '';
 
 const processor = new BatchProcessor(EventType.DynamoDBStreams);
 
-const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
+const recordHandler = async (
+  record: DynamoDBRecord,
+  lambdaContext: Context
+): Promise<void> => {
+  if (lambdaContext.getRemainingTimeInMillis() > 1000) {
+    logger.warn(
+      'Invocation is about to time out, marking all remaining records as failed',
+      {
+        fileId: record.dynamodb?.NewImage?.id.S,
+        userId: record.dynamodb?.NewImage?.userId.S,
+      }
+    );
+    throw new Error(
+      'Time remaining <1s, marking record as failed to retry later'
+    );
+  }
+  // Create a segment to trace the execution of the function and add the file id and user id as annotations
+  const recordSegment = tracer
+    .getSegment()
+    ?.addNewSubsegment('### recordHandler');
   // Since we are applying the filter at the DynamoDB Stream level,
   // we know that the record has a NewImage otherwise the record would not be here
   const data = unmarshall(
@@ -39,6 +58,9 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
     fileId,
     userId,
   });
+  // Add the file id and user id as annotations to the segment so that we can correlate the logs with the traces
+  recordSegment?.addAnnotation('fileId', fileId);
+  recordSegment?.addAnnotation('userId', userId);
 
   try {
     // Get the labels from Rekognition
@@ -51,9 +73,12 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
     ) {
       logger.warn('No person found in the image');
       await reportImageIssue(fileId, userId, {
-        apiUrl: await getParameter<string>(apiUrlParameterName, {
-          maxAge: 900,
-        }),
+        apiUrl: (
+          await getParameter<{ url: string }>(apiUrlParameterName, {
+            transform: 'json',
+            maxAge: 900,
+          })
+        )?.url,
         apiKey: await getSecret<string>(apiKeySecretName, { maxAge: 900 }),
       });
 
@@ -64,6 +89,8 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
   } finally {
     // Remove the file id and user id from the logger
     logger.removeKeys(['fileId', 'userId']);
+    // Close the segment
+    recordSegment?.close();
   }
 };
 

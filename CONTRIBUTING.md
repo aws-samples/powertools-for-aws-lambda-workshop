@@ -84,9 +84,9 @@ graph LR
 First, [fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository, and then run the following commands to clone and initialize the repository locally.
 
 ```sh
-git clone https://github.com/{your-account}/aws-lambda-powertools-typescript-workshop.git
-cd aws-lambda-powertools-typescript-workshop
-npm run bootstrap
+git clone https://github.com/{your-account}/powertools-for-aws-lambda-workshop.git
+cd powertools-for-aws-lambda-workshop
+npm ci
 ```
 
 ### Deploy Backend

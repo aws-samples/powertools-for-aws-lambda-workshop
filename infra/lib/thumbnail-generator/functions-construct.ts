@@ -1,7 +1,7 @@
 import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Function, Code, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha'
+import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
 import {
@@ -46,14 +46,6 @@ export class FunctionsConstruct extends Construct {
     const resourcePhysicalId = `thumbnail-generator`;
 
     if (language === 'nodejs') {
-      const sharpLayer = new LayerVersion(this, 'sharp-layer', {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        compatibleRuntimes: [commonFunctionSettings.runtime!],
-        code: Code.fromAsset('../layers/sharp'),
-        description: 'Bundles Sharp lib for image processing',
-        removalPolicy: RemovalPolicy.DESTROY,
-      });
-
       this.thumbnailGeneratorFn = new NodejsFunction(this, resourcePhysicalId, {
         ...commonFunctionSettings,
         functionName,
@@ -61,13 +53,8 @@ export class FunctionsConstruct extends Construct {
         environment: {
           ...localEnvVars,
         },
-        layers: [sharpLayer],
         bundling: {
           ...commonNodeJsBundlingSettings,
-          externalModules: [
-            ...(commonNodeJsBundlingSettings.externalModules || []),
-            'sharp',
-          ],
         },
       });
     } else if (language === 'python') {

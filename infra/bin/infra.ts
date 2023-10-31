@@ -2,6 +2,7 @@
 import 'source-map-support/register';
 import { App, Aspects } from 'aws-cdk-lib';
 import { InfraStack } from '../lib/infra-stack';
+import { IdeStack } from '../lib/ide-stack';
 import { powertoolsServiceName, environment } from '../lib/constants';
 import { AwsSolutionsChecks } from 'cdk-nag';
 
@@ -12,7 +13,18 @@ new InfraStack(app, 'PowerToolsWorkshop', {
     Service: powertoolsServiceName,
     Environment: environment,
     ManagedBy: 'CDK',
-    GithubRepo: 'aws-samples/aws-lambda-powertools-workshop',
+    GithubRepo: 'aws-samples/powertools-for-aws-lambda-workshop',
+    Owner: 'AWS',
+    AwsRegion: process.env.CDK_DEFAULT_REGION || 'N/A',
+    AwsAccountId: process.env.CDK_DEFAULT_ACCOUNT || 'N/A',
+  },
+});
+new IdeStack(app, 'PowerToolsWorkshopIde', {
+  tags: {
+    Service: powertoolsServiceName,
+    Environment: environment,
+    ManagedBy: 'CDK',
+    GithubRepo: 'aws-samples/powertools-for-aws-lambda-workshop',
     Owner: 'AWS',
     AwsRegion: process.env.CDK_DEFAULT_REGION || 'N/A',
     AwsAccountId: process.env.CDK_DEFAULT_ACCOUNT || 'N/A',
