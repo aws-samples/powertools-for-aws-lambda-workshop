@@ -1,11 +1,10 @@
 import boto3
 import os
 from requests_aws_sign import AWSV4Sign
-from constants import REGION_NAME
 import requests
 
 graphql_endpoint = os.getenv("APPSYNC_ENDPOINT", "")
-
+REGION_NAME = os.getenv("AWS_REGION", "")
 
 def mark_file_as(file_id, status, transformed_file_key=None):
 

@@ -57,6 +57,7 @@ export class StorageConstruct extends Construct {
 
     new CfnOutput(this, 'WebsiteBucketName', {
       value: this.websiteBucket.bucketName,
+      exportName: `${Stack.of(this).stackName}-WebsiteBucketName`,
     });
   }
 }

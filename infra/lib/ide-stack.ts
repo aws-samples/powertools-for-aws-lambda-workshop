@@ -1,4 +1,5 @@
-import { Stack, type StackProps, CfnParameter } from 'aws-cdk-lib';
+import { Stack, type StackProps, CfnParameter, Fn } from 'aws-cdk-lib';
+import * as cfn from 'aws-cdk-lib/aws-cloudformation';
 import { Construct } from 'constructs';
 import {
   NetworkConstruct,
@@ -16,9 +17,13 @@ export class IdeStack extends Stack {
     const network = new NetworkConstruct(this, 'network', {});
     const { vpc } = network;
 
+    // Import the WebsiteBucketName output from the source stack (SourceStack)
+    const websiteBucketName = Fn.importValue('PowerToolsWorkshop-WebsiteBucketName');
+
     // Create a compute instance in the private subnet
     const compute = new ComputeConstruct(this, 'compute', {
       vpc,
+      websiteBucketName: websiteBucketName,
     });
     const { instance, target } = compute;
 
