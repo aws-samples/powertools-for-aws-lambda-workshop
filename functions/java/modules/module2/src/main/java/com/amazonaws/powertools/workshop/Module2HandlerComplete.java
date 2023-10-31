@@ -37,14 +37,11 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
     private static final SecretsProvider secretsProvider = ParamManager.getSecretsProvider();
     private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
 
-    private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler = new BatchMessageHandlerBuilder()
+            .withDynamoDbBatchHandler()
+            .buildWithRawMessageHandler(this::recordHandler);
 
-    public Module2HandlerComplete() {
-        handler = new BatchMessageHandlerBuilder()
-                .withDynamoDbBatchHandler()
-                .buildWithRawMessageHandler(this::recordHandler);
-    }
 
     private String getSecret(String secretName) {
         return secretsProvider.withMaxAge(900, SECONDS).get(secretName);
@@ -75,6 +72,11 @@ public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, Str
         String fileId = data.get("id").getS();
         String userId = data.get("userId").getS();
         String transformedFileKey = data.get("transformedFileKey").getS();
+
+        if(context.getRemainingTimeInMillis() > 1000){
+            LOGGER.warn("Invocation is about to time out, marking all remaining records as failed. fileId {}, userId {}", fileId, userId);
+            throw new Error("Time remaining <1s, marking record as failed to retry later");
+        }
 
         // Add the file id and user id to the logger so that all the logs after this
         // will have these attributes, and we can correlate them
