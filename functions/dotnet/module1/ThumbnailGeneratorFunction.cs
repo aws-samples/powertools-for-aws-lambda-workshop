@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.CloudWatchEvents.S3Events;
 using Amazon.Lambda.Core;
-using Amazon.XRay.Recorder.Handlers.AwsSdk;
 using PowertoolsWorkshop.Module1.Services;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -26,7 +25,6 @@ namespace PowertoolsWorkshop
         /// </summary>
         public ThumbnailGeneratorFunction()
         {
-            AWSSDKHandler.RegisterXRayForAllServices();
             _appSyncService = new AppSyncService();
             _thumbnailGeneratorService = new ThumbnailGeneratorService();
         }
