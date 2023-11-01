@@ -9,7 +9,6 @@ import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
@@ -57,14 +56,10 @@ public class Module2Handler implements RequestHandler<DynamodbEvent, Void> {
 
     private String getApiUrl(String apiParameterContent) {
         try {
-            JsonNode jsonNode = objectMapper.readTree(apiParameterContent);
-            if(jsonNode.has("url")){
-                return jsonNode.get("url").asText();
-            }else{
-                throw new RuntimeException("API URL is not defined");
-            }
-        } catch (JsonProcessingException ex) {
-            throw new RuntimeException(ex);
+            APIHost apiHost = objectMapper.readValue(apiParameterContent, APIHost.class);
+            return apiHost.getUrl();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 

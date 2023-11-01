@@ -9,9 +9,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
 import com.amazonaws.services.lambda.runtime.events.StreamsEventResponse;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +20,7 @@ import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
 import software.amazon.lambda.powertools.parameters.SecretsProvider;
+import software.amazon.lambda.powertools.parameters.transform.Transformer;
 import software.amazon.lambda.powertools.tracing.Tracing;
 import software.amazon.lambda.powertools.tracing.TracingUtils;
 
@@ -31,34 +29,28 @@ import software.amazon.lambda.powertools.tracing.TracingUtils;
  */
 public class Module2HandlerComplete implements RequestHandler<DynamodbEvent, StreamsEventResponse> {
     private static final Logger LOGGER = LogManager.getLogger(Module2Handler.class);
+    private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
     private static final String API_URL_PARAMETER_NAME = System.getenv("API_URL_PARAMETER_NAME");
     private static final String API_KEY_SECRET_NAME = System.getenv("API_KEY_SECRET_NAME");
     private static final SSMProvider ssmProvider = ParamManager.getSsmProvider();
     private static final SecretsProvider secretsProvider = ParamManager.getSecretsProvider();
-    private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler = new BatchMessageHandlerBuilder()
             .withDynamoDbBatchHandler()
             .buildWithRawMessageHandler(this::recordHandler);
 
 
     private String getSecret(String secretName) {
-        return secretsProvider.withMaxAge(900, SECONDS).get(secretName);
+        return secretsProvider
+                .withMaxAge(900, SECONDS)
+                .get(secretName);
     }
 
     private String getApiUrl(String apiParameterName) {
-        String parameterContent = ssmProvider.withMaxAge(900, SECONDS).get(apiParameterName);
-        try {
-            JsonNode jsonNode = objectMapper.readTree(parameterContent);
-            if(jsonNode.has("url")){
-                return jsonNode.get("url").asText();
-            }else{
-                throw new RuntimeException("API URL is not defined");
-            }
-        } catch (JsonProcessingException ex) {
-            throw new RuntimeException(ex);
-        }
+        APIHost apiHost = ssmProvider
+                .withMaxAge(900, SECONDS)
+                .withTransformation(Transformer.json)
+                .get(apiParameterName, APIHost.class);
+        return apiHost.getUrl();
     }
 
     /**
