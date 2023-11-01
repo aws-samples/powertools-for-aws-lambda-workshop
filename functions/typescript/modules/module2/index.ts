@@ -1,10 +1,10 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logger, tracer } from '@commons/powertools';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import middy from '@middy/core';
 import type { Context, DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { getLabels, reportImageIssue } from './utils';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
 import {

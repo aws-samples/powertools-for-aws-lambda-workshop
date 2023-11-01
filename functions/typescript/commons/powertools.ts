@@ -1,4 +1,4 @@
-import { PT_VERSION as version } from '@aws-lambda-powertools/commons/lib/version';
+import { PT_VERSION as version } from '@aws-lambda-powertools/commons';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { Metrics } from '@aws-lambda-powertools/metrics';
 import { Tracer } from '@aws-lambda-powertools/tracer';
