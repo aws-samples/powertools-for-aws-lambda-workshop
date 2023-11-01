@@ -3,10 +3,15 @@ from exceptions import NoLabelsFoundError, NoPersonFoundError, ImageDetectionErr
 import requests
 import json
 from botocore import errorfactory
+from aws_lambda_powertools import Logger, Tracer
+
+
+logger = Logger(level="DEBUG")
+tracer = Tracer()
 
 rekognition_client = boto3.client("rekognition")
 
-
+@tracer.capture_method
 def get_labels(bucket_name, file_id, user_id, transformed_file_key):
     try:
         response = rekognition_client.detect_labels(
@@ -21,6 +26,7 @@ def get_labels(bucket_name, file_id, user_id, transformed_file_key):
         labels = response["Labels"]
 
         if not labels or len(labels) == 0:
+            logger.error("No labels found in image")
             raise NoLabelsFoundError
 
         person_label = next(
@@ -33,13 +39,14 @@ def get_labels(bucket_name, file_id, user_id, transformed_file_key):
         )
 
         if not person_label:
+            logger.error("No person found in image")
             raise NoPersonFoundError
 
     except errorfactory.ClientError:
         raise ImageDetectionError("Object not found in S3")
 
 
-def report_image_issue(file_id: str, user_id: str, api_url: str, api_key: str, logger):
+def report_image_issue(file_id: str, user_id: str, api_url: str, api_key: str):
     if not api_url or not api_key:
         raise Exception(f"Missing apiUrl or apiKey. apiUrl: {api_url}, apiKey: {api_key}")
 
@@ -55,6 +62,6 @@ def report_image_issue(file_id: str, user_id: str, api_url: str, api_key: str, l
 
     logger.debug('Sending report to the API')
 
-    requests.post(api_url, headers=headers, data=json.dumps(data))
+    #requests.post(api_url, headers=headers, data=json.dumps(data))
 
     logger.debug('report sent to the API')
