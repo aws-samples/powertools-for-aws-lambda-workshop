@@ -6,6 +6,7 @@ from aws_lambda_powertools.utilities.batch import (
     EventType,
     process_partial_response,
 )
+from aws_lambda_powertools.utilities.batch.types import PartialItemFailureResponse
 from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import (
     DynamoDBRecord,
 )
@@ -63,6 +64,6 @@ def record_handler(record: DynamoDBRecord, lambda_context: LambdaContext):
 
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context(log_event=True)
-def lambda_handler(event, context: LambdaContext):
+def lambda_handler(event, context: LambdaContext) -> PartialItemFailureResponse:
     print(event)
     return process_partial_response(event=event, record_handler=record_handler, processor=processor, context=context)
