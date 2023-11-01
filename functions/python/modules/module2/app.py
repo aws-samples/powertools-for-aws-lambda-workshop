@@ -23,7 +23,6 @@ def get_secret_value(secret_id: str):
     return secrets.get_secret_value(SecretId=secret_id).get("SecretString")
 
 
-@tracer.capture_method
 def record_handler(record: DynamoDBRecord):
 
     # Since we are applying the filter at the DynamoDB Stream level,
@@ -31,14 +30,6 @@ def record_handler(record: DynamoDBRecord):
     user_id = record.dynamodb.new_image.get("userId")
     transformed_key = record.dynamodb.new_image.get("transformedFileKey")
     file_id = record.dynamodb.new_image.get("id")
-
-    # Add the file id and user id to the logger so that all the logs after this
-    # will have these attributes and we can correlate them
-    logger.append_keys(file_id=file_id, user_id=user_id)
-
-    # Add the file id and user id as annotations to the segment so that we can correlate the logs with the traces
-    tracer.put_annotation("file_id", file_id)
-    tracer.put_annotation("user_id", user_id)
 
     try:
         get_labels(S3_BUCKET_FILES, file_id, user_id, transformed_key)
@@ -52,8 +43,6 @@ def record_handler(record: DynamoDBRecord):
     except ImageDetectionError as error:
         logger.error(error)
         raise Exception("Error detecting image")
-    finally:
-            logger.remove_keys(["file_id", "user_id"])
 
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context(log_event=True)

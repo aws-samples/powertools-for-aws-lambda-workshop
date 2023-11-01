@@ -10,6 +10,7 @@ from aws_lambda_powertools.utilities.batch.types import PartialItemFailureRespon
 from aws_lambda_powertools.utilities.data_classes.dynamo_db_stream_event import (
     DynamoDBRecord,
 )
+from functions.python.modules.module2.app import API_KEY_SECRET_NAME, API_URL_HOST
 from utils import get_labels, report_image_issue
 from exceptions import NoLabelsFoundError, NoPersonFoundError, ImageDetectionError
 from aws_lambda_powertools.utilities import parameters
@@ -21,8 +22,8 @@ logger = Logger()
 tracer = Tracer()
 
 S3_BUCKET_FILES = os.getenv("BUCKET_NAME_FILES", "")
-APIURL = os.getenv("API_URL_PARAMETER_NAME", "")
-APIKEY = os.getenv("API_KEY_SECRET_NAME", "")
+API_URL_HOST = os.getenv("API_URL_HOST", "")
+API_KEY_SECRET_NAME = os.getenv("API_KEY_SECRET_NAME", "")
 
 
 @tracer.capture_method
@@ -53,8 +54,8 @@ def record_handler(record: DynamoDBRecord, lambda_context: LambdaContext):
             logger.warning("No person found in the image")
             # Get the apiUrl and apiKey
             # You can replace these with the actual values or retrieve them from a secret manager.
-            api_url = parameters.get_parameter(APIURL)
-            api_key = parameters.get_secret(APIKEY)
+            api_url = parameters.get_parameter(API_URL_HOST, transform="json", max_age=900)["url"]
+            api_key = parameters.get_secret(API_KEY_SECRET_NAME)
             report_image_issue(file_id=file_id, user_id=user_id, api_key=api_key, api_url=api_url)
         except ImageDetectionError as error:
             subsegment.add_exception(error)
@@ -65,5 +66,4 @@ def record_handler(record: DynamoDBRecord, lambda_context: LambdaContext):
 @tracer.capture_lambda_handler
 @logger.inject_lambda_context(log_event=True)
 def lambda_handler(event, context: LambdaContext) -> PartialItemFailureResponse:
-    print(event)
     return process_partial_response(event=event, record_handler=record_handler, processor=processor, context=context)
