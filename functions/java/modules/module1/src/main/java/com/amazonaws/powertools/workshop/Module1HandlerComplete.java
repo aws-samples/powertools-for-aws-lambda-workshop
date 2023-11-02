@@ -1,3 +1,6 @@
+/*
+Please NOTE: this class is commented out as there are additional dependencies that workshop attendees need to add to pom.xml
+
 package com.amazonaws.powertools.workshop;
 
 import java.awt.image.BufferedImage;
@@ -29,9 +32,12 @@ import static com.amazonaws.powertools.workshop.Utils.getImageMetadata;
 import static com.amazonaws.powertools.workshop.Utils.markFileAs;
 import static software.amazon.lambda.powertools.metrics.MetricsUtils.metricsLogger;
 
+*/
 /**
  * Lambda function handler for thumbnail generation
  */
+/*
+
 public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String> {
     private static final String IDEMPOTENCY_TABLE_NAME = System.getenv("IDEMPOTENCY_TABLE_NAME");
 
@@ -132,3 +138,4 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
         return baos.toByteArray();
     }
 }
+*/
