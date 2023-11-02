@@ -129,7 +129,8 @@ export class ComputeConstruct extends Construct {
       this.#runCommandAsWhoamiUser(
         `curl -fsSL https://code-server.dev/install.sh | sh`,
         `code-server --install-extension ms-python.python`,
-        `code-server --install-extension vscjava.vscode-java-pack`
+        `code-server --install-extension vscjava.vscode-java-pack`,
+        `code-server --install-extension muhammad-sammy.csharp`
       ),
       `systemctl enable --now code-server@${whoamiUser}`,
       // Clone Workshop repo & install dependencies
