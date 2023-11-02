@@ -35,6 +35,10 @@ interface ComputeConstructProps extends StackProps {
    * The name of an existing EC2 key pair to enable SSH access - if not provided, SSH access will not be possible.
    */
   keyName?: string;
+  /**
+   * The bucket name of the website to deploy.
+   */
+  websiteBucketName: string;
 }
 
 export class ComputeConstruct extends Construct {
@@ -54,8 +58,11 @@ export class ComputeConstruct extends Construct {
     userData.addCommands(
       // Add .NET repo
       `rpm -Uvh ${dotNetRepo}`,
+      `yum clean all`,
       // Install general dependencies
-      `yum install -y  ${osPackages.join(' ')}`,
+      `yum install -y --downloadonly  ${osPackages.join(' ')}`,
+      `sleep 20`,
+      `yum install -y ${osPackages.join(' ')}`,
       // Setup docker
       'service docker start',
       `usermod -aG docker ${whoamiUser}`,
@@ -120,7 +127,9 @@ export class ComputeConstruct extends Construct {
       ),
       // Install VSCode
       this.#runCommandAsWhoamiUser(
-        `curl -fsSL https://code-server.dev/install.sh | sh`
+        `curl -fsSL https://code-server.dev/install.sh | sh`,
+        `code-server --install-extension ms-python.python`,
+        `code-server --install-extension vscjava.vscode-java-pack`
       ),
       `systemctl enable --now code-server@${whoamiUser}`,
       // Clone Workshop repo & install dependencies
@@ -129,7 +138,10 @@ export class ComputeConstruct extends Construct {
         `export PATH="$HOME/.local/share/fnm:$PATH"`,
         `eval "\`fnm env\`"`,
         `cd /home/${whoamiUser}/${workshopDirectory}`,
-        `npm ci`
+        `npm ci`,
+        `npm run utils:createConfig`,
+        `npm run frontend:build`,
+        `aws s3 cp --recursive ./frontend/build s3://${props.websiteBucketName}`
       ),
       // Set Account ID & Region
       `echo 'export AWS_REGION=${Stack.of(this).region}' >> $HOME/.zshrc`,
