@@ -3,7 +3,6 @@ Please NOTE: this class is commented out as there are additional dependencies th
 
 package com.amazonaws.powertools.workshop;
 
-import com.amazonaws.xray.AWSXRay;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,6 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
+import com.amazonaws.xray.AWSXRay;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import java.util.UUID;
@@ -27,6 +27,7 @@ import software.amazon.lambda.powertools.idempotency.persistence.DynamoDBPersist
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.logging.LoggingUtils;
 import software.amazon.lambda.powertools.metrics.Metrics;
+import software.amazon.lambda.powertools.metrics.MetricsUtils;
 import software.amazon.lambda.powertools.tracing.Tracing;
 import software.amazon.lambda.powertools.tracing.TracingUtils;
 
@@ -85,6 +86,8 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
 
             String newObjectKey = processOneIdempotently(object);
 
+            metricsLogger().putMetric("ImageProcessed", 1, Unit.COUNT);
+
             // Mark file as done
             markFileAs(object.getFileId(), "completed", newObjectKey);
         } catch (Exception e) {
@@ -118,9 +121,12 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
 
             // Log the result
             LOGGER.info("Saved image on S3: {} ({}kb)", newObjectKey, thumbnail.length / 1024);
+
+            // Annotate the XRay Segment with the newObjectKey
             TracingUtils.putAnnotation("newObjectKey", newObjectKey);
+
             // Add metric
-            metricsLogger().putMetric("processedImages", 1, Unit.COUNT);
+            metricsLogger().putMetric("ThumbnailGenerated", 1, Unit.COUNT);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
