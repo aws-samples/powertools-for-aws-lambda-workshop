@@ -126,10 +126,10 @@
                     <target>${maven.compiler.target}</target>
                     <complianceLevel>${maven.compiler.target}</complianceLevel>
                     <aspectLibraries>
-                        <aspectLibrary>
+<!--                        <aspectLibrary>
                             <groupId>software.amazon.lambda</groupId>
                             <artifactId>powertools-tracing</artifactId>
-                        </aspectLibrary>
+                        </aspectLibrary>-->
                         <aspectLibrary>
                             <groupId>software.amazon.lambda</groupId>
                             <artifactId>powertools-logging</artifactId>
