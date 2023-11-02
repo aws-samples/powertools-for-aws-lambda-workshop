@@ -30,7 +30,7 @@ const recordHandler = async (
   record: DynamoDBRecord,
   lambdaContext: Context
 ): Promise<void> => {
-  if (lambdaContext.getRemainingTimeInMillis() > 1000) {
+  if (lambdaContext.getRemainingTimeInMillis() < 1000) {
     logger.warn(
       'Invocation is about to time out, marking all remaining records as failed',
       {
