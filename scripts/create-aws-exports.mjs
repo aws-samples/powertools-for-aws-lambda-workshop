@@ -1,96 +1,22 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
-
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { writeFile, readFile } from 'node:fs/promises';
 import {
-  CloudFormationClient,
-  ListStacksCommand,
-  DescribeStacksCommand,
-} from '@aws-sdk/client-cloudformation';
-
-const cfnClient = new CloudFormationClient({});
-
-/**
- *
- * @param {string} name
- * @returns
- */
-const getStackName = async (name) => {
-  try {
-    const res = await cfnClient.send(
-      new ListStacksCommand({
-        StackStatusFilter: [
-          'CREATE_COMPLETE',
-          'UPDATE_COMPLETE',
-          'ROLLBACK_COMPLETE',
-        ],
-      })
-    );
-    const stackSummaries = res.StackSummaries.filter((stack) =>
-      stack.StackName.toUpperCase().includes(name.toUpperCase())
-    );
-    let stack;
-    if (stackSummaries.length === 1) {
-      stack = stackSummaries[0];
-    } else if (stackSummaries.length > 1) {
-      stack = stackSummaries.find((stack) =>
-        stack.StackName.toUpperCase().includes('PROD')
-      );
-    };
-    if (!stack) {
-      throw new Error('Unable to find stack among loaded ones');
-    }
-
-    return stack;
-  } catch (err) {
-    console.error(err);
-    console.error('Unable to load CloudFormation stacks.');
-    throw err;
-  }
-};
-
-/**
- *
- * @param {string} stackName
- */
-const getStackOutputs = async (stackName) => {
-  try {
-    const res = await cfnClient.send(
-      new DescribeStacksCommand({
-        StackName: stackName,
-      })
-    );
-    if (res.Stacks.length === 0) {
-      throw new Error('Stack not found');
-    }
-    const keys = [];
-    const outputs = {};
-    res.Stacks?.[0].Outputs.forEach(({ OutputKey, OutputValue }) => {
-      outputs[OutputKey] = OutputValue;
-      keys.push(OutputKey);
-    });
-
-    return {
-      keys,
-      vals: outputs,
-    };
-  } catch (err) {
-    console.error(err);
-    console.error('Unable to load CloudFormation Stack outputs.');
-    throw err;
-  }
-};
+  getStackName,
+  getStackOutputs,
+  getValueFromNamePart,
+} from './shared.mjs';
 
 /**
  *
  * @param {string} path
+ * @param {string} stackName
  */
-const getParams = async (path) => {
+const getParamsLocally = async (path, stackName) => {
   try {
     const fileContent = await readFile(path);
     const paramsObject = JSON.parse(fileContent);
-    const paramsKeys = Object.keys(paramsObject.PowerToolsWorkshop);
-    const paramsValues = paramsObject.PowerToolsWorkshop;
+    const paramsKeys = Object.keys(paramsObject[stackName]);
+    const paramsValues = paramsObject[stackName];
 
     return { keys: paramsKeys, vals: paramsValues };
   } catch (err) {
@@ -113,31 +39,29 @@ export default awsmobile;
   }
 };
 
-/**
- *
- * @param {string} namePart
- */
-const getValueFromNamePart = (namePart, values) =>
-  values.find((el) => el.includes(namePart));
-
-const main = async () => {
+(async () => {
+  const stackName = 'PowertoolsWorkshopInfra';
   let keys;
   let vals;
   try {
     console.info('Trying to find output file locally.');
-    const params = await getParams('../infra/cdk.out/params.json');
+    const params = await getParamsLocally(
+      '../infra/cdk.out/params.json',
+      stackName
+    );
     keys = params.keys;
     vals = params.vals;
   } catch (err) {
     console.info('Unable to find output file locally, trying remotely.');
     try {
-      const stackName = 'PowerToolsWorkshop';
       console.info(`Trying to find stack with ${stackName}`);
       const stack = await getStackName(stackName);
       const params = await getStackOutputs(stack.StackName);
       keys = params.keys;
       vals = params.vals;
-      console.info(`Stack '${stack.StackName}' found remotely, using outputs from there.`);
+      console.info(
+        `Stack '${stack.StackName}' found remotely, using outputs from there.`
+      );
     } catch (err) {
       console.error('Did you run `npm run infra:deploy` in the project root?');
       throw new Error('Unable to find parameters locally or remotely.');
@@ -161,6 +85,4 @@ const main = async () => {
   console.info('Creating config file at frontend/src/aws-exports.cjs');
 
   saveTemplate(template, '../frontend/src/aws-exports.cjs');
-};
-
-main();
+})();

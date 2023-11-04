@@ -17,7 +17,7 @@ const Upload: React.FC<UploadProps> = () => {
   );
   const subscriptionRef = useRef<ZenObservable.Subscription>();
 
-  const setFileStatus = (id: string, status: string) => {
+  const setFileStatus = (id: string, status: string): void => {
     setFileUploadData((prev) => {
       const fileRef = prev.get(id)!;
       fileRef.status = status;
@@ -26,12 +26,12 @@ const Upload: React.FC<UploadProps> = () => {
     });
   };
 
-  const unsubscribeIfSubscribedToFileStatusUpdates = () => {
+  const unsubscribeIfSubscribedToFileStatusUpdates = (): void => {
     if (!subscriptionRef.current?.closed)
       subscriptionRef.current?.unsubscribe();
   };
 
-  const subscribeFileStatusUpdates = (fileUploadData: FileWithUrlMap) => {
+  const subscribeFileStatusUpdates = (fileUploadData: FileWithUrlMap): void => {
     if (!fileUploadData) return;
     const syncExpressionObject: { or: { id: { eq: string } }[] } = {
       or: [],

@@ -1,4 +1,4 @@
-import { Stack, type StackProps, CfnParameter, Fn } from 'aws-cdk-lib';
+import { Stack, type StackProps, Fn } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   NetworkConstruct,
@@ -7,6 +7,7 @@ import {
   SecretConstruct,
   CompletionConstruct,
 } from './attendant-ide';
+import { environment } from './constants';
 
 export class IdeStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {
@@ -17,7 +18,11 @@ export class IdeStack extends Stack {
     const { vpc } = network;
 
     // Import the WebsiteBucketName output from the source stack (SourceStack)
-    const websiteBucketName = Fn.importValue('PowerToolsWorkshop-WebsiteBucketName');
+    const websiteBucketName = Fn.importValue(
+      `PowertoolsWorkshopInfra-WebsiteBucketName${
+        environment === 'prod' ? `-prod` : ''
+      }`
+    );
 
     // Create a compute instance in the private subnet
     const compute = new ComputeConstruct(this, 'compute', {

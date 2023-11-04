@@ -1,4 +1,4 @@
-import { CfnOutput, type StackProps, Duration } from 'aws-cdk-lib';
+import { CfnOutput, type StackProps, Duration, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   AllowedMethods,

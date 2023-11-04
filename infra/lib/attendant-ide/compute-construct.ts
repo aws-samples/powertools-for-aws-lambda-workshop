@@ -139,6 +139,8 @@ export class ComputeConstruct extends Construct {
         `export PATH="$HOME/.local/share/fnm:$PATH"`,
         `eval "\`fnm env\`"`,
         `cd /home/${whoamiUser}/${workshopDirectory}`,
+        // TODO: remove this once the workshop repo is updated
+        `git checkout chore/update_deps`,
         `npm ci`,
         `npm run utils:createConfig`,
         `npm run frontend:build`,
@@ -173,7 +175,6 @@ export class ComputeConstruct extends Construct {
       machineImage: MachineImage.fromSsmParameter(
         '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64'
       ),
-      // ...(keyName !== '' && keyName !== undefined && { keyName }),
       blockDevices: [
         {
           deviceName: '/dev/xvda',

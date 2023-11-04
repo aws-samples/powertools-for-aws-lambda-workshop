@@ -11,7 +11,7 @@
   "license": "MIT-0",
   "scripts": {
     "createConfig": "node create-aws-exports.mjs",
-    "convertCDKtoCfn": "node convert-template.cjs"
+    "convertCDKtoCfn": "node convert-template.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.395.0",
