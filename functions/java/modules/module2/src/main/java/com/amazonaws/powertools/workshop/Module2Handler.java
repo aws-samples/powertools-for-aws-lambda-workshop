@@ -6,45 +6,68 @@ import static com.amazonaws.powertools.workshop.Utils.reportImageIssue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.DynamodbEvent;
-import com.amazonaws.services.lambda.runtime.events.StreamsEventResponse;
 import com.amazonaws.services.lambda.runtime.events.models.dynamodb.AttributeValue;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.List;
 import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import software.amazon.lambda.powertools.batch.BatchMessageHandlerBuilder;
-import software.amazon.lambda.powertools.batch.handler.BatchMessageHandler;
+
+import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
+
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.logging.LoggingUtils;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.tracing.Tracing;
+import software.amazon.lambda.powertools.tracing.TracingUtils;
 
 /**
  * Lambda function handler for image (person) detection
  */
-public class Module2Handler implements RequestHandler<DynamodbEvent, StreamsEventResponse> {
+public class Module2Handler implements RequestHandler<DynamodbEvent, Void> {
     private static final Logger LOGGER = LogManager.getLogger(Module2Handler.class);
 
     private static final String BUCKET_NAME_FILES = System.getenv("BUCKET_NAME_FILES");
+    private static final String API_URL_HOST = System.getenv("API_URL_HOST");
+    private static final String API_KEY_SECRET_NAME = System.getenv("API_KEY_SECRET_NAME");
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final SecretsManagerClient secretsManagerClient =
+            (SecretsManagerClient.builder().httpClientBuilder(UrlConnectionHttpClient.builder()))
+                    .region(Region.of(System.getenv(
+                            SdkSystemSetting.AWS_REGION.environmentVariable())))
+                    .build();
 
-    private final BatchMessageHandler<DynamodbEvent, StreamsEventResponse> handler;
-
-    public Module2Handler() {
-        handler = new BatchMessageHandlerBuilder()
-                .withDynamoDbBatchHandler()
-                .buildWithRawMessageHandler(this::processMessage);
+    private String getSecret(String secretName) {
+        GetSecretValueRequest request = GetSecretValueRequest.builder().secretId(secretName).build();
+        String secretValue = this.secretsManagerClient.getSecretValue(request).secretString();
+        if (secretValue == null) {
+            throw new RuntimeException("Secret value is null");
+        }
+        return secretValue;
     }
 
-    @Logging(logEvent = true)
-    @Tracing
-    @Metrics(captureColdStart = true)
-    public StreamsEventResponse handleRequest(final DynamodbEvent event, final Context context) {
-        return handler.processBatch(event, context);
+    private String getApiUrl(String apiParameterContent) {
+        try {
+            APIHost apiHost = objectMapper.readValue(apiParameterContent, APIHost.class);
+            return apiHost.getUrl();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     /**
      * Process each dynamoDB stream record, automatically handle partial batch failure
      */
-    private void processMessage(DynamodbEvent.DynamodbStreamRecord dynamodbStreamRecord, Context context) {
+    private void recordHandler(DynamodbEvent.DynamodbStreamRecord dynamodbStreamRecord, Context context) {
         // Since we are applying the filter at the DynamoDB Stream level,
         // we know that the record has a NewImage otherwise the record would not be here
         Map<String, AttributeValue> data = dynamodbStreamRecord.getDynamodb().getNewImage();
@@ -52,22 +75,28 @@ public class Module2Handler implements RequestHandler<DynamodbEvent, StreamsEven
         String userId = data.get("userId").getS();
         String transformedFileKey = data.get("transformedFileKey").getS();
 
-        // Add the file id and user id to the logger so that all the logs after this
-        // will have these attributes and we can correlate them
-        LoggingUtils.appendKey("fileId", fileId);
-        LoggingUtils.appendKey("userId", userId);
         try {
             // Get the labels from Rekognition
             getLabels(BUCKET_NAME_FILES, fileId, userId, transformedFileKey);
         } catch (ImageDetectionException e) {
             // If no person was found in the image, report the issue to the API for further investigation
             LOGGER.warn("No person found in the image");
-            reportImageIssue(fileId, userId);
-        } finally {
-            // Remove the file id and user id from the logger
-            LoggingUtils.removeKey("fileId");
-            LoggingUtils.removeKey("userId");
+
+            // Get the apiUrl and apiKey
+            String apiUrl = getApiUrl(API_URL_HOST);
+            String apiKey = getSecret(API_KEY_SECRET_NAME);
+            reportImageIssue(fileId, userId, apiUrl, apiKey);
         }
     }
+
+    @Logging(logEvent = true)
+    @Tracing
+    @Metrics(captureColdStart = true)
+    public Void handleRequest(final DynamodbEvent event, final Context context) {
+        List<DynamodbEvent.DynamodbStreamRecord> records = event.getRecords();
+        records.forEach(record -> recordHandler(record, context));
+        return null;
+    }
+
 
 }

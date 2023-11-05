@@ -13,12 +13,9 @@ import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import software.amazon.cloudwatchlogs.emf.model.Unit;
-import software.amazon.lambda.powertools.logging.LoggingUtils;
 
 import static com.amazonaws.powertools.workshop.Utils.getImageMetadata;
 import static com.amazonaws.powertools.workshop.Utils.markFileAs;
-import static software.amazon.lambda.powertools.metrics.MetricsUtils.metricsLogger;
 
 
 /**
@@ -38,9 +35,6 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
         object.setKey(event.getDetail().getObject().get("key"));
         object.setEtag(event.getDetail().getObject().get("etag"));
 
-        // add metadata to the logs
-        LoggingUtils.appendKey("S3Object", object.toString());
-
         // Fetch additional metadata from DynamoDB
         Map<String, String> metadata = getImageMetadata(object.getKey());
         object.setFileId(metadata.get("fileId"));
@@ -58,9 +52,6 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
             // Mark file as failed
             markFileAs(object.getFileId(), "failed", null);
             throw e;
-        } finally {
-            // remove metadata for subsequent lambda executions
-            LoggingUtils.removeKey("S3Object");
         }
 
         return "ok";
@@ -82,9 +73,6 @@ public class Module1Handler implements RequestHandler<S3EBEvent, String> {
 
             // Log the result
             LOGGER.info("Saved image on S3: {} ({}kb)", newObjectKey, thumbnail.length / 1024);
-
-            // Add metric
-            metricsLogger().putMetric("processedImages", 1, Unit.COUNT);
 
 
         } catch (IOException e) {

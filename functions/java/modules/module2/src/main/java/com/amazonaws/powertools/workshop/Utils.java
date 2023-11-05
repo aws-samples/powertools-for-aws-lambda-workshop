@@ -2,7 +2,6 @@ package com.amazonaws.powertools.workshop;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.time.temporal.ChronoUnit.SECONDS;
 
 import com.amazonaws.powertools.workshop.ImageDetectionException.NoLabelsFoundException;
 import com.amazonaws.powertools.workshop.ImageDetectionException.NoPersonFoundException;
@@ -24,9 +23,6 @@ import software.amazon.awssdk.services.rekognition.model.DetectLabelsRequest;
 import software.amazon.awssdk.services.rekognition.model.DetectLabelsResponse;
 import software.amazon.awssdk.services.rekognition.model.Label;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.lambda.powertools.parameters.ParamManager;
-import software.amazon.lambda.powertools.parameters.SSMProvider;
-import software.amazon.lambda.powertools.parameters.SecretsProvider;
 import software.amazon.lambda.powertools.tracing.CaptureMode;
 import software.amazon.lambda.powertools.tracing.Tracing;
 import software.amazon.lambda.powertools.tracing.TracingUtils;
@@ -34,11 +30,7 @@ import software.amazon.lambda.powertools.tracing.TracingUtils;
 public class Utils {
     private static final Logger LOGGER = LogManager.getLogger(Utils.class);
     private static final Region AWS_REGION = Region.of(System.getenv("AWS_REGION"));
-    private static final String API_URL_PARAMETER_NAME = System.getenv("API_URL_PARAMETER_NAME");
-    private static final String API_KEY_SECRET_NAME = System.getenv("API_KEY_SECRET_NAME");
     private static final AwsCredentialsProvider credentialsProvider = EnvironmentVariableCredentialsProvider.create();
-    private static final SSMProvider ssmProvider = ParamManager.getSsmProvider();
-    private static final SecretsProvider secretsProvider = ParamManager.getSecretsProvider();
 
     private static final RekognitionClient rekoClient = RekognitionClient.builder()
             .region(AWS_REGION)
@@ -92,10 +84,7 @@ public class Utils {
     /**
      * Utility function that calls the API to report an image issue.
      */
-    public static void reportImageIssue(String fileId, String userId) {
-        // Get the apiUrl and apiKey from SSM and Secrets Manager respectively
-        String apiUrl = ssmProvider.withMaxAge(900, SECONDS).get(API_URL_PARAMETER_NAME);
-        String apiKey = secretsProvider.withMaxAge(900, SECONDS).get(API_KEY_SECRET_NAME);
+    public static void reportImageIssue(String fileId, String userId, String apiUrl, String apiKey) {
         if (StringUtils.isEmpty(apiKey) || StringUtils.isEmpty(apiUrl)) {
             throw new IllegalStateException(format("Missing apiUrl or apiKey. apiUrl: %s, apiKey: %s", apiUrl, apiKey));
         }

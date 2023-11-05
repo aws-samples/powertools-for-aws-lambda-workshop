@@ -1,3 +1,6 @@
+/*
+Please NOTE: this class is commented out as there are additional dependencies that workshop attendees need to add to pom.xml
+
 package com.amazonaws.powertools.workshop;
 
 import java.awt.image.BufferedImage;
@@ -7,6 +10,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 
+import com.amazonaws.xray.AWSXRay;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import java.util.UUID;
@@ -23,15 +27,15 @@ import software.amazon.lambda.powertools.idempotency.persistence.DynamoDBPersist
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.logging.LoggingUtils;
 import software.amazon.lambda.powertools.metrics.Metrics;
+import software.amazon.lambda.powertools.metrics.MetricsUtils;
 import software.amazon.lambda.powertools.tracing.Tracing;
+import software.amazon.lambda.powertools.tracing.TracingUtils;
 
 import static com.amazonaws.powertools.workshop.Utils.getImageMetadata;
 import static com.amazonaws.powertools.workshop.Utils.markFileAs;
 import static software.amazon.lambda.powertools.metrics.MetricsUtils.metricsLogger;
 
-/**
- * Lambda function handler for thumbnail generation
- */
+
 public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String> {
     private static final String IDEMPOTENCY_TABLE_NAME = System.getenv("IDEMPOTENCY_TABLE_NAME");
 
@@ -74,12 +78,15 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
 
         // add metadata to the logs
         LoggingUtils.appendKey("S3Object", object.toString());
+        LoggingUtils.appendKey("XrayTraceId", AWSXRay.getCurrentSegment().getTraceId().toString());
 
         try {
             // Mark file as working
             markFileAs(object.getFileId(), "in-progress", null);
 
             String newObjectKey = processOneIdempotently(object);
+
+            metricsLogger().putMetric("ImageProcessed", 1, Unit.COUNT);
 
             // Mark file as done
             markFileAs(object.getFileId(), "completed", newObjectKey);
@@ -90,11 +97,13 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
         } finally {
             // remove metadata for subsequent lambda executions
             LoggingUtils.removeKey("S3Object");
+            LoggingUtils.removeKey("XrayTraceId");
         }
 
         return "ok";
     }
 
+    @Tracing
     @Idempotent
     private String processOneIdempotently(@IdempotencyKey S3Object s3Object) {
         String newObjectKey = TRANSFORMED_IMAGE_PREFIX + "/" + UUID.randomUUID() + TRANSFORMED_IMAGE_EXTENSION;
@@ -113,8 +122,11 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
             // Log the result
             LOGGER.info("Saved image on S3: {} ({}kb)", newObjectKey, thumbnail.length / 1024);
 
+            // Annotate the XRay Segment with the newObjectKey
+            TracingUtils.putAnnotation("newObjectKey", newObjectKey);
+
             // Add metric
-            metricsLogger().putMetric("processedImages", 1, Unit.COUNT);
+            metricsLogger().putMetric("ThumbnailGenerated", 1, Unit.COUNT);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -132,3 +144,4 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
         return baos.toByteArray();
     }
 }
+*/
