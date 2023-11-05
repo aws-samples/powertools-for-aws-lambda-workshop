@@ -14,6 +14,7 @@ import {
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { environment } from '../constants';
 import { customSecurityHeader, customSecurityHeaderValue } from './constants';
+import { NagSuppressions } from 'cdk-nag';
 
 interface DistributionConstructProps extends StackProps {
   /**
@@ -77,5 +78,33 @@ export class DistributionConstruct extends Construct {
       value: this.ideUrl,
       description: 'The domain name where the web IDE is hosted',
     });
+
+    NagSuppressions.addResourceSuppressions(distribution, [
+      {
+        id: 'AwsSolutions-CFR1',
+        reason:
+          "No geo restrictions are needed for this distribution, it's for a short-lived workshop.",
+      },
+      {
+        id: 'AwsSolutions-CFR2',
+        reason:
+          "No WAF needed for this distribution, it's for a short-lived workshop.",
+      },
+      {
+        id: 'AwsSolutions-CFR3',
+        reason:
+          "No logging needed for this distribution, it's for a short-lived workshop.",
+      },
+      {
+        id: 'AwsSolutions-CFR4',
+        reason:
+          "Using default SSL settings for this distribution, it's for a short-lived workshop.",
+      },
+      {
+        id: 'AwsSolutions-CFR5',
+        reason:
+          "Using default SSL settings for this distribution, it's for a short-lived workshop.",
+      },
+    ]);
   }
 }

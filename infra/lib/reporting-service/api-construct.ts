@@ -1,7 +1,7 @@
 import { Period, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
-import type { StackProps } from 'aws-cdk-lib';
+import { Stack, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { environment } from '../constants';
 import { NagSuppressions } from 'cdk-nag';
@@ -70,8 +70,55 @@ export class ApiConstruct extends Construct {
           reason:
             'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
         },
+        {
+          id: 'AwsSolutions-APIG4',
+          reason: 'API Key is enabled as auth.',
+        },
+        {
+          id: 'AwsSolutions-COG4',
+          reason: 'API Key is enabled as auth.',
+        },
       ],
       true
+    );
+    NagSuppressions.addResourceSuppressions(
+      this.restApi,
+      [
+        {
+          id: 'AwsSolutions-APIG3',
+          reason:
+            'Usage of a WAF has intentionally been omitted for this solution, customers can add their own WAF if they wish to do so',
+        },
+        {
+          id: 'AwsSolutions-APIG6',
+          reason:
+            'Logging disabled intentionally to leave it up to the user given that there can only be one AWS::ApiGateway::Account per AWS account',
+        },
+        {
+          id: 'AwsSolutions-APIG1',
+          reason:
+            'Logging disabled intentionally to leave it up to the user given that there can only be one AWS::ApiGateway::Account per AWS account',
+        },
+      ],
+      true
+    );
+
+    NagSuppressions.addResourceSuppressionsByPath(
+      Stack.of(scope),
+      [
+        'PowertoolsWorkshopInfra/reporting-service/api-construct/api-key-value/Resource',
+        'PowertoolsWorkshopInfra/reporting-service/api-construct/rest-api/CloudWatchRole/Resource',
+      ],
+      [
+        {
+          id: 'AwsSolutions-SMG4',
+          reason: 'API Key is used exclusively for a short-lived workshop.',
+        },
+        {
+          id: 'AwsSolutions-IAM4',
+          reason: 'API Key is used exclusively for a short-lived workshop.',
+        },
+      ]
     );
   }
 }

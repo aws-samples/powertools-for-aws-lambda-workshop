@@ -19,6 +19,7 @@ import {
   customSecurityHeaderValue,
   idePort,
 } from './constants';
+import { NagSuppressions } from 'cdk-nag';
 
 interface NetworkConstructProps extends StackProps {}
 
@@ -89,6 +90,23 @@ export class NetworkConstruct extends Construct {
         messageBody: 'Forbidden',
       }),
     });
+
+    NagSuppressions.addResourceSuppressions(
+      this.loadBalancer,
+      [
+        {
+          id: 'AwsSolutions-ELB2',
+          reason:
+            'This load balancer is used to provide access to the IDE for the duration of the workshop. For production usages, consider enabling access logs.',
+        },
+        {
+          id: 'AwsSolutions-EC23',
+          reason:
+            'This load balancer is used to provide access to the IDE for the duration of the workshop and the source IP address of the attendant is not known beforehand. For production usages, narrowing down the CIDR for inboud.',
+        },
+      ],
+      true
+    );
 
     return this.loadBalancer;
   }

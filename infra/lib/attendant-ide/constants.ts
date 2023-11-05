@@ -45,8 +45,7 @@ const osPackages = [
 
 const whoamiUser = 'ec2-user';
 const workshopRepo = 'aws-samples/powertools-for-aws-lambda-workshop';
-// TODO: change to main branch once merged
-const zshrcTemplateUrl = `https://raw.githubusercontent.com/${workshopRepo}/ec2-ide/infra/lib/attendant-ide/zshrc-sample.txt`;
+const zshrcTemplateUrl = `https://raw.githubusercontent.com/${workshopRepo}/main/infra/lib/attendant-ide/zshrc-sample.txt`;
 const workshopDirectory = 'workshop';
 
 const idePasswordSecretName = '/workshop/vscode-password';

@@ -8,6 +8,7 @@ import {
   CompletionConstruct,
 } from './attendant-ide';
 import { environment } from './constants';
+import { NagSuppressions } from 'cdk-nag';
 
 export class IdeStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {
@@ -51,6 +52,27 @@ export class IdeStack extends Stack {
 
     new CompletionConstruct(this, 'completion', {
       healthCheckEndpoint,
+    });
+
+    [
+      'PowertoolsWorkshopIde/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
+      'PowertoolsWorkshopIde/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
+    ].forEach((resourcePath: string) => {
+      let id = 'AwsSolutions-L1';
+      let reason = 'Resource created and managed by CDK.';
+      if (resourcePath.endsWith('ServiceRole/Resource')) {
+        id = 'AwsSolutions-IAM4';
+      } else if (resourcePath.endsWith('DefaultPolicy/Resource')) {
+        id = 'AwsSolutions-IAM5';
+        reason +=
+          ' This type of resource is a singleton fn that interacts with many resources so IAM policies are lax by design to allow this use case.';
+      }
+      NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
+        {
+          id,
+          reason,
+        },
+      ]);
     });
   }
 }

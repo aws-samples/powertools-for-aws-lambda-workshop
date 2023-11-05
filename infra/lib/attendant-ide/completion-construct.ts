@@ -1,14 +1,10 @@
-import {
-  CfnOutput,
-  type StackProps,
-  CustomResource,
-  Duration,
-} from 'aws-cdk-lib';
+import { type StackProps, CustomResource, Duration } from 'aws-cdk-lib';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { Runtime, Function, Code } from 'aws-cdk-lib/aws-lambda';
 import { customSecurityHeader, customSecurityHeaderValue } from './constants';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { NagSuppressions } from 'cdk-nag';
 
 interface CompletionConstructProps extends StackProps {
   /**
@@ -83,5 +79,22 @@ export class CompletionConstruct extends Construct {
     new CustomResource(this, 'Custom:IdeAvailability', {
       serviceToken: checkIdAvailabilityProvider.serviceToken,
     });
+
+    NagSuppressions.addResourceSuppressions(
+      this,
+      [
+        {
+          id: 'AwsSolutions-IAM5',
+          reason:
+            'This resource is managed by CDK and used to create custom resources. This is run only a handful of times during deployment.',
+        },
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'This resource is managed by CDK and used to create custom resources. This is run only a handful of times during deployment.',
+        },
+      ],
+      true
+    );
   }
 }

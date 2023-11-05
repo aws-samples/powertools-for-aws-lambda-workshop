@@ -4,6 +4,7 @@ import { ApiConstruct } from './api-construct';
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 import { type StackProps } from 'aws-cdk-lib';
 import { type Language } from '../constants';
+import { NagSuppressions } from 'cdk-nag';
 
 interface ReportingServiceProps extends StackProps {
   language: Language;
@@ -28,7 +29,7 @@ export class ReportingService extends Construct {
 
     this.api = new ApiConstruct(this, 'api-construct', {});
 
-    this.api.restApi.root.addMethod(
+    const methodResource = this.api.restApi.root.addMethod(
       'POST',
       new LambdaIntegration(this.functions.apiEndpointHandlerFn, {
         proxy: true,
@@ -36,6 +37,21 @@ export class ReportingService extends Construct {
       {
         apiKeyRequired: true,
       }
+    );
+
+    NagSuppressions.addResourceSuppressions(
+      methodResource,
+      [
+        {
+          id: 'AwsSolutions-COG4',
+          reason: 'Method uses API Key Authorization instead',
+        },
+        {
+          id: 'AwsSolutions-APIG4',
+          reason: 'Method uses API Key Authorization',
+        },
+      ],
+      true
     );
   }
 }

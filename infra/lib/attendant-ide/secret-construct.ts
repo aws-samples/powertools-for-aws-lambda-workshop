@@ -2,6 +2,7 @@ import { RemovalPolicy, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { idePasswordSecretName } from './constants';
+import { NagSuppressions } from 'cdk-nag';
 
 interface SecretConstructProps extends StackProps {}
 
@@ -24,5 +25,13 @@ export class SecretConstruct extends Construct {
       },
       removalPolicy: RemovalPolicy.DESTROY,
     });
+
+    NagSuppressions.addResourceSuppressions(this.secret, [
+      {
+        id: 'AwsSolutions-SMG4',
+        reason:
+          'The secret is used exclusively to store the access key to the browser-based IDE that is used for short-lived workshops.',
+      },
+    ]);
   }
 }

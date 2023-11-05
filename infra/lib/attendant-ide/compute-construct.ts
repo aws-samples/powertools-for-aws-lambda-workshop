@@ -25,16 +25,13 @@ import {
   zshrcTemplateUrl,
 } from './constants';
 import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { NagSuppressions } from 'cdk-nag';
 
 interface ComputeConstructProps extends StackProps {
   /**
    * The VPC to deploy the compute resources into.
    */
   vpc: Vpc;
-  /**
-   * The name of an existing EC2 key pair to enable SSH access - if not provided, SSH access will not be possible.
-   */
-  keyName?: string;
   /**
    * The bucket name of the website to deploy.
    */
@@ -52,7 +49,7 @@ export class ComputeConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { vpc, keyName } = props;
+    const { vpc } = props;
 
     const userData = UserData.forLinux();
     userData.addCommands(
@@ -139,8 +136,6 @@ export class ComputeConstruct extends Construct {
         `export PATH="$HOME/.local/share/fnm:$PATH"`,
         `eval "\`fnm env\`"`,
         `cd /home/${whoamiUser}/${workshopDirectory}`,
-        // TODO: remove this once the workshop repo is updated
-        `git checkout chore/update_deps`,
         `npm ci`,
         `npm run utils:createConfig`,
         `npm run frontend:build`,
@@ -189,7 +184,6 @@ export class ComputeConstruct extends Construct {
     this.instance.role.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonEC2RoleforSSM')
     );
-    // TODO: restrict to only the necessary permissions
     this.instance.role.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')
     );
@@ -197,6 +191,33 @@ export class ComputeConstruct extends Construct {
     this.target = new InstanceIdTarget(
       this.instance.instanceId,
       parseInt(idePort)
+    );
+
+    NagSuppressions.addResourceSuppressions(
+      this.instance,
+      [
+        {
+          id: 'AwsSolutions-EC26',
+          reason:
+            'This instance is used exclusively to provide a browser-based IDE to attendants for the duration of the workshop.',
+        },
+        {
+          id: 'AwsSolutions-EC28',
+          reason:
+            'This instance is used exclusively to provide a browser-based IDE to attendants for the duration of the workshop.',
+        },
+        {
+          id: 'AwsSolutions-EC29',
+          reason:
+            'This instance is used exclusively to provide a browser-based IDE to attendants for the duration of the workshop.',
+        },
+        {
+          id: 'AwsSolutions-IAM4',
+          reason:
+            'This instance is used exclusively to provide a browser-based IDE to attendants for the duration of the workshop.',
+        },
+      ],
+      true
     );
   }
 
