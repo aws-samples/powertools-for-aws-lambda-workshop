@@ -32,7 +32,7 @@ const writeJSONFile = async (content, path) => {
   const [stackName] = args;
   if (!stackName) {
     console.error(
-      'Please provide a stack name as an argument to the script\n e.g. node scripts/convert-template.cjs PowertoolsWorkshopInfra'
+      'Please provide a stack name as an argument to the script\n e.g. node scripts/convert-template.cjs powertoolsworkshopinfra'
     );
     throw new Error('No stack name provided');
   }

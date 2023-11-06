@@ -28,7 +28,7 @@ const lambdaHandler = async (
   logger.debug('Marked File as queued', {
     details: fileId,
   });
-  metrics.addMetric('filesUploaded', MetricUnit.Count, 1);
+  metrics.addMetric('FilesQueued', MetricUnit.Count, 1);
 };
 
 const handler = middy(lambdaHandler)

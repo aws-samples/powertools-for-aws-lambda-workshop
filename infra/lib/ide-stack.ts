@@ -20,7 +20,7 @@ export class IdeStack extends Stack {
 
     // Import the WebsiteBucketName output from the source stack (SourceStack)
     const websiteBucketName = Fn.importValue(
-      `PowertoolsWorkshopInfra-WebsiteBucketName${
+      `powertoolsworkshopinfra-WebsiteBucketName${
         environment === 'prod' ? `-prod` : ''
       }`
     );
@@ -55,8 +55,8 @@ export class IdeStack extends Stack {
     });
 
     [
-      'PowertoolsWorkshopIde/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
-      'PowertoolsWorkshopIde/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
+      'powertoolsworkshopide/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
+      'powertoolsworkshopide/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
     ].forEach((resourcePath: string) => {
       let id = 'AwsSolutions-L1';
       let reason = 'Resource created and managed by CDK.';

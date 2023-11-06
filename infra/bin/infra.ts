@@ -8,7 +8,7 @@ import { AwsSolutionsChecks } from 'cdk-nag';
 
 const app = new App();
 Aspects.of(app).add(new AwsSolutionsChecks());
-new InfraStack(app, 'PowertoolsWorkshopInfra', {
+new InfraStack(app, 'powertoolsworkshopinfra', {
   tags: {
     Service: powertoolsServiceName,
     Environment: environment,
@@ -19,7 +19,7 @@ new InfraStack(app, 'PowertoolsWorkshopInfra', {
     AwsAccountId: process.env.CDK_DEFAULT_ACCOUNT || 'N/A',
   },
 });
-new IdeStack(app, 'PowertoolsWorkshopIde', {
+new IdeStack(app, 'powertoolsworkshopide', {
   tags: {
     Service: powertoolsServiceName,
     Environment: environment,

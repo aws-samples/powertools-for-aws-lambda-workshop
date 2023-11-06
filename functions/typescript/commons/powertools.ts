@@ -9,6 +9,7 @@ const defaultValues = {
 };
 
 const logger = new Logger({
+  sampleRateValue: 0,
   persistentLogAttributes: {
     ...defaultValues,
     logger: {

@@ -40,7 +40,7 @@ export default awsmobile;
 };
 
 (async () => {
-  const stackName = 'PowertoolsWorkshopInfra';
+  const stackName = 'powertoolsworkshopinfra';
   let keys;
   let vals;
   try {

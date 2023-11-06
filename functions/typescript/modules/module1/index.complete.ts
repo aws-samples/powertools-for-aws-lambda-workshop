@@ -3,6 +3,7 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
 import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
+import { dynamodbClient } from '@commons/clients/dynamodb';
 import {
   IdempotencyConfig,
   makeIdempotent,
@@ -33,6 +34,7 @@ const idempotencyTableName = process.env.IDEMPOTENCY_TABLE_NAME || '';
 
 const persistenceStore = new DynamoDBPersistenceLayer({
   tableName: idempotencyTableName,
+  awsSdkV3Client: dynamodbClient,
 });
 const idempotencyConfig = new IdempotencyConfig({
   eventKeyJmesPath: '[etag,userId]',

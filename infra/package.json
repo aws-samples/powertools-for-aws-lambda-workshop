@@ -14,7 +14,7 @@
     "cdk": "cdk",
     "cdk:destroy": "cdk destroy",
     "cdk:deploy": "cdk deploy --outputs-file cdk.out/params.json",
-    "cdk:deploy:hotswap": "cdk deploy --hotswap --outputs-file cdk.out/params.json",
+    "cdk:deploy:hotswap": "cdk deploy --hotswap --outputs-file cdk.out/params.json --require-approval never",
     "cdk:synth-dev": "cdk synth",
     "cdk:synth-prod": "NODE_ENV=production cdk synth"
   },

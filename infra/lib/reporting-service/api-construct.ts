@@ -106,8 +106,8 @@ export class ApiConstruct extends Construct {
     NagSuppressions.addResourceSuppressionsByPath(
       Stack.of(scope),
       [
-        'PowertoolsWorkshopInfra/reporting-service/api-construct/api-key-value/Resource',
-        'PowertoolsWorkshopInfra/reporting-service/api-construct/rest-api/CloudWatchRole/Resource',
+        'powertoolsworkshopinfra/reporting-service/api-construct/api-key-value/Resource',
+        'powertoolsworkshopinfra/reporting-service/api-construct/rest-api/CloudWatchRole/Resource',
       ],
       [
         {

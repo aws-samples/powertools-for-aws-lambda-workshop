@@ -188,8 +188,8 @@ npm run frontend:invalidateCache
 The three commands above map to:
 
 - `npm run frontend:build` - This command runs `tsc & vite build` in the `frontend` folder. These commands create a transpiled and optimized bundle of the React application. All outputs are in the `frontend/build` folder.
-- `npm run frontend:deploy` - This command removes any existing frontend file (by running `aws s3 rm s3://$(cat ../infra/cdk.out/params.json | jq -r '.PowertoolsWorkshopInfra | with_entries(select(.key|match(\".*WebsiteBucketName[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]') --exclude uploads --recursive`) and then deploys the new files (by running `aws s3 sync build/ s3://$(cat ../infra/cdk.out/params.json | jq -r '.PowertoolsWorkshopInfra | with_entries(select(.key|match(\".*WebsiteBucketName[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]') --exclude uploads`)
-- `npm run frontend:invalidateCache` - This command invalidates the CloudFront cache by running the `aws cloudfront create-invalidation --paths \"/index.html\" --distribution-id $(cat ../infra/cdk.out/params.json | jq -r '.PowertoolsWorkshopInfra | with_entries(select(.key|match(\".*DistributionId[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]')` command which invalidates the `/index.html` file.
+- `npm run frontend:deploy` - This command removes any existing frontend file (by running `aws s3 rm s3://$(cat ../infra/cdk.out/params.json | jq -r '.powertoolsworkshopinfra | with_entries(select(.key|match(\".*WebsiteBucketName[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]') --exclude uploads --recursive`) and then deploys the new files (by running `aws s3 sync build/ s3://$(cat ../infra/cdk.out/params.json | jq -r '.powertoolsworkshopinfra | with_entries(select(.key|match(\".*WebsiteBucketName[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]') --exclude uploads`)
+- `npm run frontend:invalidateCache` - This command invalidates the CloudFront cache by running the `aws cloudfront create-invalidation --paths \"/index.html\" --distribution-id $(cat ../infra/cdk.out/params.json | jq -r '.powertoolsworkshopinfra | with_entries(select(.key|match(\".*DistributionId[a-zA-Z0-9_]+\"))) | to_entries | map([.value])[0][0]')` command which invalidates the `/index.html` file.
 
 ### Modify dependencies
 
@@ -215,6 +215,16 @@ npm i axios -w frontend
 # This command removes the node-fetch devDependency from the infra workspace
 npm remove -D node-fetch -w infra
 ```
+
+### Update Workshop Content
+
+The workshop content is hosted on Workshop Studio while the infrastructure of the workshop is deployed via AWS CDK and hosted in this repository. If you make changes to the infrastructure (aka within the `infra/` directory), or to any of the TypeScript functions (aka within the `functions/typescript/` directory), you will need to update the workshop content to reflect those changes.
+
+Updating the workshop stacks is a manual three-step process:
+
+1. Synthesize the workshop stacks, to do so run `npm run infra:synth` and `npm run ide:synth`. This will generate the CloudFormation templates for the workshop stacks and the IDE stack respectively. The resulting templates will be found in the `infra/cdk.out/` directory.
+2. Convert the CloudFormation templates output by CDK to vanilla CloudFormation templates. This process is done via the script found at `scripts/convert-template.mjs` and it involves removing the `AWS::CDK::Metadata` and `AWS::CDK::Asset` resources from the templates as well as creating ad-hoc parameters for the assets. To run the script on both stacks, run `npm run infra:wsPrep` and `npm run ide:wsPrep`. The resulting templates will be found in the `infra/cdk.out/deploy` directory under subdirectories named after the stack name.
+3. Copy the resulting templates and assets to the `assets` directory of the Workshop Studio project. Then, copy a the both templates also to the `static/cfn/` directory of the Workshop Studio project. Finally, synch the Workshop Studio project to the S3 bucket that hosts the workshop content following the instructions in the Workshop Studio documentation, and make a commit to the Workshop Studio repo.
 
 ## Security issue notifications
 

@@ -2,6 +2,11 @@ import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { logger, tracer } from '@commons/powertools';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import middy from '@middy/core';
+import {
+  BatchProcessor,
+  EventType,
+  processPartialResponse,
+} from '@aws-lambda-powertools/batch';
 import type {
   Context,
   DynamoDBBatchResponse,
@@ -10,15 +15,10 @@ import type {
 } from 'aws-lambda';
 import type { AttributeValue } from '@aws-sdk/client-dynamodb';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import {
-  BatchProcessor,
-  EventType,
-  processPartialResponse,
-} from '@aws-lambda-powertools/batch';
 import { getLabels, reportImageIssue } from './utils';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
+import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const apiUrlParameterName = process.env.API_URL_PARAMETER_NAME || '';
@@ -71,7 +71,6 @@ const recordHandler = async (
       error instanceof NoPersonFoundError ||
       error instanceof NoLabelsFoundError
     ) {
-      logger.warn('No person found in the image');
       await reportImageIssue(fileId, userId, {
         apiUrl: (
           await getParameter<{ url: string }>(apiUrlParameterName, {

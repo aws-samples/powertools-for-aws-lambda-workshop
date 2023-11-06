@@ -48,7 +48,6 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
       error instanceof NoPersonFoundError ||
       error instanceof NoLabelsFoundError
     ) {
-      logger.warn('No person found in the image');
       await reportImageIssue(fileId, userId, {
         apiUrl: JSON.parse(apiUrlHost).url,
         apiKey: await getSecret(apiKeySecretName),
