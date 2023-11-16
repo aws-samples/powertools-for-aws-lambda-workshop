@@ -49,7 +49,7 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
         // Configure Idempotency module
         Idempotency.config().withConfig(
                         IdempotencyConfig.builder()
-                                .withEventKeyJMESPath("etag") // TODO: replace with [etag, userId] when #1419 is fixed
+                                .withEventKeyJMESPath("[etag, userId]")
                                 .withThrowOnNoIdempotencyKey(true)
                                 .withExpiration(Duration.ofMinutes(120))
                                 .build())
@@ -78,7 +78,6 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
 
         // add metadata to the logs
         LoggingUtils.appendKey("S3Object", object.toString());
-        LoggingUtils.appendKey("XrayTraceId", AWSXRay.getCurrentSegment().getTraceId().toString());
 
         try {
             // Mark file as working
@@ -97,7 +96,6 @@ public class Module1HandlerComplete implements RequestHandler<S3EBEvent, String>
         } finally {
             // remove metadata for subsequent lambda executions
             LoggingUtils.removeKey("S3Object");
-            LoggingUtils.removeKey("XrayTraceId");
         }
 
         return "ok";
