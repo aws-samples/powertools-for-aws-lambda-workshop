@@ -93,8 +93,6 @@ def lambda_handler(event, context):
         new_thumbnail_image = process_thumbnail(transform_image=transform_image)
 
         mark_file_as(file_id, FileStatus.DONE.value, new_thumbnail_image)
-
-        # ADD GRAPHQL API
     except Exception as exc:
         mark_file_as(file_id, FileStatus.FAIL.value)
         print("An unexpected error occurred")

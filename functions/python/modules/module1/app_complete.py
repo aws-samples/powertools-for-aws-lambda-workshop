@@ -134,8 +134,6 @@ def lambda_handler(event, context: LambdaContext):
         metrics.add_metric(name="ImageProcessed", unit=MetricUnit.Count, value=1)
 
         mark_file_as(file_id, FileStatus.DONE.value, new_thumbnail_image)
-
-        # ADD GRAPHQL API
     except Exception as exc:
         mark_file_as(file_id, FileStatus.FAIL.value)
         logger.exception("An unexpected error occurred", log=exc)
