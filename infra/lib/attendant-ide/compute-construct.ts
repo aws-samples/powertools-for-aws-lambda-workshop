@@ -166,9 +166,9 @@ export class ComputeConstruct extends Construct {
     this.instance = new Instance(this, 'ide-instance', {
       vpc,
       vpcSubnets: { subnetType: SubnetType.PUBLIC },
-      instanceType: new InstanceType('c6g.large'),
+      instanceType: new InstanceType('c5.large'),
       machineImage: MachineImage.fromSsmParameter(
-        '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64'
+        '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
       ),
       blockDevices: [
         {

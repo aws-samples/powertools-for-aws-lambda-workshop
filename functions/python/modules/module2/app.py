@@ -34,6 +34,7 @@ def record_handler(record: DynamoDBRecord):
     try:
         get_labels(S3_BUCKET_FILES, file_id, user_id, transformed_key)
     except (NoLabelsFoundError, NoPersonFoundError):
+        logger.warning("No person found in the image")
         api_url = json.loads(API_URL_HOST).get("url")
         api_key = get_secret_value(API_KEY_SECRET_NAME)
         if not api_key:
