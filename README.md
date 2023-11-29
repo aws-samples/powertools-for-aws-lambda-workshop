@@ -14,6 +14,7 @@ The architecture of this workload allows users to upload media assets and have t
 8. Each type of media file is processed by a dedicated component that takes the original file, converts it, and saves the rendition back to S3.
 9. The processing units update the status of each file in the DynamoDB table.
 
+Workshop llink: https://catalog.workshops.aws/powertools-for-aws-lambda/en-US
 
 ## Deploy
 
