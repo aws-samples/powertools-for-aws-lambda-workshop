@@ -33,7 +33,7 @@ export class AuthConstruct extends Construct {
       this,
       'pre-signup-cognito-trigger',
       {
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_20_X,
         handler: 'index.handler',
         code: Code.fromInline(`module.exports.handler = (event, context, callback) => {
         event.response.autoConfirmUser = true;
@@ -99,8 +99,8 @@ export class AuthConstruct extends Construct {
     this.userPoolClient = new UserPoolClient(this, 'user-pool-client', {
       userPool: this.userPool,
       authFlows: {
-        adminUserPassword: true,
         userSrp: true,
+        custom: true,
       },
     });
 
@@ -109,7 +109,10 @@ export class AuthConstruct extends Construct {
         allowUnauthenticatedIdentities: false,
         authenticationProviders: {
           userPools: [
-            new UserPoolAuthenticationProvider({ userPool: this.userPool }),
+            new UserPoolAuthenticationProvider({
+              userPool: this.userPool,
+              userPoolClient: this.userPoolClient,
+            }),
           ],
         },
       });

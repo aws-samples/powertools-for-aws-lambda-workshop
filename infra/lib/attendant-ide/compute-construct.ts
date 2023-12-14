@@ -110,7 +110,8 @@ export class ComputeConstruct extends Construct {
         `unzip $HOME/awscliv2.zip`,
         `sudo $HOME/aws/install`,
         `rm -rf $HOME/awscliv2.zip $HOME/aws`,
-        `aws configure set region ${Stack.of(this).region}`
+        `aws configure set region ${Stack.of(this).region}`,
+        `sleep 20`
       ),
       // Configure git
       this.#runCommandAsWhoamiUser(

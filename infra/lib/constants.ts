@@ -23,7 +23,7 @@ export const powertoolsMetricsNamespace = 'AnyCompany'; // Dummy company name
 export const trafficGeneratorIntervalInMinutes = 1;
 
 export const commonFunctionSettings: Partial<FunctionProps> = {
-  runtime: Runtime.NODEJS_18_X,
+  runtime: Runtime.NODEJS_20_X,
   tracing: Tracing.ACTIVE,
   logRetention: RetentionDays.FIVE_DAYS,
   timeout: Duration.seconds(30),
