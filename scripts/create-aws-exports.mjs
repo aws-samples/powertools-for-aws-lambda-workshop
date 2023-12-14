@@ -67,16 +67,15 @@ export default awsmobile;
       throw new Error('Unable to find parameters locally or remotely.');
     }
   }
-  const template = {
-    Auth: {},
-  };
+  const template = {};
 
   const region = vals[getValueFromNamePart(`AWSRegion`, keys)];
-  template.Auth.region = region;
-  template.Auth.identityPoolId =
+  template.aws_project_region = region;
+  template.aws_cognito_region = region;
+  template.aws_cognito_identity_pool_id =
     vals[getValueFromNamePart(`IdentityPoolId`, keys)];
-  template.Auth.userPoolId = vals[getValueFromNamePart(`UserPoolId`, keys)];
-  template.Auth.userPoolWebClientId =
+  template.aws_user_pools_id = vals[getValueFromNamePart(`UserPoolId`, keys)];
+  template.aws_user_pools_web_client_id =
     vals[getValueFromNamePart(`UserPoolClientId`, keys)];
   const apiEndpointDomain = vals[getValueFromNamePart(`ApiEndpoint`, keys)];
   template.aws_appsync_authenticationType = 'AMAZON_COGNITO_USER_POOLS';

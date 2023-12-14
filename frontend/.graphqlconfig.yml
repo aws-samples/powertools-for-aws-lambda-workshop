@@ -5,12 +5,13 @@ projects:
       - src/graphql/**/*.ts
     excludes:
       - ./amplify/**
+      - src/helpers/API.types.ts
     extensions:
       amplify:
         codeGenTarget: typescript
         generatedFileName: src/helpers/API.types.ts
         docsFilePath: src/graphql
-        region: us-east-1
+        region: eu-west-1
         apiId: null
         frontend: javascript
         framework: react

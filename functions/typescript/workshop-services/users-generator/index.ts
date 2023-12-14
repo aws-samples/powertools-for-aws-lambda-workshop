@@ -34,7 +34,7 @@ const createUser = async (
 export const handler = middy(
   async (event: CloudFormationCustomResourceEvent) => {
     if (event.RequestType === 'Create') {
-      for await (const idx of Array(50).keys()) {
+      for await (const idx of Array(25).keys()) {
         const email = `dummyuser+${idx + 1}@example.com`;
         const password = dummyPassword;
 

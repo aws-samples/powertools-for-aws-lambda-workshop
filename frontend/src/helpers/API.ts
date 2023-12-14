@@ -1,5 +1,6 @@
-import { Observable, ZenObservable } from 'zen-observable-ts';
-import { API, graphqlOperation, GraphQLResult } from '@aws-amplify/api';
+import { generateClient } from '@aws-amplify/api';
+import type { GraphqlSubscriptionMessage } from '@aws-amplify/api-graphql';
+import type { Subscription } from 'rxjs';
 
 import { generatePresignedUploadUrl } from '../graphql/mutations';
 import { generatePresignedDownloadUrl } from '../graphql/queries';
@@ -8,8 +9,9 @@ import {
   GeneratePresignedUploadUrlMutation,
   OnUpdateFileStatusSubscription,
   onUpdateFileStatusFilterInput,
-  GeneratePresignedDownloadUrlQuery,
 } from './API.types';
+
+const client = generateClient();
 
 export const getPresignedUrl = async (
   file: File
@@ -17,13 +19,14 @@ export const getPresignedUrl = async (
   GeneratePresignedUploadUrlMutation['generatePresignedUploadUrl']
 > => {
   try {
-    const res = (await API.graphql(
-      graphqlOperation(generatePresignedUploadUrl, {
+    const res = await client.graphql({
+      query: generatePresignedUploadUrl,
+      variables: {
         input: {
           type: file.type,
         },
-      })
-    )) as GraphQLResult<GeneratePresignedUploadUrlMutation>;
+      },
+    });
 
     const data = res.data;
     if (!data) {
@@ -45,31 +48,33 @@ export const getPresignedUrl = async (
 };
 
 export const subscribeToFileUpdates = (
-  onNextHandler: (value: {
-    value: GraphQLResult<OnUpdateFileStatusSubscription>;
-  }) => void,
+  onNextHandler: (
+    message: GraphqlSubscriptionMessage<OnUpdateFileStatusSubscription>
+  ) => void,
   onErrorHandler: (err: unknown) => void,
   filter?: onUpdateFileStatusFilterInput
-): ZenObservable.Subscription => {
-  return (
-    API.graphql(
-      graphqlOperation(onUpdateFileStatus, {
+): Subscription => {
+  return client
+    .graphql({
+      query: onUpdateFileStatus,
+      variables: {
         filter,
-      })
-    ) as Observable<object>
-  ).subscribe({
-    next: onNextHandler,
-    error: onErrorHandler,
-  });
+      },
+    })
+    .subscribe({
+      next: onNextHandler,
+      error: onErrorHandler,
+    });
 };
 
-export const getDownloadUrl = async (id: string) => {
+export const getDownloadUrl = async (id: string): Promise<string> => {
   try {
-    const res = (await API.graphql(
-      graphqlOperation(generatePresignedDownloadUrl, {
+    const res = await client.graphql({
+      query: generatePresignedDownloadUrl,
+      variables: {
         id,
-      })
-    )) as GraphQLResult<GeneratePresignedDownloadUrlQuery>;
+      },
+    });
 
     if (!res.data || !res.data.generatePresignedDownloadUrl)
       throw new Error('Unable to get presigned url');

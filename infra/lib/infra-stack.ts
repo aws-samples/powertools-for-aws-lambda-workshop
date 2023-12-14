@@ -7,7 +7,6 @@ import { ContentHubRepo } from './content-hub-repository';
 import { ThumbnailGenerator } from './thumbnail-generator';
 import { ImageDetection } from './image-detection';
 import { ReportingService } from './reporting-service';
-import { TrafficGenerator } from './traffic-generator';
 import { MonitoringConstruct } from './monitoring';
 import { powertoolsServiceName, environment, Language } from './constants';
 
@@ -95,33 +94,6 @@ export class InfraStack extends Stack {
       imageDetection.functions.imageDetectionFn
     );
 
-    // Traffic Generator Component
-    const trafficGenerator = new TrafficGenerator(
-      this,
-      'traffic-generator',
-      {}
-    );
-    trafficGenerator.functions.usersGeneratorFn.addEnvironment(
-      'COGNITO_USER_POOL_CLIENT_ID',
-      frontend.auth.userPoolClient.userPoolClientId
-    );
-    trafficGenerator.functions.trafficGeneratorFn.addEnvironment(
-      'COGNITO_USER_POOL_ID',
-      frontend.auth.userPool.userPoolId
-    );
-    trafficGenerator.functions.trafficGeneratorFn.addEnvironment(
-      'COGNITO_USER_POOL_CLIENT_ID',
-      frontend.auth.userPoolClient.userPoolClientId
-    );
-    trafficGenerator.functions.trafficGeneratorFn.addEnvironment(
-      'API_URL',
-      `https://${contentHubRepo.api.domain}/graphql`
-    );
-    frontend.auth.userPool.grant(
-      trafficGenerator.functions.trafficGeneratorFn,
-      'cognito-idp:AdminInitiateAuth'
-    );
-
     // Monitoring
     new MonitoringConstruct(this, `monitoring-construct`, {
       tableName: contentHubRepo.storage.filesTable.tableName,
@@ -137,9 +109,9 @@ export class InfraStack extends Stack {
     [
       'powertoolsworkshopinfra/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
       'powertoolsworkshopinfra/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
-      'powertoolsworkshopinfra/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/Resource',
-      'powertoolsworkshopinfra/traffic-generator/DummyUsersProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
-      'powertoolsworkshopinfra/traffic-generator/DummyUsersProvider/framework-onEvent/Resource',
+      'powertoolsworkshopinfra/frontend/DummyUsersProvider/framework-onEvent/ServiceRole/Resource',
+      'powertoolsworkshopinfra/frontend/DummyUsersProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+      'powertoolsworkshopinfra/frontend/DummyUsersProvider/framework-onEvent/Resource',
       'powertoolsworkshopinfra/frontend/auth-construct/pre-signup-cognito-trigger/ServiceRole/Resource',
     ].forEach((resourcePath: string) => {
       let id = 'AwsSolutions-L1';

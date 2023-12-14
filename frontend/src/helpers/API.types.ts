@@ -15,12 +15,14 @@ export type PresignedUrl = {
 export type FileStatusUpdateInput = {
   id?: string | null,
   status: string,
+  transformedFileKey?: string | null,
 };
 
 export type File = {
   __typename: "File",
   id?: string | null,
   status: string,
+  transformedFileKey?: string | null,
 };
 
 export type onUpdateFileStatusFilterInput = {
@@ -66,6 +68,7 @@ export type UpdateFileStatusMutation = {
     __typename: "File",
     id?: string | null,
     status: string,
+    transformedFileKey?: string | null,
   } | null,
 };
 
@@ -90,5 +93,6 @@ export type OnUpdateFileStatusSubscription = {
     __typename: "File",
     id?: string | null,
     status: string,
+    transformedFileKey?: string | null,
   } | null,
 };

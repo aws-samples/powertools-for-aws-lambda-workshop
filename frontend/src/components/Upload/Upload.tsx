@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Flex } from '@aws-amplify/ui-react';
-import { ZenObservable } from 'zen-observable-ts';
+import type { Subscription } from 'rxjs';
 
 import DropZone from './DropZone';
 import UploadingTable from './UploadingTable';
@@ -15,7 +15,7 @@ const Upload: React.FC<UploadProps> = () => {
   const [fileUploadData, setFileUploadData] = useState<FileWithUrlMap>(
     new Map()
   );
-  const subscriptionRef = useRef<ZenObservable.Subscription>();
+  const subscriptionRef = useRef<Subscription>();
 
   const setFileStatus = (id: string, status: string): void => {
     setFileUploadData((prev) => {
@@ -40,7 +40,8 @@ const Upload: React.FC<UploadProps> = () => {
       if (status === 'ready') syncExpressionObject.or.push({ id: { eq: id } });
     }
     subscriptionRef.current = subscribeToFileUpdates(
-      ({ value: { data, errors } }) => {
+      (message) => {
+        const { data } = message;
         if (data) {
           const { onUpdateFileStatus } = data;
           if (onUpdateFileStatus) {
@@ -51,7 +52,6 @@ const Upload: React.FC<UploadProps> = () => {
           }
         } else {
           console.debug('no data received');
-          if (errors) console.error('error received', errors);
         }
       },
       (err) => console.error(err),

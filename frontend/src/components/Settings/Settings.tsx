@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Heading,
   Text,
@@ -17,6 +17,24 @@ type SettingsProps = {
 const Settings: React.FC<SettingsProps> = () => {
   const { tokens } = useTheme();
   const [isLoading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<{
+    videos?: string;
+    images?: string;
+  }>({});
+
+  useEffect(() => {
+    const getDefaultValues = async (): Promise<void> => {
+      const imagesSettings = await cache.getItem('images-settings');
+      const videosSettings = await cache.getItem('videos-settings');
+
+      setSettings({
+        videos: videosSettings,
+        images: imagesSettings,
+      });
+    };
+
+    getDefaultValues();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
@@ -62,7 +80,7 @@ const Settings: React.FC<SettingsProps> = () => {
           label="Images"
           descriptiveText="Choose a size for the images"
           name="images"
-          defaultValue={cache.getItem('images-settings')}
+          defaultValue={settings.images}
         >
           <option value="sd">720×480 px</option>
           <option value="hd">1280×720 px</option>
@@ -73,7 +91,7 @@ const Settings: React.FC<SettingsProps> = () => {
           label="Videos"
           descriptiveText="Choose a resolution for the videos"
           name="videos"
-          defaultValue={cache.getItem('videos-settings')}
+          defaultValue={settings.videos}
         >
           <option value="480p">SD (480p)</option>
           <option value="720p">HD (720p)</option>

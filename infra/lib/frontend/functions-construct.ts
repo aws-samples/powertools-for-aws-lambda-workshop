@@ -51,37 +51,5 @@ export class FunctionsConstruct extends Construct {
       ],
       true
     );
-
-    this.trafficGeneratorFn = new NodejsFunction(this, 'traffic-generator', {
-      ...commonFunctionSettings,
-      entry:
-        '../functions/typescript/workshop-services/traffic-generator/index.ts',
-      functionName: `traffic-generator-${environment}`,
-      environment: {
-        ...localEnvVars,
-        // COGNITO_USER_POOL_ID - added at deploy time
-        // COGNITO_USER_POOL_CLIENT_ID - added at deploy time
-        // API_URL - added at deploy time
-      },
-      timeout: Duration.seconds(900),
-      bundling: { ...commonNodeJsBundlingSettings },
-    });
-
-    NagSuppressions.addResourceSuppressions(
-      this.trafficGeneratorFn,
-      [
-        {
-          id: 'AwsSolutions-IAM4',
-          reason:
-            'Intentionally using AWSLambdaBasicExecutionRole managed policy.',
-        },
-        {
-          id: 'AwsSolutions-IAM5',
-          reason:
-            'Wildcard needed to allow access to X-Ray and CloudWatch streams.',
-        },
-      ],
-      true
-    );
   }
 }
