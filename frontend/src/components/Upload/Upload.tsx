@@ -1,7 +1,6 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Flex } from '@aws-amplify/ui-react';
 import type { Subscription } from 'rxjs';
-import { fetchAuthSession } from '@aws-amplify/auth';
 
 import DropZone from './DropZone';
 import UploadingTable from './UploadingTable';
@@ -17,18 +16,6 @@ const Upload: React.FC<UploadProps> = () => {
     new Map()
   );
   const subscriptionRef = useRef<Subscription>();
-
-  useEffect(() => {
-    const getUser = async (): Promise<void> => {
-      try {
-        console.log(await fetchAuthSession());
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    getUser();
-  }, []);
 
   const setFileStatus = (id: string, status: string): void => {
     setFileUploadData((prev) => {
