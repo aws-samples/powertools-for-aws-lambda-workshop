@@ -73,7 +73,7 @@ export class FunctionsConstruct extends Construct {
       this.thumbnailGeneratorFn = new Function(this, resourcePhysicalId, {
         ...commonJavaFunctionSettings,
         functionName,
-        runtime: Runtime.JAVA_17,
+        runtime: Runtime.JAVA_21,
         environment: {
           ...localEnvVars,
           POWERTOOLS_LOG_LEVEL: powertoolsLoggerLogLevel, // different from typescript
