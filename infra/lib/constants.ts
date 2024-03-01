@@ -43,7 +43,7 @@ export const commonNodeJsBundlingSettings: Partial<NodeBundlingOptions> = {
 };
 
 export const commonJavaFunctionSettings: Partial<FunctionProps> = {
-  runtime: Runtime.JAVA_17,
+  runtime: Runtime.JAVA_21,
   tracing: Tracing.ACTIVE,
   logRetention: RetentionDays.FIVE_DAYS,
   timeout: Duration.seconds(30),
@@ -51,7 +51,7 @@ export const commonJavaFunctionSettings: Partial<FunctionProps> = {
 };
 
 export const commonJavaBundlingSettings: BundlingOptions = {
-  image: Runtime.JAVA_17.bundlingImage,
+  image: Runtime.JAVA_21.bundlingImage,
   command: [
     '/bin/sh',
     '-c',
