@@ -14,7 +14,6 @@ import { InstanceIdTarget } from 'aws-cdk-lib/aws-elasticloadbalancingv2-targets
 import { ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import {
   dotNetRepo,
-  idePasswordSecretName,
   idePort,
   nodeVersion,
   osPackages,
@@ -23,6 +22,7 @@ import {
   workshopDirectory,
   workshopRepo,
   zshrcTemplateUrl,
+  vscodeAccessCode
 } from './constants';
 import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { NagSuppressions } from 'cdk-nag';
@@ -119,9 +119,8 @@ export class ComputeConstruct extends Construct {
       ),
       // Create parameter & write to config.yaml + SSM
       this.#runCommandAsWhoamiUser(
-        `PASSWORD=$(aws secretsmanager get-secret-value --secret-id ${idePasswordSecretName} | jq .SecretString -r)`,
         `mkdir -p $HOME/.config/code-server`,
-        `echo -e "bind-addr: 0.0.0.0:8080\nauth: password\npassword: $PASSWORD\ncert: false" > $HOME/.config/code-server/config.yaml`
+        `echo -e "bind-addr: 0.0.0.0:8080\nauth: password\npassword: ${vscodeAccessCode}\ncert: false" > $HOME/.config/code-server/config.yaml`
       ),
       // Install VSCode
       this.#runCommandAsWhoamiUser(

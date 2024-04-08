@@ -4,7 +4,6 @@ import {
   NetworkConstruct,
   ComputeConstruct,
   DistributionConstruct,
-  SecretConstruct,
   CompletionConstruct,
 } from './attendant-ide';
 import { environment } from './constants';
@@ -36,10 +35,6 @@ export class IdeStack extends Stack {
     network.createLoadBalancerWithInstanceEc2Target(target);
     // Allow inbound HTTP from the load balancer
     compute.allowConnectionFromLoadBalancer(network.loadBalancer!);
-
-    // Create a secret for the IDE password and grant read access to the instance
-    const { secret } = new SecretConstruct(this, 'secret', {});
-    secret.grantRead(instance);
 
     // Create a CloudFront distribution in front of the load balancer
     const { healthCheckEndpoint } = new DistributionConstruct(

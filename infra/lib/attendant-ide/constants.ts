@@ -43,12 +43,12 @@ const osPackages = [
   dotNetVersion,
 ];
 
+const vscodeAccessCode = "powertools-workshop"
+
 const whoamiUser = 'ec2-user';
 const workshopRepo = 'aws-samples/powertools-for-aws-lambda-workshop';
 const zshrcTemplateUrl = `https://raw.githubusercontent.com/${workshopRepo}/main/infra/lib/attendant-ide/zshrc-sample.txt`;
 const workshopDirectory = 'workshop';
-
-const idePasswordSecretName = '/workshop/vscode-password';
 
 export {
   customSecurityHeader,
@@ -64,5 +64,5 @@ export {
   workshopRepo,
   zshrcTemplateUrl,
   workshopDirectory,
-  idePasswordSecretName,
+  vscodeAccessCode
 };
