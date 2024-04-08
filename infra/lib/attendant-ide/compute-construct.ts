@@ -1,4 +1,4 @@
-import { Stack, Tags, type StackProps } from 'aws-cdk-lib';
+import { CfnParameter, Stack, Tags, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   type Vpc,
@@ -36,6 +36,11 @@ interface ComputeConstructProps extends StackProps {
    * The bucket name of the website to deploy.
    */
   websiteBucketName: string;
+  /**
+   * The vscode password from CfnParameter.
+   */
+  vscodePassword: string;
+
 }
 
 export class ComputeConstruct extends Construct {
@@ -120,7 +125,7 @@ export class ComputeConstruct extends Construct {
       // Create parameter & write to config.yaml + SSM
       this.#runCommandAsWhoamiUser(
         `mkdir -p $HOME/.config/code-server`,
-        `echo -e "bind-addr: 0.0.0.0:8080\nauth: password\npassword: ${vscodeAccessCode}\ncert: false" > $HOME/.config/code-server/config.yaml`
+        `echo -e "bind-addr: 0.0.0.0:8080\nauth: password\npassword: ${props.vscodePassword}\ncert: false" > $HOME/.config/code-server/config.yaml`
       ),
       // Install VSCode
       this.#runCommandAsWhoamiUser(
