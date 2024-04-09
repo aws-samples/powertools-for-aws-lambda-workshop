@@ -93,6 +93,11 @@ export class CompletionConstruct extends Construct {
           reason:
             'This resource is managed by CDK and used to create custom resources. This is run only a handful of times during deployment.',
         },
+        {
+          id: 'AwsSolutions-L1',
+          reason:
+            'This resource is managed by CDK and used to create custom resources. This is run only a handful of times during deployment.',
+        },
       ],
       true
     );

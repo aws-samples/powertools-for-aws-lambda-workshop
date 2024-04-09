@@ -1,14 +1,14 @@
-import { Stack, type StackProps, Fn } from 'aws-cdk-lib';
+import { Stack, type StackProps, Fn, CfnParameter } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   NetworkConstruct,
   ComputeConstruct,
   DistributionConstruct,
-  SecretConstruct,
   CompletionConstruct,
 } from './attendant-ide';
 import { environment } from './constants';
 import { NagSuppressions } from 'cdk-nag';
+import { vscodeAccessCode } from './attendant-ide/constants';
 
 export class IdeStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {
@@ -25,10 +25,17 @@ export class IdeStack extends Stack {
       }`
     );
 
+    // Parameter for VSCode Password
+    const vscodePassword = new CfnParameter(this, 'vscodePasswordParameter', {
+        type: 'String',
+        default: vscodeAccessCode,
+      });
+
     // Create a compute instance in the private subnet
     const compute = new ComputeConstruct(this, 'compute', {
       vpc,
       websiteBucketName: websiteBucketName,
+      vscodePassword: vscodePassword.valueAsString
     });
     const { instance, target } = compute;
 
@@ -36,10 +43,6 @@ export class IdeStack extends Stack {
     network.createLoadBalancerWithInstanceEc2Target(target);
     // Allow inbound HTTP from the load balancer
     compute.allowConnectionFromLoadBalancer(network.loadBalancer!);
-
-    // Create a secret for the IDE password and grant read access to the instance
-    const { secret } = new SecretConstruct(this, 'secret', {});
-    secret.grantRead(instance);
 
     // Create a CloudFront distribution in front of the load balancer
     const { healthCheckEndpoint } = new DistributionConstruct(
