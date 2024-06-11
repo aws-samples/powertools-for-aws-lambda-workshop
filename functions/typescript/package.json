@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "updatePowertools": "npm i @aws-lambda-powertools/batch@next @aws-lambda-powertools/idempotency@next @aws-lambda-powertools/logger@next @aws-lambda-powertools/metrics@next @aws-lambda-powertools/parameters@next @aws-lambda-powertools/tracer@next"
+    "updatePowertools": "npm i @aws-lambda-powertools/batch@latest @aws-lambda-powertools/idempotency@latest @aws-lambda-powertools/logger@latest @aws-lambda-powertools/metrics@latest @aws-lambda-powertools/parameters@latest @aws-lambda-powertools/tracer@latest"
   },
   "keywords": [],
   "author": {
@@ -31,7 +31,7 @@
     "@jimp/jpeg": "^0.22.10",
     "@jimp/png": "^0.22.10",
     "@middy/core": "^3.6.2",
-    "jimp": "^0.22.10",
+    "jimp": "^0.22.12",
     "undici": "^5.28.4"
   },
   "devDependencies": {
