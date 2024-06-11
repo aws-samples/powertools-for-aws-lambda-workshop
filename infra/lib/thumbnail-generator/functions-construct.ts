@@ -63,7 +63,7 @@ export class FunctionsConstruct extends Construct {
         entry: '../functions/python/modules/module1/',
         functionName,
         index: 'app.py',
-        runtime: Runtime.PYTHON_3_11,
+        runtime: Runtime.PYTHON_3_12,
         handler: 'lambda_handler',
         environment: {
           ...localEnvVars,
