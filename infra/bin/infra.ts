@@ -7,7 +7,11 @@ import { powertoolsServiceName, environment } from '../lib/constants';
 import { AwsSolutionsChecks } from 'cdk-nag';
 
 const app = new App();
-Aspects.of(app).add(new AwsSolutionsChecks());
+const isCI = app.node.tryGetContext('CI') === 'true' ? true : false;
+if (isCI) {
+  console.log('Running in CI/CD mode');
+  Aspects.of(app).add(new AwsSolutionsChecks());
+}
 new InfraStack(app, 'powertoolsworkshopinfra', {
   tags: {
     Service: powertoolsServiceName,
