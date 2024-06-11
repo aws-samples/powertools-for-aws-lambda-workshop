@@ -27,6 +27,7 @@
     "ide:destroy": "npm run cdk:destroy -w infra -- powertoolsworkshopide",
     "ide:synth": "npm run cdk:synth-dev -w infra -- powertoolsworkshopide",
     "ide:wsPrep": "npm run convertCDKtoCfn -w scripts -- powertoolsworkshopide",
+    "workshop:deploy": "npm run cdk:deploy -w infra -- --all",
     "utils:createConfig": "npm run createConfig -w scripts",
     "utils:downloadFfmpegToLayer": "sh scripts/download-ffmpeg-to-layer.sh",
     "utils:convertCDKtoCfn": "npm run convertCDKtoCfn -w scripts"
