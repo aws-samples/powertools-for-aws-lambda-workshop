@@ -40,7 +40,18 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
-      <Authenticator loginMechanisms={['email']}>
+      <Authenticator loginMechanisms={['email']} formFields={{
+        signIn: {
+          username: {
+            isReadOnly: true,
+            defaultValue: 'dummyuser+1@example.com'
+          },
+          password: {
+            isReadOnly: true,
+            defaultValue: 'ABCabc123456789!'
+          }
+        }
+      }}>
         <RouterProvider router={router} />
       </Authenticator>
     </ThemeProvider>
