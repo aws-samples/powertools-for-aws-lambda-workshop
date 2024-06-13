@@ -13,6 +13,7 @@ if (isCI) {
   Aspects.of(app).add(new AwsSolutionsChecks());
 }
 new InfraStack(app, 'powertoolsworkshopinfra', {
+  description: '(uksb-yso2t7jeel) (tag:powertoolsworkshopinfra)',
   tags: {
     Service: powertoolsServiceName,
     Environment: environment,
@@ -24,6 +25,7 @@ new InfraStack(app, 'powertoolsworkshopinfra', {
   },
 });
 new IdeStack(app, 'powertoolsworkshopide', {
+  description: '(uksb-yso2t7jeel) (tag:powertoolsworkshopide)',
   tags: {
     Service: powertoolsServiceName,
     Environment: environment,
