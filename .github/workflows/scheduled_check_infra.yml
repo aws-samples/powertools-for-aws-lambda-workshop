@@ -16,13 +16,13 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: '0 * 1/7 * *'
+    - cron: '0 9 * * 1'
 
 permissions:
   contents: read
 
 jobs:
-  dispatch_token:
+  run_cdk_nag:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

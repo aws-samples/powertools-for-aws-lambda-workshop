@@ -77,5 +77,16 @@ export class IdeStack extends Stack {
         },
       ]);
     });
+
+    NagSuppressions.addResourceSuppressionsByPath(this, '/powertoolsworkshopide/completion/check-id-availability-provider/waiter-state-machine/Resource', [
+      {
+        id: 'AwsSolutions-SF1',
+        reason: 'Resource created and managed by CDK for custom resources.',
+      },
+      {
+        id: 'AwsSolutions-SF2',
+        reason: 'Resource created and managed by CDK for custom resources.',
+      },
+    ]);
   }
 }
