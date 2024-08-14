@@ -21,7 +21,7 @@
     "@aws-amplify/ui-react": "^6.0.6",
     "@aws-crypto/sha256-js": "^5.2.0",
     "aws-amplify": "^6.0.7",
-    "axios": "^1.6.2",
+    "axios": "^1.7.4",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
