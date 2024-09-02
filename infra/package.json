@@ -25,7 +25,7 @@
     "@aws-cdk/aws-cognito-identitypool-alpha": "^2.114.1-alpha.0",
     "@aws-cdk/aws-lambda-python-alpha": "^2.114.1-alpha.0",
     "@types/node": "^20.5.9",
-    "aws-cdk": "^2.150.0",
+    "aws-cdk": "^2.155.0",
     "esbuild": "^0.23.0",
     "ts-node": "^10.9.1",
     "typescript": "~5.1.6"
@@ -33,7 +33,7 @@
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.637.0",
     "@aws-sdk/client-ssm": "^3.637.0",
-    "aws-cdk-lib": "^2.150.0",
+    "aws-cdk-lib": "^2.155.0",
     "cdk-nag": "^2.28.170",
     "constructs": "^10.2.69",
     "imagemagick": "^0.1.3",
