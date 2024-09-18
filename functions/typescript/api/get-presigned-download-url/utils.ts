@@ -1,8 +1,8 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { s3Client } from '@commons/clients/s3';
 import { dynamodbClient } from '@commons/clients/dynamodb';
-import type { GetPresignedDownloadUrlParams, GetFileKeyParams } from './types';
+import { s3Client } from '@commons/clients/s3';
+import type { GetFileKeyParams, GetPresignedDownloadUrlParams } from './types';
 
 /**
  * Utility function that given a key and a bucket name returns a presigned download url

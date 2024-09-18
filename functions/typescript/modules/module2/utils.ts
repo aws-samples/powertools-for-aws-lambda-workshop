@@ -1,9 +1,8 @@
 import { DetectLabelsCommand } from '@aws-sdk/client-rekognition';
 import { rekognitionClient } from '@commons/clients/rekognition';
 import { tracer } from '@commons/powertools';
-import { Headers, fetch } from 'undici';
-import { NoLabelsFoundError, NoPersonFoundError } from './errors';
 import { logger } from '@commons/powertools';
+import { NoLabelsFoundError, NoPersonFoundError } from './errors.js';
 
 const isError = (error: unknown): error is Error => {
   return error instanceof Error;

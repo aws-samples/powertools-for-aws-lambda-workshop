@@ -2,7 +2,7 @@ import { type StackProps, CustomResource, Duration } from 'aws-cdk-lib';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { Runtime, Function, Code } from 'aws-cdk-lib/aws-lambda';
-import { customSecurityHeader, customSecurityHeaderValue } from './constants';
+import { customSecurityHeader, customSecurityHeaderValue } from './constants.js';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { NagSuppressions } from 'cdk-nag';
 

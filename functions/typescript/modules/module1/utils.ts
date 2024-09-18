@@ -1,11 +1,11 @@
-import { Readable } from 'node:stream';
-import { s3Client } from '@commons/clients/s3';
-import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import { dynamodbClient } from '@commons/clients/dynamodb';
 import { readFile } from 'node:fs/promises';
-import { updateFileStatus } from '@graphql/mutations';
+import type { Readable } from 'node:stream';
+import { GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { makeGraphQlOperation } from '@commons/appsync-signed-operation';
-import Jimp from 'jimp';
+import { dynamodbClient } from '@commons/clients/dynamodb';
+import { s3Client } from '@commons/clients/s3';
+import { updateFileStatus } from '@graphql/mutations';
+import { Jimp } from 'jimp';
 import type {
   CreateThumbnailParams,
   FileStatusValue,
@@ -20,8 +20,13 @@ import type {
  *
  * @param {string} objectKey - Key of the S3 object
  */
-const extractFileId = (objectKey: string): string =>
-  objectKey.split('/').at(-1)!.split('.')[0];
+const extractFileId = (objectKey: string): string => {
+  const fileName = objectKey.split('/').at(-1);
+  if (!fileName) {
+    throw new Error('Invalid file name');
+  }
+  return fileName.split('.')[0];
+};
 
 /**
  * Utility function to get the metadata of a given image from DynamoDB.
@@ -61,7 +66,7 @@ const getOriginalObject = async (
       Key: key,
     })
   );
-  const stream = res.Body! as Readable;
+  const stream = res.Body as Readable;
 
   return new Promise<Buffer>((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -81,9 +86,8 @@ const createThumbnail = async ({
 }: CreateThumbnailParams): Promise<Buffer> => {
   const img = await Jimp.read(imageBuffer);
   const resizedImg = await img
-    .resize(width, height)
-    .quality(60)
-    .getBufferAsync('image/jpeg');
+    .resize({ w: width, h: height })
+    .getBuffer('image/jpeg', { quality: 60 });
 
   return resizedImg;
 };

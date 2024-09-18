@@ -1,16 +1,16 @@
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-import { logger, tracer } from '@commons/powertools';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import type { AttributeValue } from '@aws-sdk/client-dynamodb';
+import {
+  GetSecretValueCommand,
+  SecretsManagerClient,
+} from '@aws-sdk/client-secrets-manager';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { logger, tracer } from '@commons/powertools';
 import middy from '@middy/core';
 import type { Context, DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
-import type { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import { getLabels, reportImageIssue } from './utils';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from '@aws-sdk/client-secrets-manager';
+import { getLabels, reportImageIssue } from './utils';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const apiUrlHost = process.env.API_URL_HOST || '';
@@ -35,7 +35,7 @@ const recordHandler = async (record: DynamoDBRecord): Promise<void> => {
   // Since we are applying the filter at the DynamoDB Stream level,
   // we know that the record has a NewImage otherwise the record would not be here
   const data = unmarshall(
-    record.dynamodb!.NewImage! as Record<string, AttributeValue>
+    record.dynamodb?.NewImage as Record<string, AttributeValue>
   );
   const { id: fileId, userId, transformedFileKey } = data;
 

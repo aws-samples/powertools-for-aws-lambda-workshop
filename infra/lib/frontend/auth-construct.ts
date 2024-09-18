@@ -15,7 +15,7 @@ import {
 } from '@aws-cdk/aws-cognito-identitypool-alpha';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NagSuppressions } from 'cdk-nag';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 
 interface AuthConstructProps extends StackProps {}

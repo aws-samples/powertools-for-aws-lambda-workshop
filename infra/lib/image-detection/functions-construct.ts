@@ -13,7 +13,7 @@ import {
   environment,
   powertoolsLoggerLogLevel,
   type Language,
-} from '../constants';
+} from '../constants.js';
 import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 

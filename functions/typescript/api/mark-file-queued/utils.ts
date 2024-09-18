@@ -1,5 +1,5 @@
-import { updateFileStatus } from '@graphql/mutations';
 import { makeGraphQlOperation } from '@commons/appsync-signed-operation';
+import { updateFileStatus } from '@graphql/mutations';
 import type { FileStatusValue } from './types';
 
 /**

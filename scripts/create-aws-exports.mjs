@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { writeFile, readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import {
   getStackName,
   getStackOutputs,
@@ -69,15 +69,15 @@ export default awsmobile;
   }
   const template = {};
 
-  const region = vals[getValueFromNamePart(`AWSRegion`, keys)];
+  const region = vals[getValueFromNamePart('AWSRegion', keys)];
   template.aws_project_region = region;
   template.aws_cognito_region = region;
   template.aws_cognito_identity_pool_id =
-    vals[getValueFromNamePart(`IdentityPoolId`, keys)];
-  template.aws_user_pools_id = vals[getValueFromNamePart(`UserPoolId`, keys)];
+    vals[getValueFromNamePart('IdentityPoolId', keys)];
+  template.aws_user_pools_id = vals[getValueFromNamePart('UserPoolId', keys)];
   template.aws_user_pools_web_client_id =
-    vals[getValueFromNamePart(`UserPoolClientId`, keys)];
-  const apiEndpointDomain = vals[getValueFromNamePart(`ApiEndpoint`, keys)];
+    vals[getValueFromNamePart('UserPoolClientId', keys)];
+  const apiEndpointDomain = vals[getValueFromNamePart('ApiEndpoint', keys)];
   template.aws_appsync_authenticationType = 'AMAZON_COGNITO_USER_POOLS';
   template.aws_appsync_graphqlEndpoint = `https://${apiEndpointDomain}/graphql`;
 

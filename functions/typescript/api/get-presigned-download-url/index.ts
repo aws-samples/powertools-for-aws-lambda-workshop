@@ -4,11 +4,11 @@ import { requestResponseMetric } from '@middlewares/requestResponseMetric';
 import middy from '@middy/core';
 import { logger as loggerMain, metrics, tracer } from '@powertools';
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from 'aws-lambda';
-import {
+import type {
   GeneratePresignedDownloadUrlQueryVariables,
   PresignedUrl,
-} from '../../types/API';
-import { getFileIdFromStore, getPresignedDownloadUrl } from './utils';
+} from '../../types/API.js';
+import { getFileIdFromStore, getPresignedDownloadUrl } from './utils.js';
 
 const tableName = process.env.TABLE_NAME_FILES || '';
 const indexName = process.env.INDEX_NAME_FILES_BY_USER || '';
@@ -24,7 +24,7 @@ export const handler = middy(
     event: AppSyncResolverEvent<GeneratePresignedDownloadUrlQueryVariables>
   ): Promise<Partial<PresignedUrl>> => {
     try {
-      const { id: fileId } = event.arguments!;
+      const { id: fileId } = event.arguments;
       if (!fileId) throw new Error('File id not provided.');
       const { username: userId } = event.identity as AppSyncIdentityCognito;
 

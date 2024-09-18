@@ -2,14 +2,14 @@ import { Stack, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
-import { FunctionsConstruct } from './functions-construct';
-import { QueuesConstruct } from './queues-construct';
-import { StorageConstruct } from './storage-construct';
+import { FunctionsConstruct } from './functions-construct.js';
+import { QueuesConstruct } from './queues-construct.js';
+import { StorageConstruct } from './storage-construct.js';
 import {
   type Language,
   environment,
   landingZoneBucketNamePrefix,
-} from '../constants';
+} from '../constants.js';
 
 interface ThumbnailGeneratorProps extends StackProps {
   language: Language;

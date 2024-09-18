@@ -1,6 +1,6 @@
-import React from 'react';
-import { useHref, useResolvedPath, useLocation, Link } from 'react-router-dom';
 import { Flex, Link as UiLink, useTheme } from '@aws-amplify/ui-react';
+import type React from 'react';
+import { Link, useHref, useLocation, useResolvedPath } from 'react-router-dom';
 
 export type MenuItemProps = {
   children?: React.ReactNode;

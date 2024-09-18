@@ -56,10 +56,10 @@ const getStackOutputs = async (stackName) => {
     }
     const keys = [];
     const outputs = {};
-    res.Stacks?.[0].Outputs.forEach(({ OutputKey, OutputValue }) => {
+    for (const { OutputKey, OutputValue } of res.Stacks?.[0].Outputs || []) {
       outputs[OutputKey] = OutputValue;
       keys.push(OutputKey);
-    });
+    }
 
     return {
       keys,

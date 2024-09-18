@@ -1,4 +1,4 @@
-import { FileStatus } from '@constants';
+import type { FileStatus } from '@constants';
 
 /**
  * @param {string} key - The key to be used for the new object on S3
@@ -60,7 +60,7 @@ type ProcessOneOptions = {
   userId: string;
 };
 
-export {
+export type {
   Detail,
   DetailType,
   WriteFileToS3Props,

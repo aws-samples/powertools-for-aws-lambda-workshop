@@ -8,7 +8,7 @@ import {
 } from 'aws-cdk-lib/aws-appsync';
 import { CfnOutput, Fn } from 'aws-cdk-lib';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { NagSuppressions } from 'cdk-nag';

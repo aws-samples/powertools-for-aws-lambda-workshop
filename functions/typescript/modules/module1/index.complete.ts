@@ -1,14 +1,15 @@
-import { logger, metrics, tracer } from '@commons/powertools';
-import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import { MetricUnit } from '@aws-lambda-powertools/metrics';
-import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
-import { dynamodbClient } from '@commons/clients/dynamodb';
+import { randomUUID } from 'node:crypto';
 import {
   IdempotencyConfig,
   makeIdempotent,
 } from '@aws-lambda-powertools/idempotency';
 import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import { dynamodbClient } from '@commons/clients/dynamodb';
+import { logger, metrics, tracer } from '@commons/powertools';
 import {
   FileStatus,
   ImageSize,
@@ -18,8 +19,7 @@ import {
 } from '@constants';
 import middy from '@middy/core';
 import type { Context, EventBridgeEvent } from 'aws-lambda';
-import { randomUUID } from 'node:crypto';
-import { Detail, DetailType, ProcessOneOptions } from './types';
+import type { Detail, DetailType, ProcessOneOptions } from './types';
 import {
   createThumbnail,
   getImageMetadata,
@@ -64,7 +64,7 @@ const processOne = async ({
     body: processedImage,
   });
   // Add structured logging to the function
-  logger.info(`Saved image on S3`, {
+  logger.info('Saved image on S3', {
     details: newObjectKey,
   });
 

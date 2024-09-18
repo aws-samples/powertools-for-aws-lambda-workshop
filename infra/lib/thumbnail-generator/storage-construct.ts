@@ -1,7 +1,7 @@
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Table, AttributeType, BillingMode } from 'aws-cdk-lib/aws-dynamodb';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 import { IGrantable } from 'aws-cdk-lib/aws-iam';
 import { NagSuppressions } from 'cdk-nag';
 

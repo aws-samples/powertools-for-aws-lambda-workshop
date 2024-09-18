@@ -15,9 +15,9 @@ import {
   OriginRequestCookieBehavior,
   OriginRequestQueryStringBehavior,
 } from 'aws-cdk-lib/aws-cloudfront';
-import { S3Origin, HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { HttpOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { NagSuppressions } from 'cdk-nag';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 
 interface DistributionConstructProps {
   websiteBucket: Bucket;
@@ -35,7 +35,7 @@ export class DistributionConstruct extends Construct {
 
     this.distribution = new Distribution(this, 'distribution', {
       defaultBehavior: {
-        origin: new S3Origin(props.websiteBucket),
+        origin: new S3StaticWebsiteOrigin(props.websiteBucket),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,

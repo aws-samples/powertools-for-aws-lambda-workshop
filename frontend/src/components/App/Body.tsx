@@ -1,5 +1,5 @@
-import React from 'react';
 import { Flex, useTheme } from '@aws-amplify/ui-react';
+import type React from 'react';
 
 type BodyProps = {
   children?: React.ReactNode;

@@ -12,4 +12,4 @@ type GetPresignedDownloadUrlParams = {
   bucketName: string;
 };
 
-export { GetFileKeyParams, GetPresignedDownloadUrlParams };
+export type { GetFileKeyParams, GetPresignedDownloadUrlParams };

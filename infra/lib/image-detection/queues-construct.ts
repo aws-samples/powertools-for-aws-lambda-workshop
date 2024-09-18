@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Alarm } from 'aws-cdk-lib/aws-cloudwatch';
 import { NagSuppressions } from 'cdk-nag';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 
 export class QueuesConstruct extends Construct {
   public readonly deadLetterQueue: Queue;

@@ -18,7 +18,7 @@ import {
   customSecurityHeader,
   customSecurityHeaderValue,
   idePort,
-} from './constants';
+} from './constants.js';
 import { NagSuppressions } from 'cdk-nag';
 
 interface NetworkConstructProps extends StackProps {}

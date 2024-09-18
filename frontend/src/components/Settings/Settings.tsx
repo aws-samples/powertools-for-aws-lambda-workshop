@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
 import {
-  Heading,
-  Text,
-  SelectField,
-  useTheme,
-  Flex,
   Button,
+  Flex,
+  Heading,
+  SelectField,
+  Text,
+  useTheme,
 } from '@aws-amplify/ui-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 import cache from '../../helpers/cache';
 
@@ -40,8 +41,8 @@ const Settings: React.FC<SettingsProps> = () => {
     e.preventDefault();
 
     setLoading(true);
-    const videos = e.currentTarget['videos'].value;
-    const images = e.currentTarget['images'].value;
+    const videos = e.currentTarget.videos.value;
+    const images = e.currentTarget.images.value;
     cache.setItem('videos-settings', videos);
     cache.setItem('images-settings', images);
     setTimeout(() => {

@@ -1,7 +1,7 @@
+import { setTimeout } from 'node:timers/promises';
 import type { SignUpCommandOutput } from '@aws-sdk/client-cognito-identity-provider';
 import { SignUpCommand } from '@aws-sdk/client-cognito-identity-provider';
 import type { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { setTimeout } from 'node:timers/promises';
 
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';

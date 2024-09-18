@@ -2,10 +2,9 @@ import { Construct } from 'constructs';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 import { Rule, Match } from 'aws-cdk-lib/aws-events';
 import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets';
-import { AuthConstruct } from '../frontend/auth-construct';
-import { ApiConstruct } from './api-construct';
-import { FunctionsConstruct } from './functions-construct';
-import { StorageConstruct } from './storage-construct';
+import { ApiConstruct } from './api-construct.js';
+import { FunctionsConstruct } from './functions-construct.js';
+import { StorageConstruct } from './storage-construct.js';
 
 interface ContentHubRepoProps {
   userPool: IUserPool;
@@ -13,7 +12,6 @@ interface ContentHubRepoProps {
 
 export class ContentHubRepo extends Construct {
   public readonly api: ApiConstruct;
-  public readonly auth: AuthConstruct;
   public readonly functions: FunctionsConstruct;
   public readonly storage: StorageConstruct;
 

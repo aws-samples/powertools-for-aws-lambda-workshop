@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'path';
 import shelljs from 'shelljs';
 

@@ -1,6 +1,6 @@
-import { StackProps, Stack, RemovalPolicy } from 'aws-cdk-lib';
+import { StackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { Function, Code, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { Function, Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { NagSuppressions } from 'cdk-nag';
@@ -16,7 +16,7 @@ import {
   landingZoneBucketNamePrefix,
   powertoolsLoggerLogLevel,
   type Language,
-} from '../constants';
+} from '../constants.js';
 
 interface FunctionsConstructProps extends StackProps {
   language: Language;

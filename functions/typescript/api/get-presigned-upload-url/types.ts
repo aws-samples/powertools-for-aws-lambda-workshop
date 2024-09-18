@@ -16,4 +16,4 @@ type StoreFileMetadataParams = {
   };
 };
 
-export { GetPresignedUploadUrlParams, StoreFileMetadataParams };
+export type { GetPresignedUploadUrlParams, StoreFileMetadataParams };

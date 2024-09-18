@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import { App, Aspects } from 'aws-cdk-lib';
-import { InfraStack } from '../lib/infra-stack';
-import { IdeStack } from '../lib/ide-stack';
-import { powertoolsServiceName, environment } from '../lib/constants';
 import { AwsSolutionsChecks } from 'cdk-nag';
+import { environment, powertoolsServiceName } from './lib/constants.js';
+import { IdeStack } from './lib/ide-stack.js';
+import { InfraStack } from './lib/infra-stack.js';
 
 const app = new App();
-const isCI = app.node.tryGetContext('CI') === 'true' ? true : false;
+const isCI = app.node.tryGetContext('CI') === 'true';
 if (isCI) {
   console.log('Running in CI/CD mode');
   Aspects.of(app).add(new AwsSolutionsChecks());

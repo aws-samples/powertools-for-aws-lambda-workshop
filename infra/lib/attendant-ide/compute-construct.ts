@@ -1,4 +1,4 @@
-import { CfnParameter, Stack, Tags, type StackProps } from 'aws-cdk-lib';
+import { Stack, Tags, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   type Vpc,
@@ -22,8 +22,7 @@ import {
   workshopDirectory,
   workshopRepo,
   zshrcTemplateUrl,
-  vscodeAccessCode
-} from './constants';
+} from './constants.js';
 import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { NagSuppressions } from 'cdk-nag';
 

@@ -11,7 +11,7 @@ import {
   Stats,
   MathExpression,
 } from 'aws-cdk-lib/aws-cloudwatch';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 
 interface DashboardConstructProps extends StackProps {
   tableName: string;

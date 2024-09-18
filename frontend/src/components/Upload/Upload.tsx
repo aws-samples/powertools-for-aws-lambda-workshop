@@ -1,11 +1,12 @@
-import React, { useState, useCallback, useRef } from 'react';
 import { Flex } from '@aws-amplify/ui-react';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Subscription } from 'rxjs';
 
-import DropZone from './DropZone';
-import UploadingTable from './UploadingTable';
 import { subscribeToFileUpdates } from '../../helpers/API';
-import { FileWithUrlMap, generateUploadUrls } from './Upload.helpers';
+import DropZone from './DropZone';
+import { type FileWithUrlMap, generateUploadUrls } from './Upload.helpers';
+import UploadingTable from './UploadingTable';
 
 type UploadProps = {
   children?: React.ReactNode;

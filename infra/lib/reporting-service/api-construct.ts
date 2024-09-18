@@ -3,7 +3,7 @@ import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Stack, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { environment } from '../constants';
+import { environment } from '../constants.js';
 import { NagSuppressions } from 'cdk-nag';
 
 interface ApiConstructProps extends StackProps {}
