@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { join } from 'path';
 import shelljs from 'shelljs';
 
@@ -118,7 +119,7 @@ const writeJSONFile = async (content, path) => {
   });
 
   // Empty or create the custom out directory
-  const outDir = join(basePath, 'deploy', stackName);
+  const outDir = join('..', 'ws-studio-build', stackName);
   if (existsSync(outDir)) {
     shelljs.cd(outDir);
     shelljs.rm('-rf', '*');
@@ -140,7 +141,7 @@ const writeJSONFile = async (content, path) => {
       `zip -r ${file.destinations['current_account-current_region'].objectKey} ./`
     );
     shelljs.exec(
-      `mv ${file.destinations['current_account-current_region'].objectKey} ../deploy/${stackName}/`
+      `mv ${file.destinations['current_account-current_region'].objectKey} ${resolve(currentDir, outDir)}/`
     );
     shelljs.cd(currentDir);
   });

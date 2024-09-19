@@ -1,4 +1,4 @@
-import { CfnParameter, Stack, Tags, type StackProps } from 'aws-cdk-lib';
+import { Stack, Tags, type StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
   type Vpc,
@@ -22,8 +22,7 @@ import {
   workshopDirectory,
   workshopRepo,
   zshrcTemplateUrl,
-  vscodeAccessCode
-} from './constants';
+} from './constants.js';
 import { ApplicationLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { NagSuppressions } from 'cdk-nag';
 
@@ -133,6 +132,31 @@ export class ComputeConstruct extends Construct {
         `code-server --install-extension ms-python.python`,
         `code-server --install-extension vscjava.vscode-java-pack`,
         `code-server --install-extension muhammad-sammy.csharp`
+      ),
+      // Configure VSCode preferences
+      this.#runCommandAsWhoamiUser(
+        `mkdir -p /home/${whoamiUser}/${workshopDirectory}`,
+        `tee /home/${whoamiUser}/.local/share/code-server/User/settings.json <<EOF
+{
+  "extensions.autoUpdate": false,
+  "extensions.autoCheckUpdates": false,
+  "terminal.integrated.cwd": "/home/${whoamiUser}/${workshopDirectory}",
+  "telemetry.telemetryLevel": "off",
+  "security.workspace.trust.startupPrompt": "never",
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.banner": "never",
+  "security.workspace.trust.emptyWindow": false,
+  "editor.indentSize": "tabSize",
+  "editor.tabSize": 2,
+  "python.testing.pytestEnabled": true,
+  "auto-run-command.rules": [
+    {
+      "command": "workbench.action.terminal.new"
+    }
+  ]
+}
+EOF
+`
       ),
       `systemctl enable --now code-server@${whoamiUser}`,
       // Clone Workshop repo & install dependencies

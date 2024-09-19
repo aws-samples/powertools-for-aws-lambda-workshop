@@ -1,8 +1,8 @@
 import type middy from '@middy/core';
 
+import type { MiddyLikeRequest } from '@aws-lambda-powertools/commons/types';
 import type { Metrics } from '@aws-lambda-powertools/metrics';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
-import type { MiddyLikeRequest } from '@aws-lambda-powertools/commons/types';
 
 interface Options {
   graphqlOperation: string;

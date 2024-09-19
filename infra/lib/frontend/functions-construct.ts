@@ -7,10 +7,9 @@ import {
   commonNodeJsBundlingSettings,
   commonEnvVars,
   environment,
-} from '../constants';
+} from '../constants.js';
 
 export class FunctionsConstruct extends Construct {
-  public readonly trafficGeneratorFn: NodejsFunction;
   public readonly usersGeneratorFn: NodejsFunction;
 
   public constructor(scope: Construct, id: string, _props: StackProps) {

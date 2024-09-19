@@ -3,4 +3,4 @@ type ImageMetadata = {
   fileId: string;
 };
 
-export { ImageMetadata };
+export type { ImageMetadata };

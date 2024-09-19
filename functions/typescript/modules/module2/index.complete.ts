@@ -1,24 +1,24 @@
-import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-import { logger, tracer } from '@commons/powertools';
-import { unmarshall } from '@aws-sdk/util-dynamodb';
-import middy from '@middy/core';
 import {
   BatchProcessor,
   EventType,
   processPartialResponse,
 } from '@aws-lambda-powertools/batch';
+import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
+import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
+import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
+import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
+import type { AttributeValue } from '@aws-sdk/client-dynamodb';
+import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { logger, tracer } from '@commons/powertools';
+import middy from '@middy/core';
 import type {
   Context,
   DynamoDBBatchResponse,
   DynamoDBRecord,
   DynamoDBStreamEvent,
 } from 'aws-lambda';
-import type { AttributeValue } from '@aws-sdk/client-dynamodb';
-import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
-import { getLabels, reportImageIssue } from './utils';
 import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import { getSecret } from '@aws-lambda-powertools/parameters/secrets';
-import { getParameter } from '@aws-lambda-powertools/parameters/ssm';
+import { getLabels, reportImageIssue } from './utils';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const apiUrlParameterName = process.env.API_URL_PARAMETER_NAME || '';
@@ -49,7 +49,7 @@ const recordHandler = async (
   // Since we are applying the filter at the DynamoDB Stream level,
   // we know that the record has a NewImage otherwise the record would not be here
   const data = unmarshall(
-    record.dynamodb!.NewImage! as Record<string, AttributeValue>
+    record.dynamodb?.NewImage as Record<string, AttributeValue>
   );
   const { id: fileId, userId, transformedFileKey } = data;
   // Add the file id and user id to the logger so that all the logs after this

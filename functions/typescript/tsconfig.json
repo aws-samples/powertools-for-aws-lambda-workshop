@@ -2,9 +2,7 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
-    "lib": [
-      "es2022"
-    ],
+    "lib": ["es2022"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -22,28 +20,14 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
     "allowSyntheticDefaultImports": true,
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
+    "typeRoots": ["./node_modules/@types"],
     "paths": {
-      "@constants": [
-        "./constants"
-      ],
-      "@commons/*": [
-        "./commons/*"
-      ],
-      "@powertools": [
-        "./commons/powertools"
-      ],
-      "@middlewares/*": [
-        "./commons/middlewares/*"
-      ],
-      "@graphql/*": [
-        "../../frontend/src/graphql/*"
-      ],
+      "@constants": ["./constants"],
+      "@commons/*": ["./commons/*"],
+      "@powertools": ["./commons/powertools"],
+      "@middlewares/*": ["./commons/middlewares/*"],
+      "@graphql/*": ["../../frontend/src/graphql/*"]
     }
   },
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

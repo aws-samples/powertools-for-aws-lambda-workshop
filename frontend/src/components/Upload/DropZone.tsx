@@ -1,6 +1,11 @@
-import React, { useCallback } from 'react';
 import { Flex, Text, useTheme } from '@aws-amplify/ui-react';
-import { DropEvent, FileRejection, useDropzone } from 'react-dropzone';
+import type React from 'react';
+import { useCallback } from 'react';
+import {
+  type DropEvent,
+  type FileRejection,
+  useDropzone,
+} from 'react-dropzone';
 
 type DropZoneProps = {
   children?: React.ReactNode;
@@ -58,6 +63,7 @@ const DropZone: React.FC<DropZoneProps> = ({ onDropAccepted }) => {
       {isDragActive ? (
         <>
           <svg
+            role="graphics-symbol"
             width="24"
             height="24"
             xmlns="http://www.w3.org/2000/svg"

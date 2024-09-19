@@ -2,13 +2,13 @@ import { Stack, StackProps, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CfnGroup } from 'aws-cdk-lib/aws-resourcegroups';
 import { NagSuppressions } from 'cdk-nag';
-import { Frontend } from './frontend';
-import { ContentHubRepo } from './content-hub-repository';
-import { ThumbnailGenerator } from './thumbnail-generator';
-import { ImageDetection } from './image-detection';
-import { ReportingService } from './reporting-service';
-import { MonitoringConstruct } from './monitoring';
-import { powertoolsServiceName, environment, Language } from './constants';
+import { Frontend } from './frontend/index.js';
+import { ContentHubRepo } from './content-hub-repository/index.js';
+import { ThumbnailGenerator } from './thumbnail-generator/index.js';
+import { ImageDetection } from './image-detection/index.js';
+import { ReportingService } from './reporting-service/index.js';
+import { MonitoringConstruct } from './monitoring/index.js';
+import { powertoolsServiceName, environment, Language } from './constants.js';
 
 export class InfraStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {

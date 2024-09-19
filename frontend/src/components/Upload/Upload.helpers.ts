@@ -14,11 +14,11 @@ export const generateUUID = (): string => {
     let r = Math.random() * 16; //random number between 0 and 16
     if (d > 0) {
       //Use timestamp until depleted
-      r = (d + r) % 16 | 0;
+      r = ((d + r) % 16) | 0;
       d = Math.floor(d / 16);
     } else {
       //Use microseconds since page-load if supported
-      r = (d2 + r) % 16 | 0;
+      r = ((d2 + r) % 16) | 0;
       d2 = Math.floor(d2 / 16);
     }
 
@@ -73,7 +73,7 @@ const getFileFromInput = (file: File): Promise<unknown> => {
 
   return new Promise((resolve, reject) => {
     fileReader.onerror = reject;
-    fileReader.onload = function () {
+    fileReader.onload = () => {
       resolve(fileReader.result);
     };
     fileReader.readAsArrayBuffer(file); // here the file can be read in different way Text, DataUrl, ArrayBuffer

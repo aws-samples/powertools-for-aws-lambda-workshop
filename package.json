@@ -1,17 +1,11 @@
 {
   "name": "aws-lambda-powertools-typescript-workshop",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Powertools for AWS Lambda Workshop",
-  "workspaces": [
-    "scripts",
-    "frontend",
-    "infra",
-    "functions/typescript"
-  ],
+  "workspaces": ["scripts", "frontend", "infra", "functions/typescript"],
   "scripts": {
-    "ts-node": "ts-node",
-    "lint": "eslint --ext .ts --no-error-on-unmatched-pattern infra layers functions",
-    "lint-fix": "eslint --fix --ext .ts --no-error-on-unmatched-pattern infra layers functions",
+    "lint": "biome lint .",
+    "lint:fix": "biome check --write .",
     "clean": "rm -rf node_modules infra/node_modules infra/cdk.out frontend/node_modules frontend/src/aws-exports.cjs functions/typescript/node_modules",
     "frontend:start": "npm start -w frontend",
     "frontend:build": "npm run build -w frontend",
@@ -35,20 +29,19 @@
   "keywords": [],
   "author": "",
   "license": "MIT-0",
+  "lint-staged": {
+    "*.{js,ts}": "biome check --write"
+  },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.4.0",
-    "@typescript-eslint/parser": "^6.4.0",
-    "eslint": "^8.47.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
-    "ts-node": "^10.9.1"
+    "@biomejs/biome": "^1.9.1",
+    "lint-staged": "^15.2.10",
+    "tsx": "^4.19.1",
+    "@types/node": "^22.5.5"
   },
   "dependencies": {
     "@types/node": "^20.5.9"
   },
-  "overrides": {
-    "jimp": {
-      "xml2js": "^0.5.0"
-    }
+  "engines": {
+    "node": ">=18"
   }
 }

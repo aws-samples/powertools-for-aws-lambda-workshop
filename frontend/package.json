@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "module",
   "author": {
     "name": "Amazon Web Services",
@@ -21,7 +21,7 @@
     "@aws-amplify/ui-react": "^6.0.6",
     "@aws-crypto/sha256-js": "^5.2.0",
     "aws-amplify": "^6.0.7",
-    "axios": "^1.7.4",
+    "axios": "^1.7.7",
     "normalize.css": "^8.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

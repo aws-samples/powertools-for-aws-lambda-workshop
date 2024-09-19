@@ -19,7 +19,7 @@ import {
   environment,
   dynamoFilesTableName,
   dynamoFilesByUserGsiName,
-} from '../constants';
+} from '../constants.js';
 import { IGrantable } from 'aws-cdk-lib/aws-iam';
 import { NagSuppressions } from 'cdk-nag';
 

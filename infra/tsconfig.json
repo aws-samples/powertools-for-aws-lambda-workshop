@@ -1,36 +1,30 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    "target": "ES2018",
-    "module": "commonjs",
-    "lib": [
-      "es2018"
-    ],
-    "declaration": true,
-    "strict": true,
-    "noImplicitAny": true,
     "esModuleInterop": true,
-    "strictNullChecks": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": true,
-    "moduleResolution": "node",
-    "noFallthroughCasesInSwitch": false,
-    "inlineSourceMap": true,
-    "inlineSources": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+    "sourceMap": true,
     "experimentalDecorators": true,
-    "strictPropertyInitialization": false,
-    "allowSyntheticDefaultImports": true,
-    "typeRoots": [
-      "../node_modules/@types"
-    ],
-    "types": [
-      "node"
-    ],
+    "declaration": true,
+    "declarationMap": true,
+    "removeComments": false,
+    "pretty": true,
+    "lib": ["ES2022"],
+    "rootDir": "."
   },
-  "exclude": [
-    "node_modules",
-    "cdk.out"
-  ]
+  "include": ["lib/**/*", "bin/**/*", "infra.ts"],
+  "exclude": ["./node_modules"],
+  "watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority"
+  },
+  "types": ["node"]
 }

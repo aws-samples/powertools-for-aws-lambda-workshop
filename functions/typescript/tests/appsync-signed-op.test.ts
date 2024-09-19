@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { setGlobalDispatcher, MockAgent } from 'undici';
-import { makeGraphQlOperation } from '../commons/appsync-signed-operation';
+import { MockAgent, setGlobalDispatcher } from 'undici';
 import type { Interceptable } from 'undici';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { makeGraphQlOperation } from '../commons/appsync-signed-operation';
 
 let mockAgent: MockAgent;
 let mockPool: Interceptable;

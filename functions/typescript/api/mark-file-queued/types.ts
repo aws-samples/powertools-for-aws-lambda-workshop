@@ -1,4 +1,4 @@
-import { FileStatus } from '@constants';
+import type { FileStatus } from '@constants';
 
 type Detail = {
   version: string;
@@ -22,4 +22,4 @@ type DetailType = 'Object Created';
 type FileStatusKey = keyof typeof FileStatus;
 type FileStatusValue = (typeof FileStatus)[FileStatusKey];
 
-export { Detail, DetailType, FileStatusValue };
+export type { Detail, DetailType, FileStatusValue };

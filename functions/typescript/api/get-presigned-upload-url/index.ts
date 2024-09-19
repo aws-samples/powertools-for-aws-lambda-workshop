@@ -1,15 +1,15 @@
+import { randomUUID } from 'node:crypto';
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { requestResponseMetric } from '@middlewares/requestResponseMetric';
 import middy from '@middy/core';
 import { logger as loggerMain, metrics, tracer } from '@powertools';
 import type { AppSyncIdentityCognito, AppSyncResolverEvent } from 'aws-lambda';
-import { randomUUID } from 'node:crypto';
 import type {
   GeneratePresignedUploadUrlMutationVariables,
   PresignedUrl,
-} from '../../types/API';
-import { getPresignedUploadUrl, storeFileMetadata } from './utils';
+} from '../../types/API.js';
+import { getPresignedUploadUrl, storeFileMetadata } from './utils.js';
 
 const tableName = process.env.TABLE_NAME_FILES || '';
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
@@ -36,7 +36,10 @@ export const handler = middy(
   ): Promise<Partial<PresignedUrl>> => {
     try {
       const fileId = randomUUID();
-      const { type: fileType } = event.arguments.input!;
+      if (!event.arguments.input) {
+        throw new Error('Invalid input');
+      }
+      const { type: fileType } = event.arguments.input;
 
       const { username: userId } = event.identity as AppSyncIdentityCognito;
       const fileTypePrefix = getObjectKey(fileType);

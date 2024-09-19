@@ -1,6 +1,6 @@
 import { injectLambdaContext } from '@aws-lambda-powertools/logger/middleware';
-import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { MetricUnit } from '@aws-lambda-powertools/metrics';
+import { logMetrics } from '@aws-lambda-powertools/metrics/middleware';
 import { captureLambdaHandler } from '@aws-lambda-powertools/tracer/middleware';
 import { FileStatus } from '@constants';
 import middy from '@middy/core';
@@ -21,7 +21,11 @@ const lambdaHandler = async (
   const {
     object: { key: objectKey },
   } = event.detail;
-  const fileId = objectKey.split('/').at(-1)!.split('.')[0];
+  const fileName = objectKey.split('/').at(-1);
+  if (!fileName) {
+    throw new Error('Invalid file name');
+  }
+  const fileId = fileName.split('.')[0];
 
   await markFileAs(fileId, FileStatus.QUEUED);
 

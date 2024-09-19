@@ -14,7 +14,7 @@ import {
   environment,
   powertoolsLoggerLogLevel,
   type Language,
-} from '../constants';
+} from '../constants.js';
 
 interface FunctionsConstructProps extends StackProps {
   language: Language;

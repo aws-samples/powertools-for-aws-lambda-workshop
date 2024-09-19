@@ -9,9 +9,9 @@ import { SqsDestination } from 'aws-cdk-lib/aws-lambda-destinations';
 import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import type { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
-import { FunctionsConstruct } from './functions-construct';
-import { QueuesConstruct } from './queues-construct';
-import { type Language } from '../constants';
+import { FunctionsConstruct } from './functions-construct.js';
+import { QueuesConstruct } from './queues-construct.js';
+import { type Language } from '../constants.js';
 
 interface ImageDetectionProps {
   filesBucket: Bucket;

@@ -1,12 +1,12 @@
-import React from 'react';
 import {
-  Flex,
-  Link as UiLink,
-  Image,
   Button,
+  Flex,
+  Image,
+  Link as UiLink,
   useAuthenticator,
   useTheme,
 } from '@aws-amplify/ui-react';
+import type React from 'react';
 import { Link as ReactRouterLink } from 'react-router-dom';
 
 import MenuItem from './MenuItem';

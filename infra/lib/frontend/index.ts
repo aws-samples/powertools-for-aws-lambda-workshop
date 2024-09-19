@@ -1,11 +1,11 @@
 import { Construct } from 'constructs';
-import { AuthConstruct } from './auth-construct';
-import { DistributionConstruct } from './distribution-construct';
-import { StorageConstruct } from './storage-construct';
+import { AuthConstruct } from './auth-construct.js';
+import { DistributionConstruct } from './distribution-construct.js';
+import { StorageConstruct } from './storage-construct.js';
 import { CustomResource } from 'aws-cdk-lib';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Provider } from 'aws-cdk-lib/custom-resources';
-import { FunctionsConstruct } from './functions-construct';
+import { FunctionsConstruct } from './functions-construct.js';
 
 class FrontendProps {}
 

@@ -5,7 +5,7 @@ import type { Subscription } from 'rxjs';
 import { generatePresignedUploadUrl } from '../graphql/mutations';
 import { generatePresignedDownloadUrl } from '../graphql/queries';
 import { onUpdateFileStatus } from '../graphql/subscriptions';
-import {
+import type {
   GeneratePresignedUploadUrlMutation,
   OnUpdateFileStatusSubscription,
   onUpdateFileStatusFilterInput,

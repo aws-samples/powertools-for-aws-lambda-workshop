@@ -1,14 +1,14 @@
-import { logger } from './powertools';
-import { HttpRequest } from '@aws-sdk/protocol-http';
-import { SignatureV4 } from '@aws-sdk/signature-v4';
-import { URL } from 'node:url';
 import {
-  createHash,
-  createHmac,
   type BinaryLike,
   type Hmac,
   type KeyObject,
+  createHash,
+  createHmac,
 } from 'node:crypto';
+import { URL } from 'node:url';
+import { HttpRequest } from '@smithy/protocol-http';
+import { SignatureV4 } from '@smithy/signature-v4';
+import { logger } from './powertools';
 
 class Sha256 {
   private readonly hash: Hmac;
@@ -32,9 +32,9 @@ class Sha256 {
 
 const signer = new SignatureV4({
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    sessionToken: process.env.AWS_SESSION_TOKEN!,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? '',
+    sessionToken: process.env.AWS_SESSION_TOKEN ?? '',
   },
   service: 'appsync',
   region: process.env.AWS_REGION ?? '',

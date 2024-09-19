@@ -1,9 +1,9 @@
 import { Construct } from 'constructs';
-import { FunctionsConstruct } from './functions-construct';
-import { ApiConstruct } from './api-construct';
+import { FunctionsConstruct } from './functions-construct.js';
+import { ApiConstruct } from './api-construct.js';
 import { LambdaIntegration } from 'aws-cdk-lib/aws-apigateway';
 import { type StackProps } from 'aws-cdk-lib';
-import { type Language } from '../constants';
+import { type Language } from '../constants.js';
 import { NagSuppressions } from 'cdk-nag';
 
 interface ReportingServiceProps extends StackProps {

@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from 'react';
 import {
   Button,
   Table,
-  TableHead,
   TableBody,
-  TableRow,
   TableCell,
+  TableHead,
+  TableRow,
 } from '@aws-amplify/ui-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
-import { FileWithUrlMap } from './Upload.helpers';
 import FileUpload from './FileUpload';
+import type { FileWithUrlMap } from './Upload.helpers';
 
 type UploadingTableProps = {
   children?: React.ReactNode;
@@ -42,7 +43,7 @@ const UploadingTable: React.FC<UploadingTableProps> = ({
       onDone();
       setIsMoreButtonEnabled(true);
     }
-  }, [files]);
+  }, [files, onDone]);
 
   const fileUploadComponents = [];
   for (const file of files.values()) {

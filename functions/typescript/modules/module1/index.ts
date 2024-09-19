@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   FileStatus,
   ImageSize,
@@ -7,15 +8,14 @@ import {
 } from '@constants';
 import middy from '@middy/core';
 import type { Context, EventBridgeEvent } from 'aws-lambda';
-import { randomUUID } from 'node:crypto';
-import { Detail, DetailType, ProcessOneOptions } from './types';
+import type { Detail, DetailType, ProcessOneOptions } from './types.js';
 import {
   createThumbnail,
   getImageMetadata,
   getOriginalObject,
   markFileAs,
   writeTransformedObjectToS3,
-} from './utils';
+} from './utils.js';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const filesTableName = process.env.TABLE_NAME_FILES || '';

@@ -9,8 +9,8 @@
   padding: 0 5px;
 }
 
-@media not all and (min-resolution:.001dpcm) {
-  @supports (-webkit-appearance:none) and (stroke-color:transparent) {
+@media not all and (min-resolution: .001dpcm) {
+  @supports (-webkit-appearance: none) and (stroke-color: transparent) {
     body {
       min-height: -webkit-fill-available;
     }

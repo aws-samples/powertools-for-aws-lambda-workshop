@@ -5,7 +5,7 @@ import {
   BucketAccessControl,
   BucketEncryption,
 } from 'aws-cdk-lib/aws-s3';
-import { websiteBucketNamePrefix, environment } from '../constants';
+import { websiteBucketNamePrefix, environment } from '../constants.js';
 import { NagSuppressions } from 'cdk-nag';
 
 class StorageConstructProps {}

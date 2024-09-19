@@ -12,8 +12,8 @@ import {
   ViewerProtocolPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { HttpOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
-import { environment } from '../constants';
-import { customSecurityHeader, customSecurityHeaderValue } from './constants';
+import { environment } from '../constants.js';
+import { customSecurityHeader, customSecurityHeaderValue } from './constants.js';
 import { NagSuppressions } from 'cdk-nag';
 
 interface DistributionConstructProps extends StackProps {
@@ -74,9 +74,9 @@ export class DistributionConstruct extends Construct {
     this.ideUrl = `https://${distribution.distributionDomainName}/?folder=%2Fhome%2Fec2-user%2Fworkshop`;
     this.healthCheckEndpoint = `https://${distribution.distributionDomainName}/healthz`;
 
-    new CfnOutput(this, 'IDEWorkspace', {
+    new CfnOutput(this, 'VSCodeWeb', {
       value: this.ideUrl,
-      description: 'The domain name where the web IDE is hosted',
+      description: 'The domain name where the VSCode Web IDE is hosted',
     });
 
     NagSuppressions.addResourceSuppressions(distribution, [

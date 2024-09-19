@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
 import {
-  TableRow,
-  TableCell,
-  Loader,
-  Button,
   Badge,
-  BadgeVariations,
+  type BadgeVariations,
+  Button,
+  Loader,
+  TableCell,
+  TableRow,
 } from '@aws-amplify/ui-react';
-import { getStatusColor, upload } from './Upload.helpers';
+import type React from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { getDownloadUrl } from '../../helpers/API';
+import { getStatusColor, upload } from './Upload.helpers';
 
 type FileUploadProps = {
   children?: React.ReactNode;

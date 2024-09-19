@@ -5,10 +5,10 @@ import {
   ComputeConstruct,
   DistributionConstruct,
   CompletionConstruct,
-} from './attendant-ide';
-import { environment } from './constants';
+  RandomPasswordConstruct,
+} from './attendant-ide/index.js';
+import { environment } from './constants.js';
 import { NagSuppressions } from 'cdk-nag';
-import { vscodeAccessCode } from './attendant-ide/constants';
 
 export class IdeStack extends Stack {
   public constructor(scope: Construct, id: string, props?: StackProps) {
@@ -25,17 +25,14 @@ export class IdeStack extends Stack {
       }`
     );
 
-    // Parameter for VSCode Password
-    const vscodePassword = new CfnParameter(this, 'vscodePasswordParameter', {
-        type: 'String',
-        default: vscodeAccessCode,
-      });
+    // Generated VSCode Password
+    const randomPassword = new RandomPasswordConstruct(this, 'random-password', {});
 
     // Create a compute instance in the private subnet
     const compute = new ComputeConstruct(this, 'compute', {
       vpc,
       websiteBucketName: websiteBucketName,
-      vscodePassword: vscodePassword.valueAsString
+      vscodePassword: randomPassword.randomPassword,
     });
     const { instance, target } = compute;
 

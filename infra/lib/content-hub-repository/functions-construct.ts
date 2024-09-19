@@ -10,7 +10,7 @@ import {
   commonEnvVars,
   environment,
   landingZoneBucketNamePrefix,
-} from '../constants';
+} from '../constants.js';
 
 interface FunctionsConstructProps extends StackProps {}
 
