@@ -1,4 +1,4 @@
-## AWS Lambda Powertools for TypeScript Workshop
+# AWS Lambda Powertools for TypeScript Workshop
 
 ![Architectural Diagram](docs/static/powertools-workshop-architecture-numbered.png)
 

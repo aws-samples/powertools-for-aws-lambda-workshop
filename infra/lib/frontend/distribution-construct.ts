@@ -15,7 +15,7 @@ import {
   OriginRequestCookieBehavior,
   OriginRequestQueryStringBehavior,
 } from 'aws-cdk-lib/aws-cloudfront';
-import { HttpOrigin, S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { HttpOrigin, S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import { NagSuppressions } from 'cdk-nag';
 import { environment } from '../constants.js';
 
@@ -35,7 +35,7 @@ export class DistributionConstruct extends Construct {
 
     this.distribution = new Distribution(this, 'distribution', {
       defaultBehavior: {
-        origin: new S3StaticWebsiteOrigin(props.websiteBucket),
+        origin: new S3Origin(props.websiteBucket),
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
@@ -95,6 +95,11 @@ export class DistributionConstruct extends Construct {
         reason:
           "Using default SSL settings for this distribution, it's for a short-lived workshop.",
       },
+      {
+        id: 'AwsSolutions-CFR5',
+        reason:
+          "No custom SSL certificate needed for this distribution, it's for a short-lived workshop.",
+      }
     ]);
   }
 
