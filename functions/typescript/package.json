@@ -33,7 +33,7 @@
     "@aws-sdk/util-dynamodb": "^3.651.0",
     "@jimp/jpeg": "^0.22.12",
     "@jimp/png": "^0.22.11",
-    "@middy/core": "^3.6.2",
+    "@middy/core": "^5.5.0",
     "@smithy/protocol-http": "^4.1.3",
     "@smithy/signature-v4": "^4.1.3",
     "jimp": "^1.6.0"
