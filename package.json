@@ -36,10 +36,10 @@
     "@biomejs/biome": "^1.9.1",
     "lint-staged": "^15.2.10",
     "tsx": "^4.19.1",
-    "@types/node": "^22.5.5"
+    "@types/node": "^22.8.6"
   },
   "dependencies": {
-    "@types/node": "^20.5.9"
+    "@types/node": "^22.8.6"
   },
   "engines": {
     "node": ">=18"
