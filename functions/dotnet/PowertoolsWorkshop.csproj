@@ -25,4 +25,7 @@
     <PackageReference Include="AWSSDK.S3" Version="3.7.308.8" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="2.88.6" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="module*/**/[complete]*.cs" />
+  </ItemGroup>
 </Project>

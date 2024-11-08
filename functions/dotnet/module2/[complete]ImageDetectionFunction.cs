@@ -18,7 +18,7 @@ namespace PowertoolsWorkshop
     {
         private static IImageDetectionService _imageDetectionService;
         private static IDynamoDbStreamBatchProcessor _batchProcessor;
-        
+
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
         /// the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
@@ -28,7 +28,7 @@ namespace PowertoolsWorkshop
         {
             Tracing.RegisterForAllServices();
             ParametersManager.DefaultMaxAge(TimeSpan.FromSeconds(900));
-            
+
             _imageDetectionService = new ImageDetectionService();
             _batchProcessor = DynamoDbStreamBatchProcessor.Instance;
         }

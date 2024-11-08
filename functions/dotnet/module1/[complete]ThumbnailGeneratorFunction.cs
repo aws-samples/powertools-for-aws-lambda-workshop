@@ -32,7 +32,7 @@ namespace PowertoolsWorkshop
             Tracing.RegisterForAllServices();
             _appSyncService = new AppSyncService();
             _thumbnailGeneratorService = new ThumbnailGeneratorService();
-            
+
             var idempotencyTableName = Environment.GetEnvironmentVariable("IDEMPOTENCY_TABLE_NAME");
             Idempotency.Configure(builder => builder.UseDynamoDb(idempotencyTableName));
         }
@@ -50,7 +50,7 @@ namespace PowertoolsWorkshop
         public async Task FunctionHandler(S3ObjectCreateEvent evnt, ILambdaContext context)
         {
             Idempotency.RegisterLambdaContext(context);
-            
+
             var etag = evnt.Detail.Object.ETag;
             var objectKey = evnt.Detail.Object.Key;
             var filesBucket = evnt.Detail.Bucket.Name;
@@ -67,7 +67,7 @@ namespace PowertoolsWorkshop
                 Logger.LogInformation($"Transformed key {newObjectKey} is created for object key {objectKey}");
 
                 Metrics.AddMetric("ImageProcessed", 1, MetricUnit.Count);
-                
+
                 // Mark file as completed, this will notify subscribers that the file is processed.
                 await UpdateStatus(fileId, FileStatus.Completed, newObjectKey).ConfigureAwait(false);
             }
@@ -79,24 +79,24 @@ namespace PowertoolsWorkshop
                 await UpdateStatus(fileId, FileStatus.Failed).ConfigureAwait(false);
             }
         }
-        
+
         [Idempotent]
         [Tracing(SegmentName = "Generate Thumbnail")]
         private async Task<string> GenerateThumbnail(string objectKey, string filesBucket, [IdempotencyKey] string etag)
         {
             Logger.LogInformation($"Generate Thumbnail for Object Key: {objectKey} and Etag: {etag}");
-            
+
             var newObjectKey = await _thumbnailGeneratorService
                 .GenerateThumbnailAsync(objectKey, filesBucket, etag)
                 .ConfigureAwait(false);
-            
+
             Logger.LogInformation($"Saved image on S3: {newObjectKey}");
 
             Metrics.AddMetric("ThumbnailGenerated", 1, MetricUnit.Count);
-            
+
             return newObjectKey;
         }
-        
+
         [Tracing(SegmentName = "Update Status")]
         private async Task UpdateStatus(string fileId, string status, string newObjectKey = null)
         {
