@@ -11,7 +11,7 @@ const pythonVersion = '3.11.0';
 const javaVersion = 'java-17-amazon-corretto-headless';
 const dotNetRepo =
   'https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm';
-const dotNetVersion = ['aspnetcore-runtime-6.0', 'dotnet-sdk-6.0'].join(' ');
+const dotNetVersion = ['aspnetcore-runtime-8.0', 'dotnet-sdk-8.0'].join(' ');
 
 // OS Packages
 const osPackages = [

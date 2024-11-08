@@ -68,15 +68,15 @@ export const commonJavaBundlingSettings: BundlingOptions = {
 };
 
 export const commonDotnetBundlingSettings: BundlingOptions = {
-  image: Runtime.DOTNET_6.bundlingImage,
+  image: Runtime.DOTNET_8.bundlingImage,
   user: 'root',
   outputType: BundlingOutput.ARCHIVED,
   command: [
     '/bin/sh',
     '-c',
     ' dotnet tool install -g Amazon.Lambda.Tools' +
-      ' && dotnet build' +
-      ' && dotnet lambda package --output-package /asset-output/function.zip',
+    ' && dotnet build' +
+    ' && dotnet lambda package --output-package /asset-output/function.zip',
   ],
 };
 

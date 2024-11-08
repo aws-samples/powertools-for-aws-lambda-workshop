@@ -87,7 +87,7 @@ export class FunctionsConstruct extends Construct {
       this.imageDetectionFn = new Function(this, resourcePhysicalId, {
         ...commonFunctionSettings,
         functionName,
-        runtime: Runtime.DOTNET_6,
+        runtime: Runtime.DOTNET_8,
         environment: {
           ...localEnvVars,
         },
