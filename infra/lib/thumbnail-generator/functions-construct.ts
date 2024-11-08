@@ -40,7 +40,7 @@ export class FunctionsConstruct extends Construct {
       TABLE_NAME_FILES: dynamoFilesTableName,
       BUCKET_NAME_FILES: `${landingZoneBucketNamePrefix}-${
         Stack.of(this).account
-      }-${environment}`,
+        }-${environment}`,
     };
     const functionName = `thumbnail-generator-${environment}`;
     const resourcePhysicalId = `thumbnail-generator`;
@@ -89,7 +89,7 @@ export class FunctionsConstruct extends Construct {
       this.thumbnailGeneratorFn = new Function(this, resourcePhysicalId, {
         ...commonFunctionSettings,
         functionName,
-        runtime: Runtime.DOTNET_6,
+        runtime: Runtime.DOTNET_8,
         environment: {
           ...localEnvVars,
         },

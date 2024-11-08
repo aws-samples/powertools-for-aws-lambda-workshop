@@ -107,7 +107,7 @@ Available runtimes are:
 - `nodejs` - Node.js 18.x
 - `python` - Python 3.11
 - `java` - Java 17
-- `dotnet` - .NET 6.0
+- `dotnet` - .NET 8.0
 
 ### Create Frontend Config
 
