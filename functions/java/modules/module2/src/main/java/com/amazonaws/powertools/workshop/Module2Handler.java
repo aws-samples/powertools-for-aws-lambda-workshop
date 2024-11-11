@@ -2,6 +2,7 @@ package com.amazonaws.powertools.workshop;
 
 import static com.amazonaws.powertools.workshop.Utils.getLabels;
 import static com.amazonaws.powertools.workshop.Utils.reportImageIssue;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
