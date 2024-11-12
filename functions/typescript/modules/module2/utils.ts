@@ -20,6 +20,7 @@ const getLabels = async (
   transformedFileKey: string
 ): Promise<void> => {
   const subsegment = tracer.getSegment()?.addNewSubsegment('#### getLabels');
+  subsegment && tracer.setSegment(subsegment);
 
   try {
     const response = await rekognitionClient.send(
@@ -61,6 +62,7 @@ const getLabels = async (
     throw error;
   } finally {
     subsegment?.close();
+    subsegment && tracer.setSegment(subsegment.parent);
   }
 };
 

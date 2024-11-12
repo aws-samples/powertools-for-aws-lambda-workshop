@@ -9,8 +9,8 @@ import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { logger, tracer } from '@commons/powertools';
 import middy from '@middy/core';
 import type { Context, DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
-import { NoLabelsFoundError, NoPersonFoundError } from './errors';
-import { getLabels, reportImageIssue } from './utils';
+import { NoLabelsFoundError, NoPersonFoundError } from './errors.js';
+import { getLabels, reportImageIssue } from './utils.js';
 
 const s3BucketFiles = process.env.BUCKET_NAME_FILES || '';
 const apiUrlHost = process.env.API_URL_HOST || '';
