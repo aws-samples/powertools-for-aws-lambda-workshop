@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import {
   FileStatus,
   ImageSize,
@@ -8,6 +7,7 @@ import {
 } from '@constants';
 import middy from '@middy/core';
 import type { Context, EventBridgeEvent } from 'aws-lambda';
+import { randomUUID } from 'node:crypto';
 import type { Detail, DetailType, ProcessOneOptions } from './types.js';
 import {
   createThumbnail,
@@ -46,7 +46,7 @@ const processOne = async ({
 
 const lambdaHandler = async (
   event: EventBridgeEvent<DetailType, Detail>,
-  _context: Context
+  context: Context
 ): Promise<void> => {
   // Extract file info from the event and fetch additional metadata from DynamoDB
   const objectKey = event.detail.object.key;
