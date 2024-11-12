@@ -46,6 +46,7 @@ const recordHandler = async (
   const recordSegment = tracer
     .getSegment()
     ?.addNewSubsegment('### recordHandler');
+  recordSegment && tracer.setSegment(recordSegment);
   // Since we are applying the filter at the DynamoDB Stream level,
   // we know that the record has a NewImage otherwise the record would not be here
   const data = unmarshall(
@@ -59,8 +60,8 @@ const recordHandler = async (
     userId,
   });
   // Add the file id and user id as annotations to the segment so that we can correlate the logs with the traces
-  recordSegment?.addAnnotation('fileId', fileId);
-  recordSegment?.addAnnotation('userId', userId);
+  tracer.putAnnotation('fileId', fileId);
+  tracer.putAnnotation('userId', userId);
 
   try {
     // Get the labels from Rekognition
@@ -88,8 +89,9 @@ const recordHandler = async (
   } finally {
     // Remove the file id and user id from the logger
     logger.removeKeys(['fileId', 'userId']);
-    // Close the segment
+    // Close & restore the segment
     recordSegment?.close();
+    recordSegment && tracer.setSegment(recordSegment.parent);
   }
 };
 
@@ -100,6 +102,7 @@ export const handler = middy(
   ): Promise<DynamoDBBatchResponse> => {
     return processPartialResponse(event, recordHandler, processor, {
       context,
+      processInParallel: false,
     });
   }
 )
