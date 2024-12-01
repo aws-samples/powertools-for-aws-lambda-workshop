@@ -14,7 +14,7 @@
     "convertCDKtoCfn": "node convert-template.mjs"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.682.0",
+    "@aws-sdk/client-cloudformation": "^3.699.0",
     "shelljs": "^0.8.5"
   }
 }
