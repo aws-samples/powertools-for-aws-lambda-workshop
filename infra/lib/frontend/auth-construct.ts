@@ -33,7 +33,7 @@ export class AuthConstruct extends Construct {
       this,
       'pre-signup-cognito-trigger',
       {
-        runtime: Runtime.NODEJS_20_X,
+        runtime: Runtime.NODEJS_22_X,
         handler: 'index.handler',
         code: Code.fromInline(`module.exports.handler = (event, context, callback) => {
         event.response.autoConfirmUser = true;

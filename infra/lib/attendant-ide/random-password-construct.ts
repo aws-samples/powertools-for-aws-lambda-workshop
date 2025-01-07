@@ -23,7 +23,7 @@ export class RandomPasswordConstruct extends Construct {
       `${resourcePrefix}-provider`,
       {
         onEventHandler: new LambdaFunction(this, `${resourcePrefix}-fn`, {
-          runtime: Runtime.NODEJS_20_X,
+          runtime: Runtime.NODEJS_22_X,
           handler: 'index.handler',
           logGroup: new LogGroup(this, `${resourcePrefix}-fn-log`, {
             removalPolicy: RemovalPolicy.DESTROY,

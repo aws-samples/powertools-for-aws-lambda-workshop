@@ -24,7 +24,7 @@ export class CompletionConstruct extends Construct {
     const { healthCheckEndpoint } = props;
 
     const isAvailableHandler = new Function(this, 'is-available', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'index.handler',
       logRetention: RetentionDays.ONE_DAY,
       timeout: Duration.seconds(30),
@@ -63,7 +63,7 @@ export class CompletionConstruct extends Construct {
       'check-id-availability-provider',
       {
         onEventHandler: new Function(this, 'no-op-handler', {
-          runtime: Runtime.NODEJS_20_X,
+          runtime: Runtime.NODEJS_22_X,
           handler: 'index.handler',
           logRetention: RetentionDays.ONE_DAY,
           timeout: Duration.seconds(5),
