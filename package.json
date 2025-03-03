@@ -35,7 +35,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.1",
     "lint-staged": "^15.2.10",
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
     "@types/node": "^22.13.8"
   },
   "dependencies": {
