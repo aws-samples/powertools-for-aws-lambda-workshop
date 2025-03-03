@@ -14,12 +14,12 @@
   },
   "license": "MIT-0",
   "dependencies": {
-    "@aws-lambda-powertools/batch": "^2.10.0",
-    "@aws-lambda-powertools/idempotency": "^2.10.0",
-    "@aws-lambda-powertools/logger": "^2.12.0",
-    "@aws-lambda-powertools/metrics": "^2.10.0",
-    "@aws-lambda-powertools/parameters": "^2.11.0",
-    "@aws-lambda-powertools/tracer": "^2.10.0",
+    "@aws-lambda-powertools/batch": "^2.15.0",
+    "@aws-lambda-powertools/idempotency": "^2.15.0",
+    "@aws-lambda-powertools/logger": "^2.15.0",
+    "@aws-lambda-powertools/metrics": "^2.15.0",
+    "@aws-lambda-powertools/parameters": "^2.15.0",
+    "@aws-lambda-powertools/tracer": "^2.15.0",
     "@aws-sdk/client-api-gateway": "^3.758.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.758.0",
     "@aws-sdk/client-dynamodb": "^3.758.0",
@@ -39,7 +39,6 @@
     "jimp": "^1.6.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.145",
-    "vitest": "^0.34.2"
+    "@types/aws-lambda": "^8.10.145"
   }
 }
