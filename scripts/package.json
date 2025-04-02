@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.777.0",
-    "shelljs": "^0.8.5"
+    "shelljs": "^0.9.2"
   }
 }
