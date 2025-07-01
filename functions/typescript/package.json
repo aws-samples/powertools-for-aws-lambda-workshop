@@ -19,7 +19,7 @@
     "@aws-lambda-powertools/logger": "^2.20.0",
     "@aws-lambda-powertools/metrics": "^2.15.0",
     "@aws-lambda-powertools/parameters": "^2.15.0",
-    "@aws-lambda-powertools/tracer": "^2.15.0",
+    "@aws-lambda-powertools/tracer": "^2.22.0",
     "@aws-sdk/client-api-gateway": "^3.840.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.840.0",
     "@aws-sdk/client-dynamodb": "^3.840.0",
