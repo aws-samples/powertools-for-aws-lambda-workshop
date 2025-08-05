@@ -12,7 +12,7 @@ import type { IUserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import {
   IdentityPool,
   UserPoolAuthenticationProvider,
-} from '@aws-cdk/aws-cognito-identitypool-alpha';
+} from 'aws-cdk-lib/aws-cognito-identitypool';
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NagSuppressions } from 'cdk-nag';
 import { environment } from '../constants.js';

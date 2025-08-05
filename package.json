@@ -34,14 +34,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.1",
+    "@types/node": "^22.13.8",
     "lint-staged": "^16.1.2",
-    "tsx": "^4.19.3",
-    "@types/node": "^22.13.8"
+    "tsx": "^4.19.3"
   },
   "dependencies": {
     "@types/node": "^22.13.8"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   }
 }

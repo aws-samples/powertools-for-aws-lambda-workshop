@@ -18,7 +18,6 @@
     "cdk:synth-prod": "NODE_ENV=production cdk synth"
   },
   "devDependencies": {
-    "@aws-cdk/aws-cognito-identitypool-alpha": "^2.158.0-alpha.0",
     "@aws-cdk/aws-lambda-python-alpha": "^2.158.0-alpha.0",
     "aws-cdk": "^2.1023.0",
     "esbuild": "^0.25.0",
