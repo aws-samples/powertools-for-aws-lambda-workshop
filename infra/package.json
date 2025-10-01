@@ -19,14 +19,14 @@
   },
   "devDependencies": {
     "@aws-cdk/aws-lambda-python-alpha": "^2.158.0-alpha.0",
-    "aws-cdk": "^2.1027.0",
+    "aws-cdk": "^2.1029.4",
     "esbuild": "^0.25.0",
     "typescript": "^5.6.3"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.879.0",
     "@aws-sdk/client-ssm": "^3.879.0",
-    "aws-cdk-lib": "^2.214.0",
+    "aws-cdk-lib": "^2.219.0",
     "cdk-nag": "^2.37.16",
     "constructs": "^10.4.2",
     "source-map-support": "^0.5.21",
