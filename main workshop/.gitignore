@@ -1,0 +1,45 @@
+# CDK specific
+.cdk.staging/
+cdk.out/
+cdk.context.json
+
+# TypeScript
+node_modules/
+dist/
+build/
+*.d.ts
+!jest.config.js
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sw?
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+.kiro/
+
+ws-studio-build/
+
+services-ws-ide/

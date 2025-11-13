@@ -1,0 +1,84 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Welcome to Serverless Sushi, the hottest new restaurant in town! As their newly hired developer, you've been tasked with revolutionizing their online ordering system. Let's embark on this exciting journey of building a robust, scalable API using Powertools for AWS Lambda.
+  To help you understand how Powertools help you to build APIs, we have created a microservice using Amazon API Gateway, Lambda, and DynamoDB.
+  The microservice is deployed on AWS and simulates orders for the new restaurant as we build this API.
+
+# Global definitions
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024
+    Tracing: Active
+    Architectures:
+      - x86_64
+    Runtime: nodejs22.x
+    Environment:
+      Variables:
+        POWERTOOLS_SERVICE_NAME: PowertoolsWorkshop
+        POWERTOOLS_METRICS_NAMESPACE: Workshop
+
+Resources:
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      TableName: OrdersWorkshop
+      AttributeDefinitions:
+        - AttributeName: orderId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: orderId
+          KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 20
+        WriteCapacityUnits: 20
+
+  PowertoolsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambdaHandler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+      Events:
+        PowertoolsApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PowertoolsRestApi
+            Path: /{proxy+}
+            Method: ANY
+        PowertoolsApiEventOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PowertoolsRestApi
+            Path: /{proxy+}
+            Method: OPTIONS
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Format: esm
+        Minify: false
+        OutExtension:
+          - .js=.mjs
+        Target: "es2020"
+        Sourcemap: true
+        EntryPoints: 
+          - app.ts
+        External:
+          - "@aws-sdk"
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+  PowertoolsRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
+Outputs:
+  PowertoolsApi:
+    Description: "API Gateway endpoint URL for Prod stage for Powertools Serverless Function"
+    Value: !Sub "https://${PowertoolsRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

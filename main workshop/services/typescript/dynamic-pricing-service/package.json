@@ -1,0 +1,26 @@
+{
+  "name": "dynamic-pricing-service",
+  "version": "1.0.0",
+  "description": "Dynamic pricing service for AWS Lambda",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --external:@aws-sdk/* --sourcemap",
+    "build:local": "esbuild src/index.local.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --external:@aws-sdk/* --sourcemap",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "lambda",
+    "aws",
+    "pricing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-lambda-powertools/parameters": "^2.28.1",
+    "@aws-lambda-powertools/tracer": "^2.28.1",
+    "@aws-sdk/client-dynamodb": "^3.709.0",
+    "@aws-sdk/client-eventbridge": "^3.709.0",
+    "@aws-sdk/client-secrets-manager": "^3.922.0",
+    "@aws-sdk/lib-dynamodb": "^3.709.0"
+  }
+}

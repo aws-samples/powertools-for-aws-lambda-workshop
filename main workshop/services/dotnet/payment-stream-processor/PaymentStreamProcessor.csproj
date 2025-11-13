@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+        <AWSProjectType>Lambda</AWSProjectType>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <PublishReadyToRun>false</PublishReadyToRun>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Amazon.Lambda.Core"  />
+        <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" />
+        <PackageReference Include="Amazon.Lambda.DynamoDBEvents"  />
+        <PackageReference Include="AWS.Lambda.Powertools.Logging"  />
+        <PackageReference Include="AWS.Lambda.Powertools.Metrics"  />
+        <PackageReference Include="AWS.Lambda.Powertools.Tracing"  />
+        <PackageReference Include="AWS.Lambda.Powertools.BatchProcessing"  />
+        <PackageReference Include="AWS.Lambda.Powertools.Idempotency"  />
+        <PackageReference Include="AWSSDK.EventBridge"  />
+        <PackageReference Include="AWSSDK.Core"  />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="AWS.Lambda.Powertools.Logging"/>
+        <Using Include="AWS.Lambda.Powertools.Metrics"/>
+        <Using Include="AWS.Lambda.Powertools.Tracing"/>
+        <Using Include="AWS.Lambda.Powertools.BatchProcessing"/>
+        <Using Include="AWS.Lambda.Powertools.BatchProcessing.DynamoDb"/>
+        <Using Include="AWS.Lambda.Powertools.Idempotency"/>
+        <Using Include="Amazon.Lambda.Core"/>
+        <Using Include="Amazon.Lambda.DynamoDBEvents"/>
+    </ItemGroup>
+
+<!--    <ItemGroup>-->
+<!--        <ProjectReference Include="..\..\..\..\..\powertools-lambda-dotnet\libraries\src\AWS.Lambda.Powertools.BatchProcessing\AWS.Lambda.Powertools.BatchProcessing.csproj" />-->
+<!--    </ItemGroup>-->
+
+</Project>

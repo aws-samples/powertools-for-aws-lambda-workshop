@@ -1,0 +1,23 @@
+{
+  "name": "serverless-apis-powertools-typescript",
+  "version": "1.0.0",
+  "description": "Building Serverless APIs with Powertools for AWS Lambda Workshop (Typescript)",
+  "license": "ISC",
+  "author": "AWS",
+  "type": "module",
+  "main": "app.ts",
+  "scripts": {
+    "lint": "biome lint .",
+    "lint:fix": "biome check --write .",
+    "lint:ci": "biome ci ."
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.902.0",
+    "@aws-sdk/lib-dynamodb": "^3.902.0",
+    "@types/aws-lambda": "^8.10.152",
+    "@types/node": "^24.5.2"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  }
+}

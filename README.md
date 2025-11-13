@@ -1,26 +1,28 @@
-# AWS Lambda Powertools for TypeScript Workshop
+# Powertools for AWS Lambda Workshops
 
-![Architectural Diagram](docs/static/powertools-workshop-architecture-numbered.png)
+This repository contains infrastructure and assets for Powertools for AWS Lambda workshops.
 
-The architecture of this workload allows users to upload media assets and have them converted to different web-friendly media formats. The flow of the application is as follows:
+## Available Workshops
 
-1. End users access an authenticated web application that they can use to upload media assets.
-2. The application is hosted on Amazon S3  and distributed via Amazon CloudFront.
-3. When an user uploads a media asset, the application obtains a pre-signed upload URL from a GraphQL API managed by Amazon AppSync.
-4. The AppSync API forwards the request to an AWS Lambda  function that generates the pre-signed URL and stores the file metadata on Amazon DynamoDB.
-5. Using the pre-signed url obtained from the API, the user uploads the asset directly to S3.
-6. This action sends a notification to Amazon EventBridge.
-7. The events are then filtered and routed to one or more SQS queues, from which they are picked up by Lambda functions.
-8. Each type of media file is processed by a dedicated component that takes the original file, converts it, and saves the rendition back to S3.
-9. The processing units update the status of each file in the DynamoDB table.
+### Building Serverless APIs with Powertools for AWS Lambda
 
-Workshop llink: https://catalog.workshops.aws/powertools-for-aws-lambda/en-US
+Learn how to build production-ready serverless APIs using Powertools for AWS Lambda. Available in TypeScript and Python.
 
-## Deploy
+📂 **[Go to workshop →](./api%20workshop/)**  
+🔗 Workshop link: https://catalog.workshops.aws/powertools-for-aws-lambda-event-handler/en-US/
 
-See [CONTRIBUTING](CONTRIBUTING.md#setup) for more information.
+### Powertools for AWS Lambda Workshop (Main)
 
-## Security
+Improve a ride-sharing application using Powertools for AWS Lambda. Learn best practices for structured logging, tracing, operational & business metrics, idempotency, and batch processing. Available in Python, TypeScript, .NET, or Java.
+
+📂 **[Go to workshop →](./main%20workshop/)**  
+🔗 Workshop link: https://catalog.workshops.aws/powertools-for-aws-lambda/en-US/
+
+## Getting Started
+
+Navigate to the respective workshop folder to find detailed instructions, setup guides, and workshop materials.
+
+## Contributing
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
