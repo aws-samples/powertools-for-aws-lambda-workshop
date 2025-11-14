@@ -22,7 +22,7 @@ permissions:
   contents: read
 
 jobs:
-  run_cdk_nag:
+  run_cdk_nag_main_workshop:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -31,10 +31,25 @@ jobs:
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: 20
-          cache: "npm"
-      - name: Setup dependencies
+      - name: Setup dependencies for main workshop
+        working-directory: main-workshop/infrastructure
         run: npm ci
-      - name: Synth infrastructure
+      - name: Synth main workshop infrastructure
+        working-directory: main-workshop/infrastructure
+        run: npm run cdk synth -- --c CI=true
+
+  run_cdk_nag_api_workshop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      - name: Setup NodeJS
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: 20
+      - name: Setup dependencies for api workshop
+        working-directory: api-workshop
+        run: npm ci
+      - name: Synth api workshop infrastructure
+        working-directory: api-workshop
         run: npm run infra:synth -- --c CI=true
-      - name: Synth IDE stack
-        run: npm run ide:synth -- --c CI=true
