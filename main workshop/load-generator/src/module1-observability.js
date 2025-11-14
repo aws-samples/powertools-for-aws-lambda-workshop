@@ -10,6 +10,14 @@ import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
 import { generateUUID } from './aws-utils.js';
 
+// Helper: cryptographically secure [0,1)
+function secureRandom() {
+  // Uint32 can store values 0 - 2^32-1, so scale appropriately
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return array[0] / 4294967296; // 2^32
+}
+
 // Custom metrics
 const errorRequests = new Counter('module1_error_requests');
 const successRequests = new Counter('module1_success_requests');
@@ -69,16 +77,16 @@ export const options = {
 function generateRideData(riderId) {
   return {
     riderId: riderId,
-    riderName: `Test Customer ${Math.floor(Math.random() * 1000)}`,
+    riderName: `Test Customer ${Math.floor(secureRandom() * 1000)}`,
     pickupLocation: {
       address: '123 Customer St, San Francisco, CA',
-      latitude: 37.7749 + (Math.random() - 0.5) * 0.01,
-      longitude: -122.4194 + (Math.random() - 0.5) * 0.01,
+      latitude: 37.7749 + (secureRandom() - 0.5) * 0.01,
+      longitude: -122.4194 + (secureRandom() - 0.5) * 0.01,
     },
     destinationLocation: {
       address: '456 Destination Ave, San Francisco, CA',
-      latitude: 37.7849 + (Math.random() - 0.5) * 0.01,
-      longitude: -122.4094 + (Math.random() - 0.5) * 0.01,
+      latitude: 37.7849 + (secureRandom() - 0.5) * 0.01,
+      longitude: -122.4094 + (secureRandom() - 0.5) * 0.01,
     },
     paymentMethod: 'credit-card',
   };
@@ -87,7 +95,7 @@ function generateRideData(riderId) {
 // Scenario 1: Generate error requests (wrong header)
 export function generateErrorRequests() {
   const correlationId = generateUUID();
-  const rideData = generateRideData(`frustrated-customer-${Math.floor(Math.random() * 1000)}`);
+  const rideData = generateRideData(`frustrated-customer-${Math.floor(secureRandom() * 1000)}`);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -122,13 +130,13 @@ export function generateErrorRequests() {
 export function generateSuccessRequests() {
   const correlationId = generateUUID();
   const deviceTypes = ['iphone', 'android', 'web'];
-  const deviceId = deviceTypes[Math.floor(Math.random() * deviceTypes.length)];
+  const deviceId = deviceTypes[Math.floor(secureRandom() * deviceTypes.length)];
 
   // Payment method distribution: 80% credit-card, 20% cash
   const paymentMethods = ['credit-card', 'credit-card', 'credit-card', 'credit-card', 'credit-card', 'credit-card', 'credit-card', 'credit-card', 'cash', 'cash'];
-  const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
+  const paymentMethod = paymentMethods[Math.floor(secureRandom() * paymentMethods.length)];
 
-  const rideData = generateRideData(`happy-customer-${Math.floor(Math.random() * 1000)}`);
+  const rideData = generateRideData(`happy-customer-${Math.floor(secureRandom() * 1000)}`);
   rideData.paymentMethod = paymentMethod;
 
   const headers = {
@@ -172,17 +180,17 @@ export function generateSuccessRequests() {
 export function generateSomeCompanyPayRequests() {
   const correlationId = generateUUID();
   const rideData = {
-    riderId: `trace-somecompany-rider-${Math.floor(Math.random() * 1000)}`,
+    riderId: `trace-somecompany-rider-${Math.floor(secureRandom() * 1000)}`,
     riderName: 'SomeCompany Pay Trace User',
     pickupLocation: {
       address: '200 SomeCompany St, San Francisco, CA',
-      latitude: 37.7749 + (Math.random() - 0.5) * 0.01,
-      longitude: -122.4194 + (Math.random() - 0.5) * 0.01,
+      latitude: 37.7749 + (secureRandom() - 0.5) * 0.01,
+      longitude: -122.4194 + (secureRandom() - 0.5) * 0.01,
     },
     destinationLocation: {
       address: '600 SomeCompany Ave, San Francisco, CA',
-      latitude: 37.7849 + (Math.random() - 0.5) * 0.01,
-      longitude: -122.4094 + (Math.random() - 0.5) * 0.01,
+      latitude: 37.7849 + (secureRandom() - 0.5) * 0.01,
+      longitude: -122.4094 + (secureRandom() - 0.5) * 0.01,
     },
     paymentMethod: 'somecompany-pay', // This triggers 5-second payment processing delay
   };
