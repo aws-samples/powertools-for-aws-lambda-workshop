@@ -32,10 +32,10 @@ jobs:
         with:
           node-version: 20
       - name: Setup dependencies for main workshop
-        working-directory: main workshop/infrastructure
+        working-directory: main-workshop/infrastructure
         run: npm ci
       - name: Synth main workshop infrastructure
-        working-directory: main workshop/infrastructure
+        working-directory: main-workshop/infrastructure
         run: npm run cdk synth -- --c CI=true
 
   run_cdk_nag_api_workshop:
@@ -48,8 +48,8 @@ jobs:
         with:
           node-version: 20
       - name: Setup dependencies for api workshop
-        working-directory: api workshop
+        working-directory: api-workshop
         run: npm ci
       - name: Synth api workshop infrastructure
-        working-directory: api workshop
+        working-directory: api-workshop
         run: npm run infra:synth -- --c CI=true

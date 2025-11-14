@@ -8,14 +8,14 @@ This repository contains infrastructure and assets for Powertools for AWS Lambda
 
 Learn how to build production-ready serverless APIs using Powertools for AWS Lambda. Available in TypeScript and Python.
 
-📂 **[Go to workshop →](./api%20workshop/)**  
+📂 **[Go to workshop →](./api-workshop/)**  
 🔗 Workshop link: https://catalog.workshops.aws/powertools-for-aws-lambda-event-handler/en-US/
 
 ### Powertools for AWS Lambda Workshop (Main)
 
 Improve a ride-sharing application using Powertools for AWS Lambda. Learn best practices for structured logging, tracing, operational & business metrics, idempotency, and batch processing. Available in Python, TypeScript, .NET, or Java.
 
-📂 **[Go to workshop →](./main%20workshop/)**  
+📂 **[Go to workshop →](./main-workshop/)**  
 🔗 Workshop link: https://catalog.workshops.aws/powertools-for-aws-lambda/en-US/
 
 ## Getting Started
