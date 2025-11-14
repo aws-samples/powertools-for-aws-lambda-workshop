@@ -1,10 +1,10 @@
 public class Function
 {
-    private readonly PaymentHandler _paymentHandler;
+    private readonly PaymentProcessor _paymentHandler;
 
     public Function()
     {
-        _paymentHandler = new PaymentHandler();
+        _paymentHandler = new PaymentProcessor();
     }
     
     public async Task FunctionHandler(CloudWatchEvent<DriverAssignedEvent> eventBridgeEvent, ILambdaContext context)
