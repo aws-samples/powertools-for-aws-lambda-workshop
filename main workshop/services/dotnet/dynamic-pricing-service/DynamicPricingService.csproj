@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+        <AWSProjectType>Lambda</AWSProjectType>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <PublishReadyToRun>false</PublishReadyToRun>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Amazon.Lambda.CloudWatchEvents" />
+        <PackageReference Include="Amazon.Lambda.Core" />
+        <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" />
+        <PackageReference Include="AWS.Lambda.Powertools.Logging" />
+        <PackageReference Include="AWS.Lambda.Powertools.Metrics" />
+        <PackageReference Include="AWS.Lambda.Powertools.Tracing" />
+        <PackageReference Include="AWS.Lambda.Powertools.Parameters" />
+        <PackageReference Include="AWSSDK.DynamoDBv2" />
+        <PackageReference Include="AWSSDK.EventBridge" />
+        <PackageReference Include="AWSSDK.SecretsManager" />
+        <PackageReference Include="AWSSDK.Core" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.Logging" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="AWS.Lambda.Powertools.Logging"/>
+        <Using Include="AWS.Lambda.Powertools.Metrics"/>
+        <Using Include="AWS.Lambda.Powertools.Tracing"/>
+        <Using Include="AWS.Lambda.Powertools.Parameters.SecretsManager"/>
+        <Using Include="AWS.Lambda.Powertools.Parameters"/>
+        <Using Include="AWS.Lambda.Powertools.Parameters.Provider"/>
+        <Using Include="AWS.Lambda.Powertools.Parameters.Transform"/>
+        <Using Include="Amazon.Lambda.Core"/>
+        <Using Include="Amazon.Lambda.CloudWatchEvents"/>
+        <Using Include="Amazon.SecretsManager"/>
+        <Using Include="Amazon.SecretsManager.Model"/>
+        <Using Include="System.Text.Json"/>
+    </ItemGroup>
+
+</Project>

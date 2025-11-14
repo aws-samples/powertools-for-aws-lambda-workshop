@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="AWS.Lambda.Powertools.Logging" Version="3.0.2" />
+    <PackageVersion Include="AWS.Lambda.Powertools.Metrics" Version="3.0.2" />
+    <PackageVersion Include="AWS.Lambda.Powertools.Tracing" Version="3.0.2" />
+    <PackageVersion Include="AWS.Lambda.Powertools.Parameters" Version="3.0.2" />
+    <PackageVersion Include="AWS.Lambda.Powertools.BatchProcessing" Version="3.0.2" />
+    <PackageVersion Include="AWS.Lambda.Powertools.Idempotency" Version="3.0.2" />
+    <PackageVersion Include="Amazon.Lambda.CloudWatchEvents" Version="4.4.0" />
+    <PackageVersion Include="Amazon.Lambda.Core" Version="2.7.1" />
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.0.8" />
+    <PackageVersion Include="AWSSDK.EventBridge" Version="4.0.4.8" />
+    <PackageVersion Include="AWSSDK.SecretsManager" Version="4.0.1.8" />
+    <PackageVersion Include="AWSSDK.Core" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1" />
+    <PackageVersion Include="Amazon.Lambda.DynamoDBEvents" Version="3.1.1" />
+    <PackageVersion Include="AWSSDK.CloudWatch" Version="4.0.4.5" />
+  </ItemGroup>
+</Project>

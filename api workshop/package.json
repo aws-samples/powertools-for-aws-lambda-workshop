@@ -1,0 +1,46 @@
+{
+  "name": "building-serverless",
+  "version": "0.1.0",
+  "bin": {
+    "infra": "bin/building-serverless.js"
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "lint": "biome lint .",
+    "lint:fix": "biome check --write .",
+    "utils:convertCDKtoCfn": "node ./scripts/convert-template.mjs",
+    "infra:destroy": "npm run cdk destroy -- BuildingServerlessAPIs",
+    "infra:deploy": "npm run cdk deploy -- BuildingServerlessAPIs",
+    "infra:deploy:hotswap": "npm run cdk deploy -- --hotswap-fallback BuildingServerlessAPIs",
+    "infra:synth": "npm run cdk synth -- BuildingServerlessAPIs",
+    "infra:wsPrep": "npm run utils:convertCDKtoCfn -- BuildingServerlessAPIs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,ts}": "biome check --write",
+    "*.md": "markdownlint-cli2 --fix"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-cloudformation": "^3.651.1",
+    "@biomejs/biome": "^1.8.3",
+    "@types/aws-lambda": "^8.10.141",
+    "@types/node": "20.14.11",
+    "aws-cdk": "2.149.0",
+    "esbuild": "^0.23.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "markdownlint-cli2": "^0.14.0",
+    "shelljs": "^0.8.5",
+    "tsx": "^4.16.2",
+    "typescript": "~5.5.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.149.0",
+    "cdk-nag": "^2.28.195",
+    "constructs": "^10.0.0",
+    "source-map-support": "^0.5.21"
+  }
+}

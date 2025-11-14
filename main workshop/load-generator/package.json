@@ -1,0 +1,21 @@
+{
+  "name": "powertools-ride-workshop-load-generator",
+  "version": "2.0.0",
+  "description": "Simplified K6 load generator for Powertools workshop - one script per module",
+  "scripts": {
+    "test:module1": "k6 run src/module1-observability.js",
+    "test:module2": "k6 run src/module2-idempotency.js",
+    "test:module3": "k6 run src/module3-batch-processing.js"
+  },
+  "keywords": [
+    "k6",
+    "load-generator",
+    "workshop",
+    "observability",
+    "idempotency",
+    "batch-processing",
+    "powertools"
+  ],
+  "author": "Powertools Workshop Team",
+  "license": "MIT"
+}
