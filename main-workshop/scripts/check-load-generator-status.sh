@@ -8,7 +8,7 @@ echo ""
 
 # Get cluster name
 CLUSTER_NAME=$(aws cloudformation list-exports \
-    --query "Exports[?Name=='powertools-ride-workshop-LoadGeneratorClusterName'].Value" \
+    --query "Exports[?Name=='LoadGeneratorClusterName'].Value" \
     --output text 2>/dev/null)
 
 if [ -z "$CLUSTER_NAME" ] || [ "$CLUSTER_NAME" = "None" ]; then
@@ -116,7 +116,7 @@ echo ""
 
 # Get cluster name
 CLUSTER_NAME=$(aws cloudformation list-exports \
-    --query "Exports[?Name=='powertools-ride-workshop-LoadGeneratorClusterName'].Value" \
+    --query "Exports[?Name=='LoadGeneratorClusterName'].Value" \
     --output text \
     --region "$REGION" 2>/dev/null)
 
