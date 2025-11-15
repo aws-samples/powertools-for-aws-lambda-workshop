@@ -39,6 +39,7 @@ export class RiderWorkshopServicesStack extends cdk.Stack {
     this.createEventBridgeRules();
     this.addStreamEventSources();
     this.grantPermissions();
+    this.createOutputs(props.language);
   }
 
   private importInfrastructure(): InfrastructureReferences {
@@ -169,10 +170,18 @@ export class RiderWorkshopServicesStack extends cdk.Stack {
     rideIdResource.addMethod('GET', integration);
 
     // Export API URL for load generator stack
-    new cdk.CfnOutput(this, 'RideServiceApiURL', {
+ new cdk.CfnOutput(this, 'RideServiceApiURL', {
       value: rideServiceApi.url,
       exportName: EXPORT_KEYS.rideServiceApiUrl,
       description: 'Ride Service API URL',
+    });
+  }
+
+  private createOutputs(language: string): void {
+    // Output the runtime/language that was deployed
+    new cdk.CfnOutput(this, 'DeployedRuntime', {
+      value: language,
+      description: 'Programming language/runtime used for Lambda functions',
     });
   }
 
