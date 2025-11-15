@@ -1,0 +1,8 @@
+{
+  "folders": [
+    {
+      "path": "/home/{{WHOAMI_USER}}/{{WORKSHOP_DIRECTORY}}"
+    }
+  ],
+  "settings": {}
+}

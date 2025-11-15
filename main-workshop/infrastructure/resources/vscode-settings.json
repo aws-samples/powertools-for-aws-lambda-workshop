@@ -1,0 +1,33 @@
+{
+  "extensions.autoUpdate": false,
+  "terminal.integrated.cwd": "/home/{{WHOAMI_USER}}/{{WORKSHOP_DIRECTORY}}",
+  "extensions.autoCheckUpdates": false,
+  "telemetry.telemetryLevel": "off",
+  "security.workspace.trust.startupPrompt": "never",
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.banner": "never",
+  "security.workspace.trust.emptyWindow": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  "extensions.supportUntrustedWorkspaces": true,
+  "editor.indentSize": "tabSize",
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "editor.tabSize": 2,
+  "chat.agent.enabled": false,
+  "python.testing.pytestEnabled": true,
+  "dotnet.defaultSolution": "disable",
+  "csharp.showOmnisharpLogOnError": false,
+  "omnisharp.loggingLevel": "error",
+  "output.smartScroll.enabled": false,
+  "csharp.suppressBuildAssetsNotification": true,
+  "csharp.suppressDotnetInstallWarning": true,
+  "csharp.suppressDotnetRestoreNotification": true,
+  "razor.format.enable": false,
+  "razor.languageServer.cohostingEnabled": false,
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "workbench.startupEditor": "readme",
+  "auto-run-command.rules": [
+    {
+      "command": "workbench.action.terminal.new"
+    }
+  ]
+}
