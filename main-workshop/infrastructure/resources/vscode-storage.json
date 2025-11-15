@@ -1,0 +1,8 @@
+{
+  "lastActiveWindow": {
+    "workspace": {
+      "id": "workshop",
+      "configPath": "/home/{{WHOAMI_USER}}/.local/share/code-server/User/Workspaces/workshop.code-workspace"
+    }
+  }
+}
