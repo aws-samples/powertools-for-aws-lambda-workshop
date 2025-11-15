@@ -150,6 +150,13 @@ export class RiderWorkshopLoadGeneratorStack extends cdk.Stack {
     // Schedule periodic task restarts to refresh AWS credentials
     const restartInterval = props.restartInterval || cdk.Duration.hours(3);
     this.scheduleTaskRestart(restartInterval);
+
+    // Output the cluster name
+    new cdk.CfnOutput(this, 'LoadGeneratorClusterName', {
+      value: this.cluster.clusterName,
+      description: 'Name of the ECS cluster running the load generator',
+      exportName: 'LoadGeneratorClusterName',
+    });
   }
 
   private getApiUrl(): string {
