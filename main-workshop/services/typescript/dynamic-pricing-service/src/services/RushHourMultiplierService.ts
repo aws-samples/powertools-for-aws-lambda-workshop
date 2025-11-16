@@ -10,9 +10,7 @@ export class RushHourMultiplierService {
   private readonly secretName: string;
 
   constructor() {
-    this.secretsManager = captureAWSv3Client(
-      new SecretsManagerClient({})
-    );
+    this.secretsManager = captureAWSv3Client(new SecretsManagerClient({}));
     this.secretName = process.env.RUSH_HOUR_MULTIPLIER_SECRET_NAME || '';
 
     if (!this.secretName) {

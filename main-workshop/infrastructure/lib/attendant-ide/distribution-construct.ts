@@ -58,6 +58,9 @@ export class DistributionConstruct extends Construct {
       queryStringBehavior: CacheQueryStringBehavior.all(),
     });
 
+    // Ensure cache policy is destroyed when stack is deleted
+    cachePolicy.applyRemovalPolicy(RemovalPolicy.DESTROY);
+
     const distribution = new Distribution(this, 'distribution', {
       defaultBehavior: {
         origin: new HttpOrigin(origin, {
@@ -74,6 +77,9 @@ export class DistributionConstruct extends Construct {
       enableIpv6: true,
       enabled: true,
     });
+
+    // Ensure distribution is destroyed when stack is deleted
+    distribution.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     this.ideUrl = `https://${distribution.distributionDomainName}/?folder=%2Fhome%2Fec2-user%2Fworkshop`;
     this.healthCheckEndpoint = `https://${distribution.distributionDomainName}/healthz`;

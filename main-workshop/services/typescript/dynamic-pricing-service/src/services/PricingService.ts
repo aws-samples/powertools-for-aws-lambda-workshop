@@ -34,9 +34,7 @@ export class PricingService {
 
   constructor() {
     const client = new DynamoDBClient({});
-    this.docClient = captureAWSv3Client(
-      DynamoDBDocumentClient.from(client)
-    );
+    this.docClient = captureAWSv3Client(DynamoDBDocumentClient.from(client));
     this.tableName = process.env.PRICING_TABLE_NAME || 'Pricing';
     this.eventBridge = captureAWSv3Client(new EventBridgeClient({}));
     this.eventBusName = process.env.EVENT_BUS_NAME || '';

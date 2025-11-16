@@ -1,17 +1,17 @@
 public class Function
 {
-    private readonly PaymentProcessor _paymentHandler;
+    private readonly PaymentProcessor _paymentProcessor;
 
     public Function()
     {
-        _paymentHandler = new PaymentProcessor();
+        _paymentProcessor = new PaymentProcessor();
     }
     
     public async Task FunctionHandler(CloudWatchEvent<DriverAssignedEvent> eventBridgeEvent, ILambdaContext context)
     {
         try
         {
-            var result = await _paymentHandler.HandlePaymentAsync(eventBridgeEvent.Detail);
+            var result = await _paymentProcessor.HandlePaymentAsync(eventBridgeEvent.Detail);
             
             if (result.Success)
             {

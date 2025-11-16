@@ -1,6 +1,4 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import { IdempotencyConfig, idempotent } from '@aws-lambda-powertools/idempotency';
-import { DynamoDBPersistenceLayer } from '@aws-lambda-powertools/idempotency/dynamodb';
 import type { DriverAssignedEvent, PaymentResult } from './models';
 import { PaymentService } from './services/PaymentService';
 
@@ -10,12 +8,6 @@ import { PaymentService } from './services/PaymentService';
  */
 
 let logger: Logger;
-const config = new IdempotencyConfig({
-  eventKeyJmesPath: 'rideId',
-});
-const persistenceStore = new DynamoDBPersistenceLayer({
-  tableName: process.env.IDEMPOTENCY_TABLE_NAME!,
-});
 
 export class PaymentProcessor {
   private readonly paymentService: PaymentService;
@@ -25,23 +17,20 @@ export class PaymentProcessor {
     this.paymentService = new PaymentService();
   }
 
-  @idempotent({ persistenceStore, config })
   async handlePayment(
     driverEvent: DriverAssignedEvent
-  ): Promise<any | null> {
+  ): Promise<PaymentResult> {
     const result = await this.paymentService.processPayment(driverEvent);
 
-    logger.info("hello", { result });
-    logger.info(result.success ? 'Payment succeeded' : 'Payment failed');
-    logger.info('Payment processing result', { driverEvent });
-    if (result.success) {
-      logger.appendKeys({
-        amount: result.payment?.amount,
-        payment_method: result.payment?.paymentMethod,
+    logger.info('Payment processing result', { result });
+
+    if (result.success && result.payment) {
+      logger.info('Payment created', {
         ride_id: result.payment?.rideId,
         payment_id: result.payment?.paymentId,
+        payment_amount: result.payment?.amount,
+        payment_method: result.payment?.paymentMethod,
       });
-      logger.info('Payment created');
     }
     return result;
   }

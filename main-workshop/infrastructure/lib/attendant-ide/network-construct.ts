@@ -62,6 +62,9 @@ export class NetworkConstruct extends Construct {
         },
       },
     });
+
+    // Ensure VPC and all its resources are destroyed when stack is deleted
+    this.vpc.applyRemovalPolicy(RemovalPolicy.DESTROY);
   }
 
   public createLoadBalancerWithInstanceEc2Target(
@@ -71,6 +74,9 @@ export class NetworkConstruct extends Construct {
       vpc: this.vpc,
       internetFacing: true,
     });
+
+    // Ensure load balancer is destroyed when stack is deleted
+    this.loadBalancer.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
     const listener = this.loadBalancer.addListener('vscode-listener', {
       port: 80,

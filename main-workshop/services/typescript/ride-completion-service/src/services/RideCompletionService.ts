@@ -10,9 +10,7 @@ export class RideCompletionService {
 
   constructor() {
     const client = new DynamoDBClient({});
-    this.dynamoDb = captureAWSv3Client(
-      DynamoDBDocumentClient.from(client)
-    );
+    this.dynamoDb = captureAWSv3Client(DynamoDBDocumentClient.from(client));
     this.driversTableName = process.env.DRIVERS_TABLE_NAME || 'drivers';
     this.ridesTableName = process.env.RIDES_TABLE_NAME || 'rides';
   }
@@ -58,8 +56,9 @@ export class RideCompletionService {
         result.rideUpdateSuccessful = true;
       } catch (error) {
         result.rideUpdateSuccessful = false;
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+
         // Check if ride doesn't exist (test/synthetic data)
         if (errorMessage.includes('not found')) {
           result.errorType = 'RideNotFound';
@@ -90,7 +89,7 @@ export class RideCompletionService {
 
       // Consider success if driver update succeeded, even if ride doesn't exist (test data)
       result.success =
-        result.driverUpdateSuccessful && 
+        result.driverUpdateSuccessful &&
         (result.rideUpdateSuccessful || result.errorType === 'RideNotFound');
       return result;
     } catch (error) {
