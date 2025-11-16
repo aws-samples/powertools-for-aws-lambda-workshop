@@ -28,9 +28,7 @@ export class PaymentService {
     this.dynamoDbClient = captureAWSv3Client(
       DynamoDBDocumentClient.from(client)
     );
-    this.eventBridgeClient = captureAWSv3Client(
-      new EventBridgeClient({})
-    );
+    this.eventBridgeClient = captureAWSv3Client(new EventBridgeClient({}));
     this.paymentsTableName = process.env.PAYMENTS_TABLE_NAME || 'Payments';
     this.eventBusName = process.env.EVENT_BUS_NAME || '';
   }
@@ -92,25 +90,24 @@ export class PaymentService {
           transactionId: gatewayResult.transactionId,
           processingTimeMs: gatewayResult.processingTimeMs,
         };
-      } else {
-        // Update status to failed if payment gateway failed
-        await this.updatePaymentStatus(
-          paymentId,
-          'failed',
-          undefined,
-          gatewayResult.errorMessage
-        );
-        return {
-          success: gatewayResult.success,
-          payment: {
-            ...payment,
-            status: 'failed',
-            failureReason: gatewayResult.errorMessage,
-          },
-          errorMessage: gatewayResult.errorMessage,
-          processingTimeMs: gatewayResult.processingTimeMs,
-        };
       }
+      // Update status to failed if payment gateway failed
+      await this.updatePaymentStatus(
+        paymentId,
+        'failed',
+        undefined,
+        gatewayResult.errorMessage
+      );
+      return {
+        success: gatewayResult.success,
+        payment: {
+          ...payment,
+          status: 'failed',
+          failureReason: gatewayResult.errorMessage,
+        },
+        errorMessage: gatewayResult.errorMessage,
+        processingTimeMs: gatewayResult.processingTimeMs,
+      };
     } catch (error) {
       throw error;
     }
@@ -184,7 +181,9 @@ export class PaymentService {
     // Simulate 5% failure rate
     const success = Math.random() >= 0.05;
     const transactionId = success ? `txn_${this.generateShortId()}` : undefined;
-    const errorMessage = success ? undefined : 'Payment gateway declined transaction';
+    const errorMessage = success
+      ? undefined
+      : 'Payment gateway declined transaction';
 
     return {
       success,

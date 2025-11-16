@@ -1,7 +1,6 @@
 package com.powertoolsride.paymentstreamprocessor;
 
 import static software.amazon.lambda.powertools.logging.argument.StructuredArguments.entry;
-import static software.amazon.lambda.powertools.logging.argument.StructuredArguments.entries;
 
 import com.powertoolsride.paymentstreamprocessor.model.PaymentStreamEvent;
 import com.powertoolsride.paymentstreamprocessor.service.StreamProcessorService;
@@ -17,9 +16,6 @@ import software.amazon.lambda.powertools.metrics.Metrics;
 import software.amazon.lambda.powertools.metrics.MetricsFactory;
 import software.amazon.lambda.powertools.metrics.model.MetricUnit;
 import software.amazon.lambda.powertools.tracing.Tracing;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class Handler implements RequestHandler<DynamodbEvent, Void> {
     private static final Logger logger = LoggerFactory.getLogger(Handler.class);

@@ -354,16 +354,18 @@ export class WorkshopDashboards extends Construct {
         title: '⚠️ DUPLICATE PAYMENTS (based on ride_id)',
         logGroupNames: [`/aws/lambda/${paymentFn}`],
         queryLines: [
-          'fields ride_id, payment_id',
-          'filter message like "Payment created"',
-          'stats count_distinct(payment_id) as duplicate_payments by bin(30s)',
-          'filter duplicate_payments > 1',
-          'sort duplicate_payments desc',
+          'fields @timestamp, ride_id, payment_id, cached_response',
+          'filter message like "Payment created" and not ispresent(cached_response)',
+          'stats count() as payment_count by ride_id, bin(30s) as time_bin',
+          'filter payment_count > 1',
+          'stats sum(payment_count) as duplicate_payments by time_bin',
+          'sort time_bin',
         ],
         view: cloudwatch.LogQueryVisualizationType.LINE,
         width: 12,
         height: 8,
       }),
+
       new cloudwatch.LogQueryWidget({
         title: '✅ All Payments Created',
         logGroupNames: [`/aws/lambda/${paymentFn}`],

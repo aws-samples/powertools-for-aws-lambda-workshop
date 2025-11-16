@@ -8,18 +8,16 @@ export const handler = async (
   event: EventBridgeEvent<'DriverAssigned', DriverAssignedEvent>
 ): Promise<void> => {
   try {
-    console.log(
-      `Processing DriverAssigned event for ride ${event.detail.rideId}`
-    );
-
     const result = await paymentProcessor.handlePayment(event.detail);
-
-    
+    if (result.success) {
+      console.log(
+        `Payment completed successfully: ${result.payment?.paymentId ?? 'N/A'} for ${result.payment?.amount ?? 'N/A'}`
+      );
+    } else {
+      console.log(`Payment failed: ${result.errorMessage}`);
+    }
   } catch (error) {
-    console.error(
-      '[ERROR] PAYMENT_PROCESSING_ERROR:',
-      error instanceof Error ? error.message : error
-    );
+    console.error('[ERROR] PAYMENT_PROCESSING_ERROR:', error);
     throw error;
   }
 };

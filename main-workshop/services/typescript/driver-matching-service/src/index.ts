@@ -12,13 +12,15 @@ export const handler = async (
       event.detail
     );
 
+    console.log(`Found ${result.availableDriversCount} available drivers`);
+
     if (!result.success) {
-      console.error(`[ERROR] Driver matching failed: ${result.errorMessage}`);
+      console.error(`[ERROR] No available drivers for ride ${result.rideId}`);
       return;
     }
 
     console.log(
-      `Successfully processed driver matching for ride ${result.rideId}`
+      `Successfully assigned driver ${result.assignedDriverId} to ride ${result.rideId} and sent event to payment processor`
     );
   } catch (error) {
     console.error(

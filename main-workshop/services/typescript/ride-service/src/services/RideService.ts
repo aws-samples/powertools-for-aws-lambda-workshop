@@ -1,10 +1,10 @@
-import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
   EventBridgeClient,
   PutEventsCommand,
 } from '@aws-sdk/client-eventbridge';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { captureAWSv3Client } from 'aws-xray-sdk-core';
 import { randomUUID } from 'crypto';
 import type { CreateRideRequest, Ride, RideCreatedEvent } from '../models';
@@ -24,9 +24,7 @@ export class RideService {
 
   constructor() {
     const client = new DynamoDBClient({});
-    this.docClient = captureAWSv3Client(
-      DynamoDBDocumentClient.from(client)
-    );
+    this.docClient = captureAWSv3Client(DynamoDBDocumentClient.from(client));
     this.tableName = process.env.RIDES_TABLE_NAME || 'Rides';
     this.eventBridge = captureAWSv3Client(new EventBridgeClient({}));
     this.eventBusName = process.env.EVENT_BUS_NAME || '';
@@ -38,8 +36,11 @@ export class RideService {
   ): Promise<RideCreationResult> {
     try {
       // Extract correlation ID from request headers
-      const correlationId = this.getHeaderValue(event.headers, 'x-correlation-id');
-      
+      const correlationId = this.getHeaderValue(
+        event.headers,
+        'x-correlation-id'
+      );
+
       // Validate request body
       const requestBody = event.body;
       if (!requestBody) {
