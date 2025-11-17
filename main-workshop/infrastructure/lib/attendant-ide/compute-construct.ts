@@ -252,6 +252,12 @@ SETTINGS_EOF
       `echo "Infrastructure dependencies installed with exit code: $?" >> /var/log/workshop-setup.log`,
       `echo "" >> /var/log/workshop-setup.log`,
 
+      // Bootstrap CDK
+      `echo "Step 9: Bootstrapping CDK..." >> /var/log/workshop-setup.log`,
+      `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npx cdk bootstrap >> /var/log/workshop-setup.log 2>&1`,
+      `echo "CDK bootstrap completed with exit code: $?" >> /var/log/workshop-setup.log`,
+      `echo "" >> /var/log/workshop-setup.log`,
+
       // Create a symlink to the log file for easy access
       `ln -sf /var/log/workshop-setup.log /home/${whoamiUser}/workshop-setup.log`,
       `chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/workshop-setup.log`,
