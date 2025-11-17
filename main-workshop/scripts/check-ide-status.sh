@@ -16,7 +16,7 @@ if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
     echo "❌ No running VSCode instance found"
     echo ""
     echo "Check if IDE stack is deployed:"
-    echo "  aws cloudformation describe-stacks --stack-name RiderWorkshopIdeStack"
+    echo "  aws cloudformation describe-stacks --stack-name powertoolsworkshopide"
     exit 1
 fi
 
@@ -48,7 +48,7 @@ echo "✓ Status Checks: $STATUS_CHECKS"
 
 # Get CloudFront URL
 IDE_URL=$(aws cloudformation describe-stacks \
-  --stack-name RiderWorkshopIdeStack \
+  --stack-name powertoolsworkshopide \
   --query 'Stacks[0].Outputs[?OutputKey==`WebIDE`].OutputValue' \
   --output text 2>/dev/null)
 
@@ -56,7 +56,7 @@ echo "✓ IDE URL: $IDE_URL"
 
 # Get password
 IDE_PASSWORD=$(aws cloudformation describe-stacks \
-  --stack-name RiderWorkshopIdeStack \
+  --stack-name powertoolsworkshopide \
   --query 'Stacks[0].Outputs[?OutputKey==`IDEPassword`].OutputValue' \
   --output text 2>/dev/null)
 

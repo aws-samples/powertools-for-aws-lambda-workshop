@@ -86,9 +86,9 @@ k6 run load-generator/src/module3-batch-processing.js
 make destroy
 
 # Or manually delete specific stacks
-aws cloudformation delete-stack --stack-name RiderWorkshopServicesStack
-aws cloudformation delete-stack --stack-name RiderWorkshopLoadGeneratorStack
-aws cloudformation delete-stack --stack-name RiderWorkshopInfrastructureStack
+aws cloudformation delete-stack --stack-name powertoolsworkshopservices
+aws cloudformation delete-stack --stack-name powertoolsworkshopload
+aws cloudformation delete-stack --stack-name powertoolsworkshopinfra
 ```
 
 ## Contributing

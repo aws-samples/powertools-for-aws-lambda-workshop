@@ -31,7 +31,7 @@ public class DriverRepository {
     public List<Driver> getAvailableDrivers() {
         // For demo purposes: fetch all drivers without status filter
         ScanRequest scanRequest = ScanRequest.builder()
-            .tableName(driversTableName)
+            .tableName(tableName)
             // .filterExpression("#status = :status")
             // .expressionAttributeNames(Map.of("#status", "status"))
             // .expressionAttributeValues(Map.of(":status", AttributeValue.builder().s("available").build()))

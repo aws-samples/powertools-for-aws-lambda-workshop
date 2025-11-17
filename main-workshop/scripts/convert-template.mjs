@@ -68,7 +68,7 @@ const writeJSONFile = async (content, path) => {
       'Prefix of the Amazon S3 Bucket where the assets related to this stack are. This prefix is prepended to asset keys.',
   };
   // Add Language parameter for services stack
-  if (stackName === 'RiderWorkshopServicesStack') {
+  if (stackName === 'powertoolsworkshopservices') {
     template.Parameters.Language = {
       Type: 'String',
       Description: 'Programming language for the services (typescript, python, java, dotnet)',
@@ -137,10 +137,10 @@ const writeJSONFile = async (content, path) => {
   const templatesOutDir = resolve(currentDir, 'Workshop', 'static', 'cfn');
   // Determine canonical asset folder name to match template filenames
   let assetsFolderName = stackName;
-  if (stackName === 'RiderWorkshopIdeStack') assetsFolderName = 'powertoolsworkshopide';
-  if (stackName === 'RiderWorkshopInfrastructureStack') assetsFolderName = 'powertoolsworkshopinfra';
-  if (stackName === 'RiderWorkshopServicesStack') assetsFolderName = 'powertoolsworkshopservices';
-  if (stackName === 'RiderWorkshopLoadGeneratorStack') assetsFolderName = 'powertoolsworkshopload';
+  if (stackName === 'powertoolsworkshopide') assetsFolderName = 'powertoolsworkshopide';
+  if (stackName === 'powertoolsworkshopinfra') assetsFolderName = 'powertoolsworkshopinfra';
+  if (stackName === 'powertoolsworkshopservices') assetsFolderName = 'powertoolsworkshopservices';
+  if (stackName === 'powertoolsworkshopload') assetsFolderName = 'powertoolsworkshopload';
   const assetsOutDir = resolve(currentDir, 'Workshop', 'assets', assetsFolderName);
 
   // If there is an existing assets folder named after the stackName, rename it to the canonical name
@@ -471,12 +471,21 @@ const writeJSONFile = async (content, path) => {
   
   cleanedTemplate = fixFnJoinStrings(cleanedTemplate, '', false, '');
 
+  // Fix any parameter defaults that contain intrinsic functions (CloudFormation doesn't allow this)
+  Object.keys(cleanedTemplate.Parameters).forEach((paramKey) => {
+    const param = cleanedTemplate.Parameters[paramKey];
+    if (param.Default && typeof param.Default === 'object') {
+      // Remove the Default field if it's an intrinsic function
+      delete param.Default;
+    }
+  });
+
   // Determine output filename mapping for the templates
   let outTemplateFilename = `${cfnTemplateFileNameOut}`;
-  if (stackName === 'RiderWorkshopIdeStack') outTemplateFilename = 'powertoolsworkshopide.json';
-  if (stackName === 'RiderWorkshopInfrastructureStack') outTemplateFilename = 'powertoolsworkshopinfra.json';
-  if (stackName === 'RiderWorkshopServicesStack') outTemplateFilename = 'powertoolsworkshopservices.json';
-  if (stackName === 'RiderWorkshopLoadGeneratorStack') outTemplateFilename = 'powertoolsworkshopload.json';
+  if (stackName === 'powertoolsworkshopide') outTemplateFilename = 'powertoolsworkshopide.json';
+  if (stackName === 'powertoolsworkshopinfra') outTemplateFilename = 'powertoolsworkshopinfra.json';
+  if (stackName === 'powertoolsworkshopservices') outTemplateFilename = 'powertoolsworkshopservices.json';
+  if (stackName === 'powertoolsworkshopload') outTemplateFilename = 'powertoolsworkshopload.json';
   // Save modified Cfn template in Workshop/static/cfn
   const templatesOutPath = resolve(templatesOutDir, outTemplateFilename);
   await writeJSONFile(cleanedTemplate, templatesOutPath);

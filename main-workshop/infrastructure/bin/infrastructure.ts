@@ -29,7 +29,7 @@ function checkLanguageServicesExist(lang: string): boolean {
 // Deploy based on type
 switch (deploymentType) {
   case 'infrastructure':
-    new RiderWorkshopInfrastructureStack(app, 'RiderWorkshopInfrastructureStack', {
+    new RiderWorkshopInfrastructureStack(app, 'powertoolsworkshopinfra', {
       env,
       cleanDeploy,
     });
@@ -37,7 +37,7 @@ switch (deploymentType) {
 
   case 'ide': {
     const gitRepoUrl = app.node.tryGetContext('gitRepoUrl') || process.env.GIT_REPO_URL;
-    new RiderWorkshopIdeStack(app, 'RiderWorkshopIdeStack', {
+    new RiderWorkshopIdeStack(app, 'powertoolsworkshopide', {
       env,
       gitRepoUrl,
     });
@@ -51,7 +51,7 @@ switch (deploymentType) {
     if (!checkLanguageServicesExist(language)) {
       throw new Error(`❌ No services found for: ${language}`);
     }
-    new RiderWorkshopServicesStack(app, 'RiderWorkshopServicesStack', {
+    new RiderWorkshopServicesStack(app, 'powertoolsworkshopservices', {
       env,
       language,
     });
@@ -61,7 +61,7 @@ switch (deploymentType) {
     const module = app.node.tryGetContext('module') || 'all-modules';
     const ridesPerMinute = parseInt(app.node.tryGetContext('ridesPerMinute') || '120');
     const restartIntervalHours = parseInt(app.node.tryGetContext('restartIntervalHours') || '3');
-    new RiderWorkshopLoadGeneratorStack(app, 'RiderWorkshopLoadGeneratorStack', {
+    new RiderWorkshopLoadGeneratorStack(app, 'powertoolsworkshopload', {
       env,
       module,
       ridesPerMinute,
