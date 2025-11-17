@@ -59,14 +59,14 @@ deploy-load-generator: ## Deploy Load generator stack
 convert: ## Synthesize then convert all stacks produced by synth (mirrors synth behavior)
 	@echo "Preparing to synth + convert all stacks"
 	@$(MAKE) synth
-	@echo "Converting RiderWorkshopInfrastructureStack"
-	@node scripts/convert-template.mjs RiderWorkshopInfrastructureStack
-	@echo "Converting RiderWorkshopServicesStack"
-	@node scripts/convert-template.mjs RiderWorkshopServicesStack
-	@echo "Converting RiderWorkshopIdeStack"
-	@node scripts/convert-template.mjs RiderWorkshopIdeStack
-	@echo "Converting RiderWorkshopLoadGeneratorStack"
-	@node scripts/convert-template.mjs RiderWorkshopLoadGeneratorStack
+	@echo "Converting powertoolsworkshopinfra"
+	@node scripts/convert-template.mjs powertoolsworkshopinfra
+	@echo "Converting powertoolsworkshopservices"
+	@node scripts/convert-template.mjs powertoolsworkshopservices
+	@echo "Converting powertoolsworkshopide"
+	@node scripts/convert-template.mjs powertoolsworkshopide
+	@echo "Converting powertoolsworkshopload"
+	@node scripts/convert-template.mjs powertoolsworkshopload
 
 check-load-generator: ## Check status of running Load Generators
 	@bash $(SCRIPTS_DIR)/check-load-generator-status.sh
@@ -76,43 +76,50 @@ truncate-tables: ## Deploy with fresh tables (DELETES ALL DATA)
 
 destroy-ide: ## Destroy IDE stack only
 	@echo "🗑️  Destroying IDE stack..."
-	@cd infrastructure && npx cdk destroy RiderWorkshopIdeStack --force
+	@cd infrastructure && npx cdk destroy powertoolsworkshopide --force
 	@echo "✅ IDE stack destroyed!"
 
 destroy-load-generator: ## Destroy Load generator stack only
 	@echo "🗑️  Destroying Load generator stack..."
-	@cd infrastructure && npx cdk destroy RiderWorkshopLoadGeneratorStack --force
+	@cd infrastructure && npx cdk destroy powertoolsworkshopload --force
 	@echo "✅ Load generator stack destroyed!"
 
 destroy: ## Destroy all infrastructure stacks
 	@echo "💥 Destroying all infrastructure..."
 	@echo "🗑️  Deleting Load generator stack first..."
-	@aws cloudformation delete-stack --stack-name RiderWorkshopLoadGeneratorStack 2>/dev/null || true
-	@aws cloudformation wait stack-delete-complete --stack-name RiderWorkshopLoadGeneratorStack 2>/dev/null || true
+	@aws cloudformation delete-stack --stack-name powertoolsworkshopload 2>/dev/null || true
+	@aws cloudformation wait stack-delete-complete --stack-name powertoolsworkshopload 2>/dev/null || true
 	@echo "🗑️  Deleting IDE stack..."
-	@aws cloudformation delete-stack --stack-name RiderWorkshopIdeStack 2>/dev/null || true
-	@aws cloudformation wait stack-delete-complete --stack-name RiderWorkshopIdeStack 2>/dev/null || true
+	@aws cloudformation delete-stack --stack-name powertoolsworkshopide 2>/dev/null || true
+	@aws cloudformation wait stack-delete-complete --stack-name powertoolsworkshopide 2>/dev/null || true
 	@echo "🗑️  Deleting services stack..."
-	@aws cloudformation delete-stack --stack-name RiderWorkshopServicesStack
-	@aws cloudformation wait stack-delete-complete --stack-name RiderWorkshopServicesStack
+	@aws cloudformation delete-stack --stack-name powertoolsworkshopservices
+	@aws cloudformation wait stack-delete-complete --stack-name powertoolsworkshopservices
 	@echo "🗑️  Deleting infrastructure stack..."
-	@aws cloudformation delete-stack --stack-name RiderWorkshopInfrastructureStack
-	@aws cloudformation wait stack-delete-complete --stack-name RiderWorkshopInfrastructureStack
+	@aws cloudformation delete-stack --stack-name powertoolsworkshopinfra
+	@aws cloudformation wait stack-delete-complete --stack-name powertoolsworkshopinfra
 	@echo "✅ All stacks destroyed!"
 
 synth: ## Synthesize CloudFormation template
 	@echo "📝 Synthesizing CloudFormation templates..."
-	@(cd infrastructure && npx cdk synth RiderWorkshopInfrastructureStack --context deploymentType=infrastructure)
-	@(cd infrastructure && npx cdk synth RiderWorkshopServicesStack --context deploymentType=services --context language=typescript)
-	@(cd infrastructure && npx cdk synth RiderWorkshopIdeStack --context deploymentType=ide)
-	@(cd infrastructure && npx cdk synth RiderWorkshopLoadGeneratorStack --context deploymentType=load-generator)
+	@(cd infrastructure && npx cdk synth powertoolsworkshopinfra --context deploymentType=infrastructure)
+	@(cd infrastructure && npx cdk synth powertoolsworkshopservices --context deploymentType=services --context language=typescript)
+	@(cd infrastructure && npx cdk synth powertoolsworkshopide --context deploymentType=ide)
+	@(cd infrastructure && npx cdk synth powertoolsworkshopload --context deploymentType=load-generator)
 	@mkdir -p Workshop/static/cfn
-	@cp infrastructure/cdk.out/RiderWorkshopInfrastructureStack.template.json Workshop/static/cfn/powertoolsworkshopinfra.json
-	@cp infrastructure/cdk.out/RiderWorkshopServicesStack.template.json Workshop/static/cfn/powertoolsworkshopservices.json
-	@cp infrastructure/cdk.out/RiderWorkshopIdeStack.template.json Workshop/static/cfn/powertoolsworkshopide.json
-	@cp infrastructure/cdk.out/RiderWorkshopLoadGeneratorStack.template.json Workshop/static/cfn/powertoolsworkshopload.json
+	@cp infrastructure/cdk.out/powertoolsworkshopinfra.template.json Workshop/static/cfn/powertoolsworkshopinfra.json
+	@cp infrastructure/cdk.out/powertoolsworkshopservices.template.json Workshop/static/cfn/powertoolsworkshopservices.json
+	@cp infrastructure/cdk.out/powertoolsworkshopide.template.json Workshop/static/cfn/powertoolsworkshopide.json
+	@cp infrastructure/cdk.out/powertoolsworkshopload.template.json Workshop/static/cfn/powertoolsworkshopload.json
 	@echo "✅ Templates copied to Workshop/static/cfn/"
 
 bootstrap: ## Bootstrap CDK (run once per account/region)
 	@echo "🚀 Bootstrapping CDK..."
 	@cd infrastructure && cdk bootstrap
+
+temp-copy: ## Copy Workshop files to v2 folder (fresh copy, removes old files)
+	@echo "�️ o Removing old files from ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2..."
+	@rm -rf ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2/*
+	@echo "📋 Copying all Workshop files to ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2..."
+	@cp -r Workshop/* ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2/
+	@echo "✅ Files copied successfully - exact fresh copy created!"

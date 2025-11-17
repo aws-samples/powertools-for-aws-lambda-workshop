@@ -4,8 +4,8 @@
 export const CONSTANTS = {
   // Stack Names
   STACK_NAMES: {
-    INFRASTRUCTURE: 'RiderWorkshopInfrastructureStack',
-    SERVICES: 'RiderWorkshopServicesStack',
+    INFRASTRUCTURE: 'powertoolsworkshopinfra',
+    SERVICES: 'powertoolsworkshopservices',
   },
 
   // Service Names
