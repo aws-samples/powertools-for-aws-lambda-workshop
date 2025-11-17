@@ -39,18 +39,18 @@ CDK_ARGS="$CDK_ARGS --context deploymentType=$DEPLOYMENT_TYPE"
 case "$DEPLOYMENT_TYPE" in
     "infrastructure")
         echo "Deploying infrastructure..."
-        npx cdk deploy powertoolsworkshopinfra $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-infrastructure.json"
+        npx cdk deploy powertoolsworkshopinfra $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-infrastructure.json" 2>&1 | grep -v "not supported for hotswap"
         ;;
     "ide")
         echo "Deploying IDE stack..."
         GIT_REPO=${GIT_REPO_URL:-"https://github.com/aws-samples/powertools-for-aws-lambda-workshop"}
         echo "Using Git repository: $GIT_REPO"
-        npx cdk deploy powertoolsworkshopide $CDK_ARGS --parameters GitRepoUrl=$GIT_REPO --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-ide.json"
+        npx cdk deploy powertoolsworkshopide $CDK_ARGS --parameters GitRepoUrl=$GIT_REPO --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-ide.json" 2>&1 | grep -v "not supported for hotswap"
         ;;
     "load-generator")
         check_infrastructure
         echo "Deploying Load generator stack..."
-        npx cdk deploy powertoolsworkshopload $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-load-generator.json"
+        npx cdk deploy powertoolsworkshopload $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-load-generator.json" 2>&1 | grep -v "not supported for hotswap"
         ;;
     "services")
         check_infrastructure
@@ -62,18 +62,18 @@ case "$DEPLOYMENT_TYPE" in
             "DOES_NOT_EXIST")
                 echo "Services stack doesn't exist, creating with CloudFormation..."
                 echo "Deploying $LANGUAGE services..."
-                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json"
+                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json" 2>&1 | grep -v "not supported for hotswap"
                 ;;
             "CREATE_COMPLETE"|"UPDATE_COMPLETE")
                 echo "Services stack exists and is healthy, using hotswap with fallback..."
                 echo "Deploying $LANGUAGE services..."
-                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --hotswap-fallback --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json"
+                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --hotswap-fallback --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json" 2>&1 | grep -v "not supported for hotswap"
                 ;;
             *)
                 echo "Services stack exists but is in state: $STACK_STATUS"
                 echo "Using CloudFormation deployment for safety..."
                 echo "Deploying $LANGUAGE services..."
-                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json"
+                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json" 2>&1 | grep -v "not supported for hotswap"
                 ;;
         esac
         ;;
