@@ -246,17 +246,17 @@ SETTINGS_EOF
       `if [ -f "/home/${whoamiUser}/${workshopDirectory}/infrastructure/resources/Makefile" ]; then cp /home/${whoamiUser}/${workshopDirectory}/infrastructure/resources/Makefile /home/${whoamiUser}/${workshopDirectory}/Makefile && echo "Makefile copied from infrastructure/resources" >> /var/log/workshop-setup.log; else echo "WARNING: Makefile not found at expected location" >> /var/log/workshop-setup.log; fi`,
       `echo "" >> /var/log/workshop-setup.log`,
 
-      // Install infrastructure dependencies as root (before reboot)
-      `echo "Step 8: Installing infrastructure dependencies..." >> /var/log/workshop-setup.log`,
-      `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npm install >> /var/log/workshop-setup.log 2>&1`,
-      `echo "Infrastructure dependencies installed with exit code: $?" >> /var/log/workshop-setup.log`,
-      `echo "" >> /var/log/workshop-setup.log`,
-
-      // Bootstrap CDK
-      `echo "Step 9: Bootstrapping CDK..." >> /var/log/workshop-setup.log`,
-      `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npx cdk bootstrap >> /var/log/workshop-setup.log 2>&1`,
-      `echo "CDK bootstrap completed with exit code: $?" >> /var/log/workshop-setup.log`,
-      `echo "" >> /var/log/workshop-setup.log`,
+      // Install infrastructure dependencies and bootstrap CDK as the user (not root)
+      this.#runCommandAsWhoamiUser(
+        `echo "Step 8: Installing infrastructure dependencies..." >> /var/log/workshop-setup.log`,
+        `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npm install >> /var/log/workshop-setup.log 2>&1`,
+        `echo "Infrastructure dependencies installed with exit code: $?" >> /var/log/workshop-setup.log`,
+        `echo "" >> /var/log/workshop-setup.log`,
+        `echo "Step 9: Bootstrapping CDK..." >> /var/log/workshop-setup.log`,
+        `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npx cdk bootstrap >> /var/log/workshop-setup.log 2>&1`,
+        `echo "CDK bootstrap completed with exit code: $?" >> /var/log/workshop-setup.log`,
+        `echo "" >> /var/log/workshop-setup.log`
+      ),
 
       // Create a symlink to the log file for easy access
       `ln -sf /var/log/workshop-setup.log /home/${whoamiUser}/workshop-setup.log`,
