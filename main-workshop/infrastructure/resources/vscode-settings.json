@@ -25,6 +25,10 @@
   "razor.languageServer.cohostingEnabled": false,
   "terminal.integrated.defaultProfile.linux": "zsh",
   "workbench.startupEditor": "readme",
+  "git.openRepositoryInParentFolders": "never",
+  "dotrush.roslyn.projectOrSolutionFiles": [
+    "/home/ec2-user/workshop/services/dotnet/Services.sln"
+  ],
   "auto-run-command.rules": [
     {
       "command": "workbench.action.terminal.new"
