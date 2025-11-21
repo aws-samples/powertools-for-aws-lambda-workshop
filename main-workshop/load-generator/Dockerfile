@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 grafana/k6:0.48.0
+FROM --platform=linux/amd64 ghcr.io/grafana/k6:1.4.1@sha256:47fdd183fd68112596590e62deae34da814efe2d21e026569044025c45af9fad
 
 # Copy the K6 scripts
 COPY /src/*.js /scripts/
