@@ -8,14 +8,16 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Counter, Trend } from 'k6/metrics';
+import { randomBytes } from 'k6/crypto';
 import { generateUUID } from './aws-utils.js';
 
 // Helper: cryptographically secure [0,1)
 function secureRandom() {
-  // Uint32 can store values 0 - 2^32-1, so scale appropriately
-  const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  return array[0] / 4294967296; // 2^32
+  // Get 4 random bytes and convert to Uint32
+  const bytes = randomBytes(4);
+  const view = new DataView(bytes);
+  const value = view.getUint32(0, false);
+  return value / 4294967296; // 2^32
 }
 
 // Custom metrics
@@ -117,7 +119,7 @@ export function generateErrorRequests() {
 
   if (success) {
     errorRequests.add(1);
-    console.log(`❌ Error request (status ${response.status}) - ${duration}ms [${correlationId}]`);
+    console.log(`✅  Error request (status ${response.status}) - ${duration}ms [${correlationId}]`);
   } else {
     console.log(`⚠️  Error request got unexpected status ${response.status} - ${duration}ms [${correlationId}]`);
   }
