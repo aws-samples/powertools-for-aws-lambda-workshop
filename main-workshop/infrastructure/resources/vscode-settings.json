@@ -1,6 +1,6 @@
 {
   "extensions.autoUpdate": false,
-  "terminal.integrated.cwd": "/home/{{WHOAMI_USER}}/{{WORKSHOP_DIRECTORY}}",
+  "terminal.integrated.cwd": "/home/ec2-user/workshop",
   "extensions.autoCheckUpdates": false,
   "telemetry.telemetryLevel": "off",
   "security.workspace.trust.startupPrompt": "never",
@@ -25,7 +25,7 @@
   "razor.languageServer.cohostingEnabled": false,
   "terminal.integrated.defaultProfile.linux": "zsh",
   "workbench.startupEditor": "readme",
-  "git.openRepositoryInParentFolders": "never",
+  "git.openRepositoryInParentFolders": "always",
   "dotrush.roslyn.projectOrSolutionFiles": [
     "/home/ec2-user/workshop/services/dotnet/Services.sln"
   ],
