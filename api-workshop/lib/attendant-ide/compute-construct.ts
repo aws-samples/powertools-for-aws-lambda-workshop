@@ -129,7 +129,7 @@ export class ComputeConstruct extends Construct {
       ),
       // Install & configure VSCode
       this.#runCommandAsWhoamiUser(
-        'curl -fsSL https://code-server.dev/install.sh | sh',
+        'curl -fsSL https://code-server.dev/install.sh | sh -s -- --version=4.104.3',
         'code-server --install-extension ms-python.python'
       ),
       // Configure VSCode preferences
