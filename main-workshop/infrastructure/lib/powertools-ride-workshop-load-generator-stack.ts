@@ -8,6 +8,9 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as codebuild from 'aws-cdk-lib/aws-codebuild';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as s3assets from 'aws-cdk-lib/aws-s3-assets';
 import { EXPORT_KEYS } from './config/stack-config';
 import { CONSTANTS } from './constants';
 
@@ -24,6 +27,14 @@ export interface RiderWorkshopLoadGeneratorStackProps extends cdk.StackProps {
    * Interval to restart the load generator task to refresh credentials
    */
   restartInterval?: cdk.Duration;
+  /**
+   * S3 bucket containing the Docker image tarball
+   */
+  assetBucket?: string;
+  /**
+   * S3 key for the Docker image tarball (relative to bucket root)
+   */
+  dockerImageS3Key?: string;
 }
 
 /**
@@ -115,17 +126,22 @@ export class RiderWorkshopLoadGeneratorStack extends cdk.Stack {
       taskRole,
     });
 
-    // Use pre-built Docker image from cross-account ECR
-    const imageUri = new cdk.CfnParameter(this, 'LoadGeneratorImageUri', {
-      type: 'String',
-      description: 'Docker image URI for load generator (from shared ECR repository)',
-      default: '748442897222.dkr.ecr.us-east-1.amazonaws.com/powertools-workshop-load-generator:latest',
-    });
+    // Determine image source
+    let image: ecs.ContainerImage;
 
-    const image = ecs.ContainerImage.fromRegistry(imageUri.valueAsString);
+    if (props.assetBucket && props.dockerImageS3Key) {
+      // Workshop Studio mode: Use provided S3 bucket
+      const ecrRepo = this.createECRWithCodeBuildLoader(props.assetBucket, props.dockerImageS3Key);
+      image = ecs.ContainerImage.fromEcrRepository(ecrRepo, 'latest');
+    } else {
+      // Local mode: Create S3 asset, upload tarball, and use CodeBuild
+      const { bucketName, key } = this.createS3BucketAndUploadTarball();
+      const ecrRepo = this.createECRWithCodeBuildLoader(bucketName, key);
+      image = ecs.ContainerImage.fromEcrRepository(ecrRepo, 'latest');
+    }
 
     // Add container to task definition
-    const container = this.taskDefinition.addContainer('LoadGeneratorContainer', {
+    this.taskDefinition.addContainer('LoadGeneratorContainer', {
       image,
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'load-generator',
@@ -432,5 +448,210 @@ def handler(event, context):
         SecurityGroups: [this.taskSecurityGroup.securityGroupId],
       }),
     }));
+  }
+
+  /**
+   * Create S3 bucket and upload Docker tarball
+   */
+  private createS3BucketAndUploadTarball(): { bucketName: string; key: string } {
+    // Create S3 asset from the tarball
+    const tarballAsset = new s3assets.Asset(this, 'LoadGeneratorTarballAsset', {
+      path: '../load-generator/load-generator.tar',
+    });
+
+    // The asset is automatically uploaded to the CDK asset bucket
+    const bucketName = tarballAsset.s3BucketName;
+    const key = tarballAsset.s3ObjectKey;
+
+    new cdk.CfnOutput(this, 'LoadGeneratorAssetBucketName', {
+      value: bucketName,
+      description: 'S3 bucket containing the load generator Docker image',
+    });
+
+    new cdk.CfnOutput(this, 'LoadGeneratorAssetKey', {
+      value: key,
+      description: 'S3 key for the load generator Docker image tarball',
+    });
+
+    return { bucketName, key };
+  }
+
+  /**
+   * Create ECR repository and CodeBuild project to load Docker image from S3
+   */
+  private createECRWithCodeBuildLoader(s3Bucket: string, s3Key: string): ecr.Repository {
+    // Create ECR repository
+    const ecrRepo = new ecr.Repository(this, 'LoadGeneratorECRRepository', {
+      repositoryName: 'powertools-workshop-load-generator',
+      imageScanOnPush: false,
+      lifecycleRules: [{
+        description: 'Keep only the latest image',
+        maxImageCount: 1,
+        tagStatus: ecr.TagStatus.ANY,
+      }],
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // Create CodeBuild role
+    const codeBuildRole = new iam.Role(this, 'LoadDockerImageCodeBuildRole', {
+      assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryPowerUser'),
+      ],
+    });
+
+    // Grant S3 read access
+    codeBuildRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject', 's3:GetObjectVersion'],
+      resources: [`arn:${this.partition}:s3:::${s3Bucket}/${s3Key}`],
+    }));
+
+    // Grant CloudWatch Logs permissions
+    codeBuildRole.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'logs:CreateLogGroup',
+        'logs:CreateLogStream',
+        'logs:PutLogEvents',
+      ],
+      resources: [`arn:${this.partition}:logs:${this.region}:${this.account}:log-group:/aws/codebuild/*`],
+    }));
+
+    // Create CodeBuild project
+    const buildSpec = codebuild.BuildSpec.fromObject({
+      version: '0.2',
+      phases: {
+        pre_build: {
+          commands: [
+            'echo "Downloading Docker image tarball from S3..."',
+            'aws s3 cp s3://$S3_BUCKET/$S3_KEY /tmp/image.tar',
+            'echo "Logging into Amazon ECR..."',
+            'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com',
+          ],
+        },
+        build: {
+          commands: [
+            'echo "Loading Docker image from tarball..."',
+            'docker load -i /tmp/image.tar',
+            'IMAGE_NAME=$(docker load -i /tmp/image.tar | grep "Loaded image" | sed \'s/Loaded image[^:]*: //g\')',
+            'echo "Loaded image: $IMAGE_NAME"',
+            'echo "Tagging image for ECR..."',
+            'docker tag $IMAGE_NAME $ECR_REPOSITORY_URI:latest',
+            'echo "Pushing image to ECR..."',
+            'docker push $ECR_REPOSITORY_URI:latest',
+          ],
+        },
+        post_build: {
+          commands: [
+            'echo "✅ Docker image successfully pushed to ECR"',
+            'echo "Image URI: $ECR_REPOSITORY_URI:latest"',
+          ],
+        },
+      },
+    });
+
+    const codeBuildProject = new codebuild.Project(this, 'LoadDockerImageCodeBuildProject', {
+      projectName: 'LoadDockerImageToECR',
+      role: codeBuildRole,
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+        privileged: true,
+        environmentVariables: {
+          AWS_ACCOUNT_ID: { value: this.account },
+          AWS_REGION: { value: this.region },
+          ECR_REPOSITORY_URI: { value: ecrRepo.repositoryUri },
+          S3_BUCKET: { value: s3Bucket },
+          S3_KEY: { value: s3Key },
+        },
+      },
+      buildSpec,
+    });
+
+    // Create Lambda to trigger CodeBuild
+    const triggerRole = new iam.Role(this, 'TriggerCodeBuildRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+      ],
+    });
+
+    triggerRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['codebuild:StartBuild', 'codebuild:BatchGetBuilds'],
+      resources: [codeBuildProject.projectArn],
+    }));
+
+    const triggerFunction = new lambda.Function(this, 'TriggerCodeBuildFunction', {
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'index.handler',
+      role: triggerRole,
+      timeout: cdk.Duration.minutes(15),
+      code: lambda.Code.fromInline(`
+import boto3
+import json
+import time
+import cfnresponse
+
+codebuild = boto3.client('codebuild')
+
+def handler(event, context):
+    print(f"Event: {json.dumps(event)}")
+    
+    try:
+        if event['RequestType'] == 'Delete':
+            cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+            return
+        
+        project_name = event['ResourceProperties']['ProjectName']
+        
+        print(f"Starting CodeBuild project: {project_name}")
+        response = codebuild.start_build(projectName=project_name)
+        build_id = response['build']['id']
+        print(f"Build started: {build_id}")
+        
+        # Wait for build to complete
+        while True:
+            build_response = codebuild.batch_get_builds(ids=[build_id])
+            build = build_response['builds'][0]
+            status = build['buildStatus']
+            
+            print(f"Build status: {status}")
+            
+            if status == 'SUCCEEDED':
+                print("✅ Build completed successfully")
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, {'BuildId': build_id})
+                return
+            elif status in ['FAILED', 'FAULT', 'TIMED_OUT', 'STOPPED']:
+                print(f"❌ Build failed with status: {status}")
+                cfnresponse.send(event, context, cfnresponse.FAILED, {'BuildId': build_id})
+                return
+            
+            time.sleep(10)
+            
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)})
+`),
+    });
+
+    // Create custom resource to trigger build
+    const provider = new cr.Provider(this, 'LoadDockerImageProvider', {
+      onEventHandler: triggerFunction,
+      logRetention: logs.RetentionDays.ONE_DAY,
+    });
+
+    new cdk.CustomResource(this, 'LoadDockerImageTrigger', {
+      serviceToken: provider.serviceToken,
+      properties: {
+        ProjectName: codeBuildProject.projectName,
+        Timestamp: Date.now().toString(),
+      },
+    });
+
+    // Output ECR repository URI
+    new cdk.CfnOutput(this, 'LoadGeneratorECRRepositoryUri', {
+      value: ecrRepo.repositoryUri,
+      description: 'URI of the ECR repository for the load generator',
+    });
+
+    return ecrRepo;
   }
 }

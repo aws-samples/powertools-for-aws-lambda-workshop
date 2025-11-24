@@ -61,11 +61,16 @@ switch (deploymentType) {
     const module = app.node.tryGetContext('module') || 'all-modules';
     const ridesPerMinute = parseInt(app.node.tryGetContext('ridesPerMinute') || '120');
     const restartIntervalHours = parseInt(app.node.tryGetContext('restartIntervalHours') || '3');
+    const assetBucket = app.node.tryGetContext('assetBucket') || process.env.ASSET_BUCKET;
+    const dockerImageS3Key = app.node.tryGetContext('dockerImageS3Key') || process.env.DOCKER_IMAGE_S3_KEY;
+
     new RiderWorkshopLoadGeneratorStack(app, 'powertoolsworkshopload', {
       env,
       module,
       ridesPerMinute,
       restartInterval: cdk.Duration.hours(restartIntervalHours),
+      assetBucket,
+      dockerImageS3Key,
     });
     break;
   }

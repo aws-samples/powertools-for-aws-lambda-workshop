@@ -50,6 +50,15 @@ case "$DEPLOYMENT_TYPE" in
     "load-generator")
         check_infrastructure
         echo "Deploying Load generator stack..."
+        
+        # Check if S3 bucket is provided for Docker image
+        if [ -n "$ASSET_BUCKET" ] && [ -n "$DOCKER_IMAGE_S3_KEY" ]; then
+            echo "Using Docker image from S3: s3://$ASSET_BUCKET/$DOCKER_IMAGE_S3_KEY"
+            CDK_ARGS="$CDK_ARGS --context assetBucket=$ASSET_BUCKET --context dockerImageS3Key=$DOCKER_IMAGE_S3_KEY"
+        else
+            echo "Using local Docker image tarball"
+        fi
+        
         npx cdk deploy powertoolsworkshopload $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-load-generator.json"
         ;;
     "services")

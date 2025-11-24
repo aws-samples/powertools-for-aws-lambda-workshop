@@ -43,3 +43,6 @@ Thumbs.db
 ws-studio-build/
 
 services-ws-ide/
+# 
+Docker tarballs
+*.tar

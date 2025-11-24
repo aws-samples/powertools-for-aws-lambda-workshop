@@ -23,6 +23,11 @@ interface DistributionConstructProps extends StackProps {
    * The origin to use for the distribution.
    */
   origin: string;
+  /**
+   * The instance ID to track for cache invalidation.
+   * When this changes, CloudFront cache will be invalidated.
+   */
+  instanceId?: string;
 }
 
 export class DistributionConstruct extends Construct {
@@ -36,7 +41,7 @@ export class DistributionConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { origin } = props;
+    const { origin, instanceId } = props;
 
     const cachePolicy = new CachePolicy(this, 'ide-cache', {
       cachePolicyName: 'ide-cache',
@@ -61,7 +66,14 @@ export class DistributionConstruct extends Construct {
     // Ensure cache policy is destroyed when stack is deleted
     cachePolicy.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
+    // Use instance ID in distribution comment to force cache behavior update
+    // This helps CloudFront recognize when the backend has changed
+    const distributionComment = instanceId
+      ? `IDE Distribution - Instance: ${instanceId.substring(0, 12)}`
+      : 'IDE Distribution';
+
     const distribution = new Distribution(this, 'distribution', {
+      comment: distributionComment,
       defaultBehavior: {
         origin: new HttpOrigin(origin, {
           protocolPolicy: OriginProtocolPolicy.HTTP_ONLY,

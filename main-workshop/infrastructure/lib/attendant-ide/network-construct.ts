@@ -1,4 +1,4 @@
-import { RemovalPolicy, type StackProps } from 'aws-cdk-lib';
+import { Duration, RemovalPolicy, type StackProps } from 'aws-cdk-lib';
 import {
   FlowLogDestination,
   FlowLogTrafficType,
@@ -22,7 +22,7 @@ import {
   idePort,
 } from './constants';
 
-interface NetworkConstructProps extends StackProps {}
+interface NetworkConstructProps extends StackProps { }
 
 export class NetworkConstruct extends Construct {
   public readonly vpc: Vpc;
@@ -68,7 +68,8 @@ export class NetworkConstruct extends Construct {
   }
 
   public createLoadBalancerWithInstanceEc2Target(
-    target: InstanceIdTarget
+    target: InstanceIdTarget,
+    instanceId: string
   ): ApplicationLoadBalancer {
     this.loadBalancer = new ApplicationLoadBalancer(this, 'vscode-lb', {
       vpc: this.vpc,
@@ -83,14 +84,22 @@ export class NetworkConstruct extends Construct {
       protocol: ApplicationProtocol.HTTP,
     });
 
-    listener.addTargets('vscode-target', {
-      port: 80,
+    // Use instance ID in target group ID to force recreation when instance changes
+    // This ensures no stale connections or cached unhealthy states
+    listener.addTargets(`vscode-target-${instanceId.substring(0, 8)}`, {
+      port: Number.parseInt(idePort),
       targets: [target],
       healthCheck: {
-        path: '/healthz',
+        path: '/login', // code-server login page
         port: idePort,
         protocol: Protocol.HTTP,
+        interval: Duration.seconds(30),
+        timeout: Duration.seconds(10),
+        healthyThresholdCount: 3, // Need 3 consecutive successes (90 seconds)
+        unhealthyThresholdCount: 5, // Allow more failures during startup
       },
+      // Force faster deregistration when instance is replaced
+      deregistrationDelay: Duration.seconds(10), // Default is 300 seconds (5 min)
       priority: 10,
       conditions: [
         ListenerCondition.httpHeader(customSecurityHeader, [

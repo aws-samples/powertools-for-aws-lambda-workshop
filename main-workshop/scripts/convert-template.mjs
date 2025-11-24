@@ -175,9 +175,47 @@ const writeJSONFile = async (content, path) => {
     console.error(`Failed to load assets ${join(basePath, assetsFileName)}; aborting`);
     process.exit(1);
   }
-  // Create a zip archive for each asset and place it in the out dir
+
+  // First, process Docker image assets to get the list before modifying template
+  const dockerImageAssets = [];
+  for (const [assetId, dockerImage] of Object.entries(assets.dockerImages || {})) {
+    if (!dockerImage.source || !dockerImage.source.executable) continue;
+
+    // Extract the tarball filename from the docker load command
+    const loadCommand = dockerImage.source.executable.join(' ');
+    const tarMatch = loadCommand.match(/asset\.([a-f0-9]+)\.tar/);
+    if (!tarMatch) {
+      console.log(`Skipping docker image asset ${assetId} - no tarball found`);
+      continue;
+    }
+
+    const tarFileName = `asset.${tarMatch[1]}.tar`;
+
+    // Use the image tag as the destination filename
+    const destKeys = Object.keys(dockerImage.destinations || {});
+    const accountKey = destKeys.find((k) => k.startsWith('current_account-')) || destKeys[0];
+    if (!accountKey) {
+      console.error(`No destination key found for docker image: ${assetId}`);
+      continue;
+    }
+
+    const imageTag = dockerImage.destinations[accountKey].imageTag;
+
+    // Store info for template modification
+    dockerImageAssets.push({
+      imageTag,
+      tarFileName: `${imageTag}.tar`,
+      repositoryName: dockerImage.destinations[accountKey].repositoryName,
+      srcTar: join(basePath, tarFileName)
+    });
+  }
+
+  // Process file assets (zip archives and tar files)
   for (const file of Object.values(assets.files)) {
-    if (file.source.packaging !== 'zip') continue;
+    if (file.source.packaging !== 'zip' && file.source.packaging !== 'file') continue;
+
+    // For file packaging, only process .tar files
+    if (file.source.packaging === 'file' && !file.source.path.endsWith('.tar')) continue;
     const assetPath = join(basePath, file.source.path);
     // find any destination key (they're in format: accountId-region-hash or current_account-region-hash)
     const destKeys = Object.keys(file.destinations || {});
@@ -186,21 +224,148 @@ const writeJSONFile = async (content, path) => {
       console.error(`No destination key found for asset: ${JSON.stringify(file)}`);
       continue;
     }
-    const zipName = file.destinations[accountKey].objectKey;
-    console.log(`Running: zip -r ${zipName} ./ (in ${assetPath})`);
+    const fileName = file.destinations[accountKey].objectKey;
+
+    if (file.source.packaging === 'zip') {
+      console.log(`Running: zip -r ${fileName} ./ (in ${assetPath})`);
+      try {
+        // run zip in the assetPath and then move the resulting file to assetsOutDir
+        execSync(`zip -r ${fileName} ./`, { cwd: assetPath, stdio: 'inherit' });
+        const srcFile = resolve(assetPath, fileName);
+        const destFile = resolve(assetsOutDir, fileName);
+        // ensure assetsOutDir exists (should already)
+        await mkdir(assetsOutDir, { recursive: true });
+        // move the zip
+        await rename(srcFile, destFile);
+      } catch (err) {
+        console.error(err);
+        console.error(`Failed to create/move zip ${fileName} from ${assetPath}`);
+      }
+    } else if (file.source.packaging === 'file') {
+      // For file packaging, just copy the file
+      console.log(`Copying file asset: ${fileName}`);
+      try {
+        const srcFile = join(basePath, file.source.path);
+        const destFile = resolve(assetsOutDir, fileName);
+        await mkdir(assetsOutDir, { recursive: true });
+        execSync(`cp "${srcFile}" "${destFile}"`, { stdio: 'inherit' });
+        console.log(`✓ Copied file asset to ${destFile}`);
+      } catch (err) {
+        console.error(err);
+        console.error(`Failed to copy file ${fileName}`);
+      }
+    }
+  }
+
+  // Copy Docker image tarballs to assets folder
+  for (const dockerAsset of dockerImageAssets) {
+    const destTar = join(assetsOutDir, dockerAsset.tarFileName);
+
+    console.log(`Copying Docker image tarball: ${dockerAsset.tarFileName}`);
     try {
-      // run zip in the assetPath and then move the resulting file to assetsOutDir
-      execSync(`zip -r ${zipName} ./`, { cwd: assetPath, stdio: 'inherit' });
-      const srcZip = resolve(assetPath, zipName);
-      const destZip = resolve(assetsOutDir, zipName);
-      // ensure assetsOutDir exists (should already)
       await mkdir(assetsOutDir, { recursive: true });
-      // move the zip
-      await rename(srcZip, destZip);
+      // Copy the tarball (use cp command since these are large files)
+      execSync(`cp "${dockerAsset.srcTar}" "${destTar}"`, { stdio: 'inherit' });
+      console.log(`✓ Copied Docker image tarball to ${destTar}`);
     } catch (err) {
       console.error(err);
-      console.error(`Failed to create/move zip ${zipName} from ${assetPath}`);
+      console.error(`Failed to copy Docker tarball ${dockerAsset.tarFileName}`);
     }
+  }
+
+  // Replace Docker image references in ECS task definitions
+  if (dockerImageAssets.length > 0) {
+    console.log('Modifying template for Docker images...');
+
+    // Find all task definitions and update container image references
+    Object.keys(template.Resources).forEach((resourceKey) => {
+      const resource = template.Resources[resourceKey];
+      if (resource.Type !== 'AWS::ECS::TaskDefinition') return;
+
+      const containerDefs = resource.Properties?.ContainerDefinitions;
+      if (!containerDefs || !Array.isArray(containerDefs)) return;
+
+      containerDefs.forEach((container) => {
+        if (!container.Image || typeof container.Image !== 'object') return;
+
+        // Check if this is an Fn::Sub with ECR reference
+        const imageSub = container.Image['Fn::Sub'];
+        if (!imageSub || typeof imageSub !== 'string') return;
+
+        // Extract the image tag from the ECR reference
+        const tagMatch = imageSub.match(/:([a-f0-9]{64})$/);
+        if (!tagMatch) return;
+
+        const imageTag = tagMatch[1];
+        const dockerAsset = dockerImageAssets.find(asset => asset.imageTag === imageTag);
+        if (!dockerAsset) return;
+
+        console.log(`Updating container image reference for tarball: ${dockerAsset.tarFileName}`);
+
+        // Replace with a simplified ECR reference using parameters
+        // The repository will be created and image loaded separately
+        container.Image = {
+          'Fn::Sub': '${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/${LoadGeneratorECRRepository}:latest'
+        };
+      });
+    });
+
+    // Add ECR repository and helper resources for Docker images
+    const dockerAsset = dockerImageAssets[0]; // Assuming one docker image per stack
+
+    // Add ECR repository resource
+    template.Resources.LoadGeneratorECRRepository = {
+      Type: 'AWS::ECR::Repository',
+      Properties: {
+        RepositoryName: 'powertools-workshop-load-generator',
+        ImageScanningConfiguration: {
+          ScanOnPush: false
+        },
+        LifecyclePolicy: {
+          LifecyclePolicyText: JSON.stringify({
+            rules: [{
+              rulePriority: 1,
+              description: 'Keep only the latest image',
+              selection: {
+                tagStatus: 'any',
+                countType: 'imageCountMoreThan',
+                countNumber: 1
+              },
+              action: {
+                type: 'expire'
+              }
+            }]
+          })
+        }
+      }
+    };
+
+    // Add parameter for Docker image tarball S3 key
+    template.Parameters.DockerImageTarballKey = {
+      Type: 'String',
+      Description: 'S3 key for the Docker image tarball',
+      Default: dockerAsset.tarFileName
+    };
+
+    // Add LoadGeneratorImageUri parameter for backward compatibility with Workshop Studio
+    // This parameter is not used in the template but may be referenced by contentspec
+    template.Parameters.LoadGeneratorImageUri = {
+      Type: 'String',
+      Description: 'Docker image URI for load generator (deprecated - using ECR repository instead)',
+      Default: ''
+    };
+
+    // Add output for ECR repository URI
+    if (!template.Outputs) template.Outputs = {};
+    template.Outputs.LoadGeneratorECRRepositoryUri = {
+      Description: 'URI of the ECR repository for the load generator',
+      Value: {
+        'Fn::GetAtt': ['LoadGeneratorECRRepository', 'RepositoryUri']
+      }
+    };
+
+    console.log(`✓ Added ECR repository resource`);
+    console.log(`Note: Docker image tarball ${dockerAsset.tarFileName} will need to be loaded into ECR`);
   }
 
   // Replace hardcoded regions and account IDs with pseudo-parameters
@@ -271,7 +436,7 @@ const writeJSONFile = async (content, path) => {
       // For Fn::Sub context, use ${AWS::Region} format
       let result = obj;
       let hasReplacement = false;
-      
+
       if (result.includes(accountId)) {
         result = result.replace(new RegExp(accountId, 'g'), '${AWS::AccountId}');
         hasReplacement = true;
@@ -381,9 +546,70 @@ const writeJSONFile = async (content, path) => {
   console.log(`Detected region: ${detectedRegion}, account: ${detectedAccount}`);
   console.log('Replacing hardcoded values with pseudo-parameters...');
 
+  // Replace S3 bucket references in CodeBuild environment variables BEFORE pseudo-parameter replacement
+  Object.keys(template.Resources).forEach((resourceKey) => {
+    const resource = template.Resources[resourceKey];
+    if (resource.Type !== 'AWS::CodeBuild::Project') return;
+
+    const envVars = resource.Properties?.Environment?.EnvironmentVariables;
+    if (!envVars || !Array.isArray(envVars)) return;
+
+    envVars.forEach((envVar) => {
+      // Replace S3_BUCKET environment variable to use AssetBucket parameter
+      if (envVar.Name === 'S3_BUCKET') {
+        envVar.Value = { Ref: 'AssetBucket' };
+      }
+      // Replace S3_KEY environment variable to use AssetPrefix parameter
+      if (envVar.Name === 'S3_KEY' && typeof envVar.Value === 'string') {
+        envVar.Value = {
+          'Fn::Sub': [
+            '${Prefix}' + envVar.Value,
+            {
+              Prefix: {
+                Ref: 'AssetPrefix',
+              },
+            },
+          ],
+        };
+      }
+    });
+  });
+
+  // Replace S3 bucket references in IAM policies for CodeBuild
+  Object.keys(template.Resources).forEach((resourceKey) => {
+    const resource = template.Resources[resourceKey];
+    if (resource.Type !== 'AWS::IAM::Policy') return;
+
+    const statements = resource.Properties?.PolicyDocument?.Statement;
+    if (!statements || !Array.isArray(statements)) return;
+
+    statements.forEach((statement) => {
+      // Look for S3 GetObject permissions
+      if (statement.Action &&
+        (statement.Action.includes('s3:GetObject') || statement.Action.includes('s3:GetObjectVersion'))) {
+        // Check if Resource is a string with S3 ARN
+        if (statement.Resource && typeof statement.Resource === 'string') {
+          // Check if it's an S3 ARN with a .tar file
+          if (statement.Resource.includes('arn:aws:s3:::') && statement.Resource.includes('.tar')) {
+            // Replace with parameterized version using wildcard for any tar file
+            statement.Resource = {
+              'Fn::Sub': [
+                'arn:aws:s3:::${Bucket}/${Prefix}*',
+                {
+                  Bucket: { Ref: 'AssetBucket' },
+                  Prefix: { Ref: 'AssetPrefix' }
+                }
+              ]
+            };
+          }
+        }
+      }
+    });
+  });
+
   // Apply replacements
   let cleanedTemplate = replaceHardcodedValues(template, detectedRegion, detectedAccount);
-  
+
   // Post-process: Fix any remaining ${AWS::Region} or ${AWS::AccountId} in Fn::Join arrays
   // These should be Ref objects, not strings
   const fixFnJoinStrings = (obj, parentKey = '', inFnJoin = false, grandparentKey = '') => {
@@ -392,15 +618,15 @@ const writeJSONFile = async (content, path) => {
       if (inFnJoin && (obj.includes('${AWS::Region}') || obj.includes('${AWS::AccountId}'))) {
         const parts = [];
         let current = obj;
-        
+
         while (current.length > 0) {
           const regionIdx = current.indexOf('${AWS::Region}');
           const accountIdx = current.indexOf('${AWS::AccountId}');
-          
+
           let nextIdx = -1;
           let isRegion = false;
           let replaceStr = '';
-          
+
           if (regionIdx >= 0 && (accountIdx < 0 || regionIdx < accountIdx)) {
             nextIdx = regionIdx;
             isRegion = true;
@@ -410,20 +636,20 @@ const writeJSONFile = async (content, path) => {
             isRegion = false;
             replaceStr = '${AWS::AccountId}';
           }
-          
+
           if (nextIdx < 0) {
             if (current) parts.push(current);
             break;
           }
-          
+
           if (nextIdx > 0) {
             parts.push(current.substring(0, nextIdx));
           }
-          
+
           parts.push({ Ref: isRegion ? 'AWS::Region' : 'AWS::AccountId' });
           current = current.substring(nextIdx + replaceStr.length);
         }
-        
+
         return parts.length > 1 ? parts : obj;
       }
       return obj;
@@ -468,7 +694,7 @@ const writeJSONFile = async (content, path) => {
     }
     return obj;
   };
-  
+
   cleanedTemplate = fixFnJoinStrings(cleanedTemplate, '', false, '');
 
   // Fix any parameter defaults that contain intrinsic functions (CloudFormation doesn't allow this)

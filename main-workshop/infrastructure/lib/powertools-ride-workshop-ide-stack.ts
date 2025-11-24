@@ -5,7 +5,6 @@ import { NetworkConstruct } from './attendant-ide/network-construct';
 import { RandomPasswordConstruct } from './attendant-ide/random-password-construct';
 import { ComputeConstruct } from './attendant-ide/compute-construct';
 import { DistributionConstruct } from './attendant-ide/distribution-construct';
-import { CompletionConstruct } from './attendant-ide/completion-construct';
 
 export interface RiderWorkshopIdeStackProps extends cdk.StackProps {
   gitRepoUrl?: string;
@@ -39,10 +38,11 @@ export class RiderWorkshopIdeStack extends cdk.Stack {
       vscodePassword: randomPassword.randomPassword,
       gitRepoUrl: gitRepoUrl.valueAsString,
     });
-    const { target } = compute;
+    const { target, instance } = compute;
 
     // Create a load balancer and add the instance as a target
-    network.createLoadBalancerWithInstanceEc2Target(target);
+    // Pass instance ID to force target group recreation on instance replacement
+    network.createLoadBalancerWithInstanceEc2Target(target, instance.instanceId);
     if (network.loadBalancer === undefined) {
       throw new Error('Load balancer not created');
     }
@@ -51,12 +51,10 @@ export class RiderWorkshopIdeStack extends cdk.Stack {
     compute.allowConnectionFromLoadBalancer(network.loadBalancer);
 
     // Create a CloudFront distribution in front of the load balancer
+    // Pass instance ID to trigger cache invalidation on instance replacement
     const distribution = new DistributionConstruct(this, 'distribution', {
       origin: network.loadBalancer.loadBalancerDnsName,
-    });
-
-    new CompletionConstruct(this, 'completion', {
-      healthCheckEndpoint: distribution.healthCheckEndpoint,
+      instanceId: instance.instanceId,
     });
 
     // Output clean names at stack level

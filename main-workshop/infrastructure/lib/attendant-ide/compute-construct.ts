@@ -74,10 +74,17 @@ export class ComputeConstruct extends Construct {
 
     const userData = UserData.forLinux();
     userData.addCommands(
+      // ========================================
+      // STEP 1: Basic System Setup & User Permissions
+      // ========================================
       // Allow ec2-user to use sudo without password
       `echo "${whoamiUser} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/${whoamiUser}`,
       `chmod 0440 /etc/sudoers.d/${whoamiUser}`,
 
+
+      // ========================================
+      // STEP 2: System Update & Basic Packages
+      // ========================================
       // Update system first
       'dnf update -y',
       'dnf clean all',
@@ -90,11 +97,19 @@ export class ComputeConstruct extends Construct {
       'echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf',
       'sysctl -p',
 
+
+      // ========================================
+      // STEP 3: Shell Setup (zsh)
+      // ========================================
       // Setup zsh and oh-my-zsh
       `chsh -s $(which zsh) ${whoamiUser}`,
       this.#runCommandAsWhoamiUser(
         `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended`
       ),
+
+      // ========================================
+      // STEP 4: Python Setup
+      // ========================================
       // Install Python 3.13 via dnf (simpler than pyenv)
       'dnf install -y python3.13',
       'alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 1',
@@ -105,6 +120,10 @@ export class ComputeConstruct extends Construct {
       // Fix dnf to always use python3.9
       'sed -i "1s|.*|#!/usr/bin/python3.9|" /usr/bin/dnf',
 
+
+      // ========================================
+      // STEP 5: Node.js & CDK Setup
+      // ========================================
       // Install Node.js 22 via NodeSource
       'curl -fsSL https://rpm.nodesource.com/setup_22.x | bash -',
       'sleep 5',
@@ -118,6 +137,10 @@ export class ComputeConstruct extends Construct {
       // Install AWS CDK
       `npm install -g aws-cdk`,
 
+
+      // ========================================
+      // STEP 6: Java & .NET Setup
+      // ========================================
       // Setup Java
       this.#runCommandAsWhoamiUser(
         `curl -s "https://get.sdkman.io" | bash`,
@@ -130,6 +153,10 @@ export class ComputeConstruct extends Construct {
       'sleep 5',
       'dnf install -y dotnet-sdk-8.0',
 
+
+      // ========================================
+      // STEP 7: AWS CLI & Git Configuration
+      // ========================================
       // Install AWS CLI v2 (detect architecture)
       this.#runCommandAsWhoamiUser(
         'ARCH=$(uname -m)',
@@ -144,6 +171,10 @@ export class ComputeConstruct extends Construct {
       this.#runCommandAsWhoamiUser(
         'git config --global init.defaultBranch main'
       ),
+
+      // ========================================
+      // STEP 8: VSCode Server Installation & Configuration
+      // ========================================
       // Create parameter & write to config.yaml + SSM
       this.#runCommandAsWhoamiUser(
         'mkdir -p $HOME/.config/code-server',
@@ -154,7 +185,7 @@ export class ComputeConstruct extends Construct {
         'curl -fsSL https://code-server.dev/install.sh | sh -s -- --version=4.104.3',
         `code-server --install-extension ms-python.python`,
         `code-server --install-extension vscjava.vscode-java-pack`,
-        `code-server --install-extension muhammad-sammy.csharp`
+        // `code-server --install-extension nromanov.dotrush`
       ),
       // Make 'code' command available
       this.#runCommandAsWhoamiUser(
@@ -167,6 +198,12 @@ ${vscodeSettings}
 SETTINGS_EOF
 `,
       `chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/.local/share/code-server/User/settings.json`,
+
+
+
+      // ========================================
+      // STEP 9: Workshop Content Setup (Clone & Configure)
+      // ========================================
       // Setup workshop content - run as root for reliability
       `echo "=== Workshop Setup Started at $(date) ===" > /var/log/workshop-setup.log`,
       `echo "Git Repo URL: ${gitRepoUrl}" >> /var/log/workshop-setup.log`,
@@ -244,26 +281,12 @@ SETTINGS_EOF
       // Replace Makefile with workshop version from infrastructure/resources
       `rm -f /home/${whoamiUser}/${workshopDirectory}/Makefile`,
       `if [ -f "/home/${whoamiUser}/${workshopDirectory}/infrastructure/resources/Makefile" ]; then cp /home/${whoamiUser}/${workshopDirectory}/infrastructure/resources/Makefile /home/${whoamiUser}/${workshopDirectory}/Makefile && echo "Makefile copied from infrastructure/resources" >> /var/log/workshop-setup.log; else echo "WARNING: Makefile not found at expected location" >> /var/log/workshop-setup.log; fi`,
+
+      // Remove .git folder so we can initialize a fresh repo later
+      `rm -rf /home/${whoamiUser}/${workshopDirectory}/.git`,
+      `echo ".git folder removed for fresh initialization" >> /var/log/workshop-setup.log`,
+
       `echo "" >> /var/log/workshop-setup.log`,
-
-      // Install infrastructure dependencies as root (before reboot)
-      `echo "Step 8: Installing infrastructure dependencies..." >> /var/log/workshop-setup.log`,
-      `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npm install >> /var/log/workshop-setup.log 2>&1`,
-      `echo "Infrastructure dependencies installed with exit code: $?" >> /var/log/workshop-setup.log`,
-      `echo "" >> /var/log/workshop-setup.log`,
-
-      // Fix ownership of node_modules and package-lock.json
-      `chown -R ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/${workshopDirectory}/infrastructure/node_modules`,
-      `chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/${workshopDirectory}/infrastructure/package-lock.json 2>/dev/null || true`,
-
-      // Bootstrap CDK as root
-      `echo "Step 9: Bootstrapping CDK..." >> /var/log/workshop-setup.log`,
-      `cd /home/${whoamiUser}/${workshopDirectory}/infrastructure && npx cdk bootstrap >> /var/log/workshop-setup.log 2>&1`,
-      `echo "CDK bootstrap completed with exit code: $?" >> /var/log/workshop-setup.log`,
-      `echo "" >> /var/log/workshop-setup.log`,
-
-      // Fix ownership of cdk.out directory
-      `chown -R ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/${workshopDirectory}/infrastructure/cdk.out 2>/dev/null || true`,
 
       // Create a symlink to the log file for easy access
       `ln -sf /var/log/workshop-setup.log /home/${whoamiUser}/workshop-setup.log`,
@@ -271,32 +294,136 @@ SETTINGS_EOF
 
       `echo "=== Workshop Setup Completed at $(date) ===" >> /var/log/workshop-setup.log`,
 
-      // Initialize git as the user
-      this.#runCommandAsWhoamiUser(
-        `cd /home/${whoamiUser}/${workshopDirectory} && git init`,
-        `cd /home/${whoamiUser}/${workshopDirectory} && git config --local user.name "Workshop User"`,
-        `cd /home/${whoamiUser}/${workshopDirectory} && git config --local user.email "workshop@example.com"`,
-        `cd /home/${whoamiUser}/${workshopDirectory} && git add .`,
-        `cd /home/${whoamiUser}/${workshopDirectory} && git commit -m "Initial workshop content" || true`,
-        // Create workspace file to open workshop folder by default
-        `mkdir -p /home/${whoamiUser}/.local/share/code-server/User/Workspaces`,
-        `cat > /home/${whoamiUser}/.local/share/code-server/User/Workspaces/workshop.code-workspace << 'WORKSPACE_EOF'
-${workspaceConfig}
-WORKSPACE_EOF
-`,
-        `chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/.local/share/code-server/User/Workspaces/workshop.code-workspace`,
-        // Set the last opened workspace
-        `mkdir -p /home/${whoamiUser}/.local/share/code-server/User/globalStorage`,
-        `cat > /home/${whoamiUser}/.local/share/code-server/User/globalStorage/storage.json << 'STORAGE_EOF'
-${storageConfig}
-STORAGE_EOF
-`,
-        `chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/.local/share/code-server/User/globalStorage/storage.json`
-      ),
-      `systemctl enable --now code-server@${whoamiUser}`,
+      // ========================================
+      // STEP 11: Git Initialization & Workspace Configuration
+      // ========================================
+      // MOVED TO POST-REBOOT SCRIPT - These need to run after reboot for persistence
 
       // ========================================
-      // Configure .zshrc - All customizations in one place
+      // STEP 12: Start VSCode Server Service
+      // ========================================
+      `systemctl enable --now code-server@${whoamiUser}`,
+
+      // Create a post-reboot setup script that runs in background
+      // This ensures IDE starts quickly while heavy tasks complete in background
+      `cat > /usr/local/bin/post-reboot-setup.sh << 'POSTREBOOT_EOF'
+#!/bin/bash
+# Wait for system to stabilize after reboot
+sleep 30
+
+# Log file
+LOG="/var/log/post-reboot-setup.log"
+echo "=== Post-Reboot Setup Started at $(date) ===" > $LOG
+
+# Initialize git repository as ec2-user
+echo "Initializing git repository..." >> $LOG
+cd /home/${whoamiUser}/${workshopDirectory}
+sudo -u ${whoamiUser} git init >> $LOG 2>&1
+sudo -u ${whoamiUser} git config --local user.name "Workshop User" >> $LOG 2>&1
+sudo -u ${whoamiUser} git config --local user.email "workshop@example.com" >> $LOG 2>&1
+sudo -u ${whoamiUser} git add . >> $LOG 2>&1
+sudo -u ${whoamiUser} git commit -m "Initial workshop content" >> $LOG 2>&1 || true
+echo "Git repository initialized" >> $LOG
+
+# Create workspace configuration
+echo "Setting up VSCode workspace..." >> $LOG
+mkdir -p /home/${whoamiUser}/.local/share/code-server/User/Workspaces
+cat > /home/${whoamiUser}/.local/share/code-server/User/Workspaces/workshop.code-workspace << 'WORKSPACE_EOF'
+{
+  "folders": [
+    {
+      "path": "/home/${whoamiUser}/${workshopDirectory}"
+    }
+  ],
+  "settings": {}
+}
+WORKSPACE_EOF
+chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/.local/share/code-server/User/Workspaces/workshop.code-workspace
+
+# Set the last opened workspace
+mkdir -p /home/${whoamiUser}/.local/share/code-server/User/globalStorage
+cat > /home/${whoamiUser}/.local/share/code-server/User/globalStorage/storage.json << 'STORAGE_EOF'
+{
+  "lastActiveWindow": {
+    "workspace": {
+      "id": "workshop",
+      "configPath": "/home/${whoamiUser}/.local/share/code-server/User/Workspaces/workshop.code-workspace"
+    }
+  }
+}
+STORAGE_EOF
+chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/.local/share/code-server/User/globalStorage/storage.json
+echo "VSCode workspace configured" >> $LOG
+
+# Restart code-server to pick up workspace changes
+echo "Restarting code-server..." >> $LOG
+systemctl restart code-server@${whoamiUser} >> $LOG 2>&1
+sleep 5
+echo "code-server restarted" >> $LOG
+
+# Run npm install in background (always, since we skip it in cloud-init)
+echo "Running npm install..." >> $LOG
+cd /home/${whoamiUser}/${workshopDirectory}/infrastructure
+
+# Configure npm for better reliability
+npm config set fetch-timeout 60000 >> $LOG 2>&1
+npm config set fetch-retries 3 >> $LOG 2>&1
+
+# Install dependencies
+npm install --prefer-offline --no-audit --no-fund >> $LOG 2>&1
+NPM_EXIT=$?
+echo "npm install completed with exit code: $NPM_EXIT" >> $LOG
+
+# Fix ownership
+chown -R ${whoamiUser}:${whoamiUser} node_modules package-lock.json 2>/dev/null || true
+
+# Bootstrap CDK if npm install succeeded
+if [ $NPM_EXIT -eq 0 ]; then
+  echo "Running CDK bootstrap..." >> $LOG
+  npx cdk bootstrap >> $LOG 2>&1
+  CDK_EXIT=$?
+  echo "CDK bootstrap completed with exit code: $CDK_EXIT" >> $LOG
+  
+  # Fix ownership of cdk.out
+  chown -R ${whoamiUser}:${whoamiUser} cdk.out 2>/dev/null || true
+  
+  # Create marker file when everything is complete
+  if [ $CDK_EXIT -eq 0 ]; then
+    echo "Workshop fully ready at $(date)" > /home/${whoamiUser}/.workshop-ready
+    echo "npm install: SUCCESS" >> /home/${whoamiUser}/.workshop-ready
+    echo "cdk bootstrap: SUCCESS" >> /home/${whoamiUser}/.workshop-ready
+    chown ${whoamiUser}:${whoamiUser} /home/${whoamiUser}/.workshop-ready
+  fi
+else
+  echo "Skipping CDK bootstrap due to npm install failure" >> $LOG
+fi
+
+echo "=== Post-Reboot Setup Completed at $(date) ===" >> $LOG
+POSTREBOOT_EOF
+`,
+      `chmod +x /usr/local/bin/post-reboot-setup.sh`,
+
+      // Create systemd service to run post-reboot setup
+      `cat > /etc/systemd/system/post-reboot-setup.service << 'POSTSERVICE_EOF'
+[Unit]
+Description=Post-Reboot Workshop Setup
+After=network-online.target code-server@${whoamiUser}.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/post-reboot-setup.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+POSTSERVICE_EOF
+`,
+      `systemctl daemon-reload`,
+      `systemctl enable post-reboot-setup.service`,
+
+      // ========================================
+      // STEP 13: Shell Environment Configuration (.zshrc)
       // ========================================
       this.#runCommandAsWhoamiUser(
         `echo "" >> $HOME/.zshrc`,
@@ -322,6 +449,10 @@ STORAGE_EOF
         `echo "}" >> $HOME/.zshrc`
       ),
 
+      // ========================================
+      // FINAL STEP: Mark setup complete and reboot
+      // ========================================
+      'echo "Setup completed at $(date)" > /var/lib/cloud/instance/ide-setup-complete',
       'reboot'
     );
 
