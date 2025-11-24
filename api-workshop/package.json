@@ -24,23 +24,23 @@
     "*.md": "markdownlint-cli2 --fix"
   },
   "devDependencies": {
-    "@aws-sdk/client-cloudformation": "^3.651.1",
-    "@biomejs/biome": "^1.8.3",
-    "@types/aws-lambda": "^8.10.141",
-    "@types/node": "20.14.11",
-    "aws-cdk": "2.149.0",
-    "esbuild": "^0.23.0",
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
-    "markdownlint-cli2": "^0.19.0",
-    "shelljs": "^0.8.5",
-    "tsx": "^4.16.2",
-    "typescript": "~5.5.3"
+    "@aws-sdk/client-cloudformation": "^3.938.0",
+    "@biomejs/biome": "^2.3.7",
+    "@types/aws-lambda": "^8.10.159",
+    "@types/node": "24.10.1",
+    "aws-cdk": "2.1033.0",
+    "esbuild": "^0.27.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "markdownlint-cli2": "^0.19.1",
+    "shelljs": "^0.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.224.0",
-    "cdk-nag": "^2.28.195",
-    "constructs": "^10.0.0",
+    "aws-cdk-lib": "2.228.0",
+    "cdk-nag": "^2.37.55",
+    "constructs": "^10.4.3",
     "source-map-support": "^0.5.21"
   }
 }

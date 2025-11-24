@@ -71,18 +71,18 @@ case "$DEPLOYMENT_TYPE" in
             "DOES_NOT_EXIST")
                 echo "Services stack doesn't exist, creating with CloudFormation..."
                 echo "Deploying $LANGUAGE services..."
-                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json"
+                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json" --no-notices
                 ;;
             "CREATE_COMPLETE"|"UPDATE_COMPLETE")
                 echo "Services stack exists and is healthy, using hotswap with fallback..."
                 echo "Deploying $LANGUAGE services..."
-                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --hotswap-fallback --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json"
+                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --hotswap-fallback --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json" --no-notices
                 ;;
             *)
                 echo "Services stack exists but is in state: $STACK_STATUS"
                 echo "Using CloudFormation deployment for safety..."
                 echo "Deploying $LANGUAGE services..."
-                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json"
+                npx cdk deploy powertoolsworkshopservices $CDK_ARGS --outputs-file "$PROJECT_ROOT/infrastructure/cdk.out/params-services.json" --no-notices
                 ;;
         esac
         ;;
