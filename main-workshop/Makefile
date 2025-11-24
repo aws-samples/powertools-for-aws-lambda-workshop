@@ -58,6 +58,10 @@ deploy-load-generator: ## Deploy Load generator stack
 
 convert: ## Synthesize then convert all stacks produced by synth (mirrors synth behavior)
 	@echo "Preparing to synth + convert all stacks"
+	@echo "🔨 Building TypeScript services first..."
+	@bash $(SCRIPTS_DIR)/build.sh typescript
+	@echo "🐳 Building load generator Docker image..."
+	@bash $(SCRIPTS_DIR)/build-load-generator.sh
 	@$(MAKE) synth
 	@echo "Converting powertoolsworkshopinfra"
 	@node scripts/convert-template.mjs powertoolsworkshopinfra
