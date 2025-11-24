@@ -16,10 +16,10 @@
     "lint:fix": "biome check --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.3",
-    "@types/aws-lambda": "^8.10.157",
-    "@types/node": "^24.10.0",
-    "esbuild": "^0.25.12",
+    "@biomejs/biome": "2.3.7",
+    "@types/aws-lambda": "^8.10.159",
+    "@types/node": "^24.10.1",
+    "esbuild": "^0.27.0",
     "typescript": "^5.9.3"
   }
 }

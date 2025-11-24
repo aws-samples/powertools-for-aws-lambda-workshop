@@ -12,12 +12,12 @@
     "lint:ci": "biome ci ."
   },
   "devDependencies": {
-    "@aws-sdk/client-dynamodb": "^3.902.0",
-    "@aws-sdk/lib-dynamodb": "^3.902.0",
-    "@types/aws-lambda": "^8.10.152",
-    "@types/node": "^24.5.2"
+    "@aws-sdk/client-dynamodb": "^3.936.0",
+    "@aws-sdk/lib-dynamodb": "^3.936.0",
+    "@types/aws-lambda": "^8.10.159",
+    "@types/node": "^24.10.1"
   },
   "dependencies": {
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   }
 }
