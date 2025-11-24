@@ -116,10 +116,3 @@ synth: ## Synthesize CloudFormation template
 bootstrap: ## Bootstrap CDK (run once per account/region)
 	@echo "🚀 Bootstrapping CDK..."
 	@cd infrastructure && cdk bootstrap
-
-temp-copy: ## Copy Workshop files to v2 folder (fresh copy, removes old files)
-	@echo "�️ o Removing old files from ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2..."
-	@rm -rf ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2/*
-	@echo "📋 Copying all Workshop files to ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2..."
-	@cp -r Workshop/* ../accelerate-your-serverless-journey-with-powertools-for-aws-lambda-v2/
-	@echo "✅ Files copied successfully - exact fresh copy created!"
