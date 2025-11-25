@@ -20,6 +20,7 @@ Globals:
         POWERTOOLS_METRICS_NAMESPACE: Workshop
 
 Resources:
+
   OrdersTable:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Delete
@@ -41,7 +42,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Handler: app.lambdaHandler
+      Handler: index.handler
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref OrdersTable
@@ -62,17 +63,16 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Format: esm
-        Minify: false
+        Minify: true
         OutExtension:
           - .js=.mjs
-        Target: "es2020"
+        Target: "es2023"
         Sourcemap: true
         EntryPoints: 
-          - app.ts
-        External:
-          - "@aws-sdk"
+          - index.4.local.ts
         Banner:
           - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+
   PowertoolsRestApi:
     Type: AWS::Serverless::Api
     Properties:
