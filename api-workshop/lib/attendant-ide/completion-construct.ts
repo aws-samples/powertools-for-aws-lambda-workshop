@@ -1,10 +1,15 @@
-import { CustomResource, Duration, type StackProps } from 'aws-cdk-lib';
+import {
+  CustomResource,
+  Duration,
+  RemovalPolicy,
+  type StackProps,
+} from 'aws-cdk-lib';
 import {
   Code,
   Function as LambdaFunction,
   Runtime,
 } from 'aws-cdk-lib/aws-lambda';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
@@ -31,11 +36,14 @@ export class CompletionConstruct extends Construct {
     const { healthCheckEndpoint } = props;
 
     const isAvailableHandler = new LambdaFunction(this, 'is-available', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      logRetention: RetentionDays.ONE_DAY,
+      logGroup: new LogGroup(this, 'is-available-fn-log', {
+        removalPolicy: RemovalPolicy.DESTROY,
+        retention: RetentionDays.ONE_DAY,
+      }),
       timeout: Duration.seconds(30),
-      code: Code.fromInline(`/* global fetch */
+      code: Code.fromInline(`
       exports.handler = async () => {
         // make request to ide healthcheck endpoint
         // return true if 200, false otherwise
@@ -70,16 +78,22 @@ export class CompletionConstruct extends Construct {
       'check-id-availability-provider',
       {
         onEventHandler: new LambdaFunction(this, 'no-op-handler', {
-          runtime: Runtime.NODEJS_20_X,
+          runtime: Runtime.NODEJS_22_X,
           handler: 'index.handler',
-          logRetention: RetentionDays.ONE_DAY,
+          logGroup: new LogGroup(this, 'no-op-handler-fn-log', {
+            removalPolicy: RemovalPolicy.DESTROY,
+            retention: RetentionDays.ONE_DAY,
+          }),
           timeout: Duration.seconds(5),
           code: Code.fromInline('exports.handler = async () => true;'),
         }),
         isCompleteHandler: isAvailableHandler,
         totalTimeout: Duration.minutes(15),
         queryInterval: Duration.seconds(5),
-        logRetention: RetentionDays.ONE_DAY,
+        logGroup: new LogGroup(this, 'check-id-availability-log', {
+          removalPolicy: RemovalPolicy.DESTROY,
+          retention: RetentionDays.ONE_DAY,
+        }),
       }
     );
 

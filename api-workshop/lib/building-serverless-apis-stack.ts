@@ -43,10 +43,8 @@ export class BuildingServerlessAPIsStack extends Stack {
       path: './workshop-assets',
       exclude: [
         'cdk.out',
-        'cdk.context.json',
         'cdk.json',
         'node_modules',
-        'package-lock.json',
         '.venv',
         '.aws-sam',
       ],
@@ -82,28 +80,6 @@ export class BuildingServerlessAPIsStack extends Stack {
     new CompletionConstruct(this, 'completion', {
       healthCheckEndpoint,
     });
-
-    const resourcePaths = [
-      'BuildingServerlessAPIs/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
-      'BuildingServerlessAPIs/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
-    ];
-    for (const resourcePath of resourcePaths) {
-      let id = 'AwsSolutions-L1';
-      let reason = 'Resource created and managed by CDK.';
-      if (resourcePath.endsWith('ServiceRole/Resource')) {
-        id = 'AwsSolutions-IAM4';
-      } else if (resourcePath.endsWith('DefaultPolicy/Resource')) {
-        id = 'AwsSolutions-IAM5';
-        reason +=
-          ' This type of resource is a singleton fn that interacts with many resources so IAM policies are lax by design to allow this use case.';
-      }
-      NagSuppressions.addResourceSuppressionsByPath(this, resourcePath, [
-        {
-          id,
-          reason,
-        },
-      ]);
-    }
 
     NagSuppressions.addResourceSuppressionsByPath(
       this,

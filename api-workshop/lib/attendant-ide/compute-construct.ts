@@ -107,7 +107,8 @@ export class ComputeConstruct extends Construct {
         `eval "\`fnm env\`"`,
         `fnm install ${nodeVersion}`,
         `fnm use ${nodeVersion}`,
-        `fnm default ${nodeVersion}`
+        `fnm default ${nodeVersion}`,
+        'npm install -g esbuild'
       ),
       // Install AWS CLI
       this.#runCommandAsWhoamiUser(
@@ -130,11 +131,13 @@ export class ComputeConstruct extends Construct {
       // Install & configure VSCode
       this.#runCommandAsWhoamiUser(
         'curl -fsSL https://code-server.dev/install.sh | sh -s -- --version=4.104.3',
-        'code-server --install-extension ms-python.python'
+        'code-server --install-extension ms-python.python',
+        'code-server --install-extension biomejs.biome'
       ),
       // Configure VSCode preferences
       this.#runCommandAsWhoamiUser(
         `mkdir -p /home/${whoamiUser}/${workshopDirectory}`,
+        `mkdir -p /home/${whoamiUser}/.local/share/code-server/User`,
         `tee /home/${whoamiUser}/.local/share/code-server/User/settings.json <<EOF
 {
   "extensions.autoUpdate": false,
@@ -148,6 +151,9 @@ export class ComputeConstruct extends Construct {
   "editor.indentSize": "tabSize",
   "editor.tabSize": 2,
   "python.testing.pytestEnabled": true,
+  "biome.lsp.bin": "/home/${whoamiUser}/${workshopDirectory}/typescript/src/node_modules/.bin/biome",
+  "chat.agent.enabled": false,
+  "chat.disableAIFeatures": true,
   "auto-run-command.rules": [
     {
       "command": "workbench.action.terminal.new"
@@ -201,7 +207,8 @@ EOF
       this.#runCommandAsWhoamiUser(
         `export PATH="/home/${whoamiUser}/.local/share/fnm:$PATH"`,
         `eval "\`fnm env\`"`,
-        `cd /home/${whoamiUser}/${workshopDirectory}`
+        `cd /home/${whoamiUser}/${workshopDirectory}/typescript/src`,
+        'npm ci',
       ),
       // Finally, reboot the instance
       'reboot'
