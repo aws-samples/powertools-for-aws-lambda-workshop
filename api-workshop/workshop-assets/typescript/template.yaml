@@ -69,7 +69,7 @@ Resources:
         Target: "es2023"
         Sourcemap: true
         EntryPoints: 
-          - index.4.local.ts
+          - index.ts
         Banner:
           - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
 
