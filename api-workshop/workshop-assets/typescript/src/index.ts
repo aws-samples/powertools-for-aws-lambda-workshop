@@ -1,5 +1,5 @@
 /**
- * Imports - app.ts
+ * Imports - index.ts
  */
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
@@ -7,15 +7,15 @@ import {
   GetCommand,
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
-import type { APIGatewayProxyEvent } from 'aws-lambda';
+import type { APIGatewayProxyEvent, Context } from 'aws-lambda';
 
 /**
- * Classes, functions and instances - app.ts
+ * Classes, functions and instances - index.ts
  */
 const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 
 /**
- * Get all orders method - app.ts
+ * Get all orders method - index.ts
  */
 const getAllOrders = async () => {
   const response = await ddbDocClient.send(
@@ -36,7 +36,7 @@ const getAllOrders = async () => {
 };
 
 /**
- * Get order method - app.ts
+ * Get order method - index.ts
  */
 const getOrder = async (event: APIGatewayProxyEvent) => {
   const orderId = event.queryStringParameters?.orderId;
@@ -60,9 +60,12 @@ const getOrder = async (event: APIGatewayProxyEvent) => {
 };
 
 /**
- * Lambda Handler - app.ts
+ * Lambda Handler - index.ts
  */
-export const lambdaHandler = async (event: APIGatewayProxyEvent) => {
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+) => {
   const httpMethod = event.httpMethod;
 
   if (
