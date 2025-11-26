@@ -111,7 +111,7 @@ export class ComputeConstruct extends Construct {
       ),
       // Install AWS CLI
       this.#runCommandAsWhoamiUser(
-        'curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o $HOME/awscliv2.zip',
+        'curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o $HOME/awscliv2.zip',
         'unzip $HOME/awscliv2.zip',
         'sudo $HOME/aws/install',
         'rm -rf $HOME/awscliv2.zip $HOME/aws',
