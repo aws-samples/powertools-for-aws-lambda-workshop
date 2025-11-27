@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Populating orders..."
 
-BATCH_SIZE=50
+BATCH_SIZE=1000
 BATCH_START=1
 
 while [ $BATCH_START -le $BATCH_SIZE ]; do

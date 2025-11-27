@@ -7,18 +7,20 @@
   "type": "module",
   "main": "index.ts",
   "devDependencies": {
+    "@biomejs/biome": "^2.3.7",
     "@types/aws-lambda": "^8.10.159",
     "@types/node": "^24.10.1"
   },
   "dependencies": {
     "@aws-lambda-powertools/event-handler": "^2.29.0",
+    "@aws-lambda-powertools/idempotency": "^2.29.0",
     "@aws-lambda-powertools/logger": "^2.29.0",
     "@aws-lambda-powertools/metrics": "^2.29.0",
+    "@aws-lambda-powertools/parser": "^2.29.0",
     "@aws-lambda-powertools/tracer": "^2.29.0",
     "@aws-sdk/client-dynamodb": "^3.939.0",
     "@aws-sdk/lib-dynamodb": "^3.939.0",
     "@middy/core": "^6.4.5",
-    "esbuild": "^0.27.0",
     "zod": "^4.1.13"
   }
 }

@@ -11,7 +11,7 @@ if (isCI) {
   Aspects.of(app).add(new AwsSolutionsChecks());
 }
 new BuildingServerlessAPIsStack(app, 'BuildingServerlessAPIs', {
-  // description: '', // TODO: add tracking ID
+  description: '(uksb-yzj01jt1ar) (tag:powertools-api-workshop)',
   tags: {
     Service: 'BuildingServerlessAPIsWorkshop',
     ManagedBy: 'CDK',

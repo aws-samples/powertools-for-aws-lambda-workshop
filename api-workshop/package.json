@@ -16,7 +16,7 @@
     "infra:deploy": "npm run cdk deploy -- BuildingServerlessAPIs",
     "infra:deploy:hotswap": "npm run cdk deploy -- --hotswap-fallback BuildingServerlessAPIs",
     "infra:synth": "npm run cdk synth -- BuildingServerlessAPIs",
-    "infra:wsPrep": "npm run utils:convertCDKtoCfn -- BuildingServerlessAPIs",
+    "infra:wsPrep": "rimraf ./Workshop && npm run utils:convertCDKtoCfn -- BuildingServerlessAPIs",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -33,6 +33,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "markdownlint-cli2": "^0.19.1",
+    "rimraf": "^6.1.2",
     "shelljs": "^0.10.0",
     "tsx": "^4.20.6",
     "typescript": "~5.9.3"

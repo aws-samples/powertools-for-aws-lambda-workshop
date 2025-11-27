@@ -34,14 +34,14 @@ export class RandomPasswordConstruct extends Construct {
       `${resourcePrefix}-provider`,
       {
         onEventHandler: new LambdaFunction(this, `${resourcePrefix}-fn`, {
-          runtime: Runtime.NODEJS_20_X,
+          runtime: Runtime.NODEJS_22_X,
           handler: 'index.handler',
           logGroup: new LogGroup(this, `${resourcePrefix}-fn-log`, {
             removalPolicy: RemovalPolicy.DESTROY,
             retention: RetentionDays.ONE_DAY,
           }),
           timeout: Duration.seconds(10),
-          code: Code.fromInline(`const { randomUUID } = require('crypto');
+          code: Code.fromInline(`const { randomUUID } = require('node:crypto');
           exports.handler = async () => {
             return {
               Data: { RandomPassword: randomUUID() },
