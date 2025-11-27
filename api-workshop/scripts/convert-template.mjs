@@ -135,7 +135,7 @@ const writeJSONFile = async (content, path) => {
   });
 
   // Define output directories: templates go to Workshop/static/cfn, assets to Workshop/assets/<stackName>
-  const templatesOutDir = resolve(currentDir, 'Workshop', 'static', 'cfn');
+  const templatesOutDir = resolve(currentDir, 'Workshop');
   // Determine canonical asset folder name to match template filenames
   let assetsFolderName = stackName;
   if (stackName === 'powertoolsworkshopide')
@@ -154,7 +154,7 @@ const writeJSONFile = async (content, path) => {
   );
 
   // If there is an existing assets folder named after the stackName, rename it to the canonical name
-  const legacyAssetsDir = resolve(currentDir, 'Workshop', 'assets', stackName);
+  const legacyAssetsDir = resolve(currentDir, 'Workshop');
   if (existsSync(legacyAssetsDir) && !existsSync(assetsOutDir)) {
     try {
       await rename(legacyAssetsDir, assetsOutDir);
