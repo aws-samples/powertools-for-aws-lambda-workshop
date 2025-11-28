@@ -20,6 +20,7 @@ public class Function
         {
             foreach (var record in streamEvent.Records)
             {
+                Metrics.AddMetric("ExtractedRecords", 1, MetricUnit.Count);
                 var extractedData = await _streamProcessorService.ExtractRecord(record);
 
                 // Add correlation ID to logger context for tracking
