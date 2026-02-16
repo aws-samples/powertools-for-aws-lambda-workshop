@@ -28,7 +28,7 @@
     "@biomejs/biome": "^2.3.7",
     "@types/aws-lambda": "^8.10.159",
     "@types/node": "24.10.1",
-    "aws-cdk": "2.1033.0",
+    "aws-cdk": "2.1106.0",
     "esbuild": "^0.27.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
@@ -39,7 +39,7 @@
     "typescript": "~5.9.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.228.0",
+    "aws-cdk-lib": "2.238.0",
     "cdk-nag": "^2.37.55",
     "constructs": "^10.4.3",
     "source-map-support": "^0.5.21"
