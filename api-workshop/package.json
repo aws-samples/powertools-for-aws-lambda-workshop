@@ -29,7 +29,7 @@
     "@types/aws-lambda": "^8.10.159",
     "@types/node": "24.10.1",
     "aws-cdk": "2.1033.0",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.27.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "markdownlint-cli2": "^0.19.1",
