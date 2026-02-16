@@ -23,7 +23,7 @@
     "@aws-sdk/lib-dynamodb": "^3.936.0",
     "aws-cdk-lib": "^2.228.0",
     "cdk-nag": "^2.37.55",
-    "constructs": "^10.4.3",
+    "constructs": "^10.4.5",
     "path": "^0.12.7",
     "typescript": "^5.9.3"
   }
