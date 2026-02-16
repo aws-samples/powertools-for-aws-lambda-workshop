@@ -20,7 +20,7 @@
     "@aws-lambda-powertools/tracer": "^2.29.0",
     "@aws-sdk/client-dynamodb": "^3.990.0",
     "@aws-sdk/lib-dynamodb": "^3.990.0",
-    "@middy/core": "^6.4.5",
+    "@middy/core": "^7.0.2",
     "zod": "^4.1.13"
   }
 }
