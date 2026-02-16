@@ -16,7 +16,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@aws-lambda-powertools/batch": "^2.29.0",
+    "@aws-lambda-powertools/batch": "^2.31.0",
     "@aws-lambda-powertools/idempotency": "^2.29.0",
     "@aws-lambda-powertools/logger": "^2.29.0",
     "@aws-lambda-powertools/metrics": "^2.29.0",
