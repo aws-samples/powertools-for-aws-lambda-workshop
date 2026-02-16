@@ -24,6 +24,6 @@
     "@aws-sdk/client-dynamodb": "^3.987.0",
     "@aws-sdk/client-eventbridge": "^3.987.0",
     "@aws-sdk/lib-dynamodb": "^3.987.0",
-    "@middy/core": "^6.4.5"
+    "@middy/core": "^7.0.2"
   }
 }
