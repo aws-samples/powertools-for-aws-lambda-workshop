@@ -22,6 +22,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/infrastructure
@@ -32,6 +34,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript/ride-service
@@ -42,6 +46,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript/payment-stream-processor
@@ -52,6 +58,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript/driver-matching-service
@@ -62,6 +70,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript
@@ -72,6 +82,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript/ride-completion-service
@@ -82,6 +94,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript/dynamic-pricing-service
@@ -92,6 +106,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /main-workshop/services/typescript/payment-processor
@@ -102,6 +118,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /api-workshop/workshop-assets/typescript/src
@@ -112,6 +130,8 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
 
   - package-ecosystem: npm
     directory: /api-workshop
@@ -122,3 +142,5 @@ updates:
         patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
         patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+      powertools:
+        patterns: ["@aws-lambda-powertools/*"]
