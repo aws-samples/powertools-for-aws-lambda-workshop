@@ -14,20 +14,111 @@ updates:
       include: scope
 
   - package-ecosystem: npm
-    directory: /
-    labels: [ ]
+    directory: /main-workshop/load-generator
     schedule:
       interval: monthly
-    versioning-strategy: increase
     groups:
       aws-sdk:
-        patterns:
-        - "@aws-sdk/**"
-        - "@smithy/**"
-        - "aws-sdk-client-mock"
-        - "aws-sdk-client-mock-jest"
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
       aws-cdk:
-        patterns:
-        - "@aws-cdk/**"
-        - "aws-cdk-lib"
-        - "aws-cdk"
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/infrastructure
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript/ride-service
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript/payment-stream-processor
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript/driver-matching-service
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript/ride-completion-service
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript/dynamic-pricing-service
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /main-workshop/services/typescript/payment-processor
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /api-workshop/workshop-assets/typescript/src
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
+
+  - package-ecosystem: npm
+    directory: /api-workshop
+    schedule:
+      interval: monthly
+    groups:
+      aws-sdk:
+        patterns: ["@aws-sdk/**", "@smithy/**", "aws-sdk-client-mock", "aws-sdk-client-mock-jest"]
+      aws-cdk:
+        patterns: ["@aws-cdk/**", "aws-cdk-lib", "aws-cdk"]
