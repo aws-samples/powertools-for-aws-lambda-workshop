@@ -7,7 +7,7 @@
   "type": "module",
   "main": "index.ts",
   "devDependencies": {
-    "@biomejs/biome": "^2.3.7",
+    "@biomejs/biome": "^2.4.0",
     "@types/aws-lambda": "^8.10.159",
     "@types/node": "^24.10.1"
   },
