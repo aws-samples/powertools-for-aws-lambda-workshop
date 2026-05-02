@@ -21,6 +21,6 @@
     "@aws-sdk/client-dynamodb": "^3.1022.0",
     "@aws-sdk/lib-dynamodb": "^3.1022.0",
     "@middy/core": "^7.2.1",
-    "zod": "^4.3.6"
+    "zod": "^4.4.2"
   }
 }
