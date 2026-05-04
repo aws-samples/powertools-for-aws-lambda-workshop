@@ -19,7 +19,7 @@
     "@aws-sdk/client-dynamodb": "^3.1022.0",
     "@aws-sdk/lib-dynamodb": "^3.1022.0",
     "aws-cdk-lib": "^2.252.0",
-    "cdk-nag": "^2.37.55",
+    "cdk-nag": "^2.38.2",
     "constructs": "^10.6.0",
     "path": "^0.12.7",
     "typescript": "^6.0.3"
