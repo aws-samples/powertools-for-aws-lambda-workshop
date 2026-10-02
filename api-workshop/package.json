@@ -27,7 +27,7 @@
     "@aws-sdk/client-cloudformation": "^3.1142.0",
     "@biomejs/biome": "^2.5.14",
     "@types/aws-lambda": "^8.10.160",
-    "@types/node": "26.4.0",
+    "@types/node": "26.6.3",
     "aws-cdk": "2.1143.0",
     "esbuild": "^0.28.2",
     "husky": "^9.1.7",
