@@ -27,6 +27,6 @@
     "@middy/core": "^7.9.2"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.162"
+    "@types/aws-lambda": "^8.10.164"
   }
 }
