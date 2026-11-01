@@ -16,7 +16,7 @@
     "lint:fix": "biome check --write ."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.6.4",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^26.6.3",
     "esbuild": "^0.28.2",
