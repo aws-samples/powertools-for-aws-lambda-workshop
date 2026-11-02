@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-cloudformation": "^3.1160.0",
-    "@biomejs/biome": "^2.5.14",
+    "@biomejs/biome": "^2.6.4",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "26.6.3",
     "aws-cdk": "2.1146.1",
