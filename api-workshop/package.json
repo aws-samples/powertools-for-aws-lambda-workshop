@@ -33,13 +33,13 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
     "markdownlint-cli2": "^0.24.0",
-    "rimraf": "^6.1.3",
+    "rimraf": "^6.1.4",
     "shelljs": "^0.10.0",
     "tsx": "^4.22.4",
     "typescript": "~7.0.2"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.275.0",
+    "aws-cdk-lib": "^2.278.0",
     "cdk-nag": "^2.38.2",
     "constructs": "^10.7.2",
     "source-map-support": "^0.5.21"
